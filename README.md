@@ -7,11 +7,19 @@
 
 A **production-ready** suite of tools for managing, visualizing, and validating project dependencies across any codebase. Built for developers who need **enterprise-grade dependency management** without the complexity.
 
+## ✨ **Recent Major Updates**
+
+🌐 **Web-Native Mermaid Visualization** - Replaced heavy Graphviz with lightweight, GitHub-ready Mermaid graphs
+🔒 **Security Hardened** - Fixed XSS vulnerabilities, hardcoded secrets, and dependency security issues  
+🎨 **Code Quality** - Full Black formatting compliance and comprehensive security scanning
+⚡ **Simplified CI** - Reliable, fast workflows that actually add value (no more complex matrix failures)
+📱 **Mobile-Responsive** - Dependency graphs work perfectly on phones, tablets, and desktops
+
 ## 🎯 **Overview**
 
 The Dependency Toolkit provides **six powerful tools** for comprehensive dependency management:
 
-1. **🌐 Automated Dependency Graph Visualization** - Interactive dependency trees with risk analysis
+1. **🌐 Web-Native Mermaid Visualization** - GitHub-ready dependency graphs with zero system dependencies
 2. **🔒 Pre-commit Dependency Validation** - Git hooks preventing broken dependencies
 3. **🚀 CI/CD Integration Tools** - Automated workflows for GitHub Actions & GitLab CI
 4. **📊 Real-time Monitoring Dashboard** - Live dependency health monitoring with web interface
@@ -97,13 +105,41 @@ Architecture Analysis: Found 4 violations
 
 Summary: Found 47 total issues requiring attention
 ```
-python tools/dependency_visualizer.py /path/to/project
 
-# Validate dependencies
-python tools/pre_commit_validator.py /path/to/project
+### Web-Native Mermaid Graph
+The toolkit now generates modern, web-native dependency graphs that render perfectly in GitHub:
 
-# Generate documentation
-python tools/doc_generator.py /path/to/project
+```mermaid
+graph TD
+    setup["setup"]
+    tools_dependency_visualizer["dependency_visualizer"]
+    tools_code_analyzer["code_analyzer"]
+    tools_doc_generator["doc_generator"]
+    tools_monitoring_dashboard["monitoring_dashboard"]
+    tools_pre_commit_validator["pre_commit_validator"]
+    tools_ci_cd_integrator["ci_cd_integrator"]
+
+    %% Risk-based styling
+    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff
+    classDef medium fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436
+    classDef low fill:#6bcf7f,stroke:#00b894,stroke-width:1px,color:#2d3436
+
+    class setup low
+    class tools_dependency_visualizer medium
+    class tools_code_analyzer medium
+    class tools_doc_generator high
+    class tools_monitoring_dashboard medium
+    class tools_pre_commit_validator medium
+    class tools_ci_cd_integrator medium
+```
+
+### Alternative Command Usage
+```bash
+# Generate GitHub-ready Mermaid syntax
+dependency-visualizer /path/to/project --format syntax
+
+# Generate interactive HTML dashboard (default)
+dependency-visualizer /path/to/project --format mermaid
 ```
 
 ## 🛠️ **Tools**
@@ -207,11 +243,31 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - ✅ **Web-Native Visualization** - Mermaid graphs work everywhere, no dependencies
 - ✅ **GitHub Ready** - Native rendering in README files and documentation
-- ✅ **CI/CD Friendly** - No system dependencies, faster builds
+- ✅ **Security Hardened** - XSS protection, secure secret handling, vulnerability scanning
+- ✅ **CI/CD Friendly** - Simple, reliable workflows that actually work
 - ✅ **Cross-Platform** - Windows, macOS, Linux support
 - ✅ **Mobile Responsive** - Perfect visualization on any device
 - ✅ **Zero Installation** - Web-based graphs work immediately
+- ✅ **Code Quality** - Black formatting, Bandit security scanning, comprehensive testing
 - ✅ **Open Source** - Free to use and modify
+
+## 🚀 **What's New in v1.1.0**
+
+### Major Improvements
+- **🌐 Mermaid Visualization**: Zero-dependency, GitHub-native graphs
+- **🔒 Security Hardening**: Fixed XSS vulnerabilities and hardcoded secrets
+- **⚡ Simplified CI**: Reliable workflows that don't break every commit
+- **📱 Mobile-First**: Responsive design that works on all devices
+- **🎨 Code Quality**: Full Black formatting and security scanning
+
+### Breaking Changes
+- Replaced Plotly with Mermaid as default visualization (use `--format html` for legacy Plotly)
+- Simplified GitHub Actions workflows (complex matrix testing disabled)
+
+### Migration Guide
+- **Old**: `dependency-visualizer project --format html` (Plotly)
+- **New**: `dependency-visualizer project` (Mermaid HTML dashboard)
+- **GitHub**: `dependency-visualizer project --format syntax` (raw .mmd for README)
 
 ---
 
