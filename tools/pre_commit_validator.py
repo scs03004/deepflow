@@ -635,7 +635,7 @@ def _display_impact_analysis(impact: ChangeImpact):
     # Impact summary
     console.print(Panel.fit(
         f"[bold]Change Impact Analysis[/bold]\n\n"
-        f"Risk Level: [{{'HIGH': 'red', 'MEDIUM': 'yellow', 'LOW': 'green'}[impact.risk_assessment]}]{impact.risk_assessment}[/]\n"
+        f"Risk Level: [{'red' if impact.risk_assessment == 'HIGH' else 'yellow' if impact.risk_assessment == 'MEDIUM' else 'green'}]{impact.risk_assessment}[/]\n"
         f"Affected Modules: {len(impact.affected_modules)}\n"
         f"Required Tests: {', '.join(impact.required_tests) if impact.required_tests else 'None'}\n"
         f"Deployment Impact: {'Yes' if impact.deployment_impact else 'No'}",

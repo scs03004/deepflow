@@ -1,0 +1,230 @@
+name: Dependency Toolkit CI
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: macos-latest
+            python-version: '3.8'
+          - os: macos-latest
+            python-version: '3.9'
+          - os: windows-latest
+            python-version: '3.8'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov black mypy flake8
+
+    - name: Code formatting check
+      run: |
+        black --check --diff tools/
+
+    - name: Type checking
+      run: |
+        mypy tools/ --ignore-missing-imports
+
+    - name: Linting
+      run: |
+        flake8 tools/ --max-line-length=100 --ignore=E203,W503
+
+    - name: Test installation
+      run: |
+        dependency-visualizer --help
+        dependency-validator --help
+        dependency-analyzer --help
+        dependency-docs --help
+        dependency-ci --help
+        dependency-monitor --help
+
+    - name: Self-analysis test
+      run: |
+        # Test the tools on themselves
+        dependency-visualizer . --format text
+        dependency-analyzer . --all --output test_results.json
+        
+    - name: Test on sample Python project
+      run: |
+        # Create a simple test project
+        mkdir test_project
+        echo "import os\nimport sys\nfrom pathlib import Path\n\ndef main():\n    print('hello')" > test_project/main.py
+        echo "from main import main\nimport json" > test_project/utils.py
+        
+        # Test tools on sample project
+        dependency-visualizer test_project --format html --output test_graph.html
+        dependency-analyzer test_project --all
+
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
+        path: |
+          test_results.json
+          test_graph.html
+          *_dependency_graph.html
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install package
+      run: |
+        pip install -e .
+    
+    - name: Test GitHub Actions generation
+      run: |
+        mkdir test_integration_project
+        cd test_integration_project
+        git init
+        echo "print('hello')" > main.py
+        dependency-ci --setup-github .
+        
+        # Verify workflows were created
+        ls -la .github/workflows/
+        cat .github/workflows/dependency-check.yml
+
+    - name: Test pre-commit installation
+      run: |
+        cd test_integration_project
+        dependency-validator --install .
+        
+        # Verify hooks were created
+        ls -la .git/hooks/
+        test -f .git/hooks/pre-commit
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install safety bandit
+        pip install -e .
+    
+    - name: Security scan with Safety
+      run: |
+        safety check
+    
+    - name: Security scan with Bandit
+      run: |
+        bandit -r tools/ -f json -o bandit-report.json
+    
+    - name: Upload security report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: bandit-report.json
+
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install package
+      run: |
+        pip install -e .
+        pip install memory-profiler
+    
+    - name: Create large test project
+      run: |
+        # Create a larger project for performance testing
+        mkdir large_test_project
+        for i in {1..50}; do
+          echo "import os\nimport sys\nfrom pathlib import Path\nimport json\nfrom typing import Dict, List\n\ndef function_$i():\n    pass\n\nclass Class$i:\n    def method_1(self): pass\n    def method_2(self): pass" > large_test_project/module_$i.py
+        done
+    
+    - name: Performance test
+      run: |
+        echo "Testing performance on 50-file project..."
+        time dependency-visualizer large_test_project --format html
+        time dependency-analyzer large_test_project --all
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test, integration-test, security-scan]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        pip install build twine
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check distribution
+      run: |
+        twine check dist/*
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes in this Release
+          - Dependency analysis improvements
+          - Bug fixes and performance enhancements
+          - See [CHANGELOG.md](CHANGELOG.md) for full details
+        draft: false
+        prerelease: false

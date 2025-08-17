@@ -1,0 +1,306 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        pip install build twine
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check distribution
+      run: |
+        twine check dist/*
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+  test-package:
+    runs-on: ${{ matrix.os }}
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.11']
+    
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Install package from wheel
+      run: |
+        pip install dist/*.whl
+    
+    - name: Test installation
+      run: |
+        dependency-visualizer --help
+        dependency-analyzer --help
+        dependency-validator --help
+        
+        # Quick functionality test
+        mkdir test_project
+        echo "import os" > test_project/main.py
+        dependency-visualizer test_project --format text
+
+  generate-examples:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Install package
+      run: |
+        pip install dist/*.whl
+    
+    - name: Generate release examples
+      run: |
+        mkdir -p release_examples
+        
+        # Generate examples on the toolkit itself
+        dependency-visualizer . --format html --output release_examples/dependency_toolkit_graph.html
+        dependency-analyzer . --all --output release_examples/dependency_toolkit_analysis.json
+        
+        # Create sample project for demo
+        mkdir -p release_examples/sample_project
+        
+        cat > release_examples/sample_project/main.py << 'EOF'
+        """
+        Sample project demonstrating dependency analysis.
+        """
+        import os
+        import sys
+        from pathlib import Path
+        from typing import Dict, List, Optional
+        from .config import Settings
+        from .database import Database
+        from .api import APIClient
+        
+        def main():
+            settings = Settings()
+            db = Database(settings.database_url)
+            api = APIClient(settings.api_key)
+            
+            data = api.fetch_data()
+            db.store(data)
+            
+            return {"status": "success", "records": len(data)}
+        
+        if __name__ == "__main__":
+            result = main()
+            print(f"Processed {result['records']} records")
+        EOF
+        
+        cat > release_examples/sample_project/config.py << 'EOF'
+        """Configuration management."""
+        import os
+        from typing import Optional
+        
+        class Settings:
+            def __init__(self):
+                self.database_url: str = os.getenv("DATABASE_URL", "sqlite:///data.db")
+                self.api_key: Optional[str] = os.getenv("API_KEY")
+                self.debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+        EOF
+        
+        cat > release_examples/sample_project/database.py << 'EOF'
+        """Database operations."""
+        import sqlite3
+        from typing import List, Dict, Any
+        
+        class Database:
+            def __init__(self, url: str):
+                self.url = url
+                self.connection = sqlite3.connect(url)
+                self.setup_tables()
+            
+            def setup_tables(self):
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS records (
+                        id INTEGER PRIMARY KEY,
+                        data TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+            
+            def store(self, data: List[Dict[str, Any]]):
+                for item in data:
+                    self.connection.execute(
+                        "INSERT INTO records (data) VALUES (?)",
+                        (str(item),)
+                    )
+                self.connection.commit()
+        EOF
+        
+        cat > release_examples/sample_project/api.py << 'EOF'
+        """API client for data fetching."""
+        from typing import List, Dict, Any, Optional
+        import json
+        
+        class APIClient:
+            def __init__(self, api_key: Optional[str]):
+                self.api_key = api_key
+                self.base_url = "https://api.example.com"
+            
+            def fetch_data(self) -> List[Dict[str, Any]]:
+                # Simulate API call
+                return [
+                    {"id": 1, "name": "Item 1", "value": 100},
+                    {"id": 2, "name": "Item 2", "value": 200},
+                    {"id": 3, "name": "Item 3", "value": 300},
+                ]
+            
+            def _make_request(self, endpoint: str):
+                # Simulate HTTP request
+                pass
+        EOF
+        
+        # Generate analysis for sample project
+        dependency-visualizer release_examples/sample_project --format html --output release_examples/sample_project_graph.html
+        dependency-analyzer release_examples/sample_project --all > release_examples/sample_project_analysis.txt
+        dependency-docs release_examples/sample_project --output release_examples/sample_project_docs/
+    
+    - name: Upload release examples
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-examples
+        path: release_examples/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test-package, generate-examples]
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Download examples
+      uses: actions/download-artifact@v3
+      with:
+        name: release-examples
+        path: release_examples/
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        pip install twine
+        twine upload dist/*
+    
+    - name: Upload examples to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: release_examples/dependency_toolkit_graph.html
+        asset_name: dependency-toolkit-analysis.html
+        asset_content_type: text/html
+
+  create-docker:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        FROM python:3.11-slim
+        
+        WORKDIR /app
+        
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            git \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Copy and install package
+        COPY dist/*.whl .
+        RUN pip install *.whl
+        
+        # Create entrypoint script
+        RUN echo '#!/bin/bash\nset -e\nif [ "$1" = "visualizer" ]; then shift; exec dependency-visualizer "$@"; fi\nif [ "$1" = "analyzer" ]; then shift; exec dependency-analyzer "$@"; fi\nif [ "$1" = "validator" ]; then shift; exec dependency-validator "$@"; fi\nif [ "$1" = "docs" ]; then shift; exec dependency-docs "$@"; fi\nif [ "$1" = "monitor" ]; then shift; exec dependency-monitor "$@"; fi\nif [ "$1" = "ci" ]; then shift; exec dependency-ci "$@"; fi\nexec "$@"' > /usr/local/bin/entrypoint.sh
+        RUN chmod +x /usr/local/bin/entrypoint.sh
+        
+        ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+        CMD ["--help"]
+        EOF
+    
+    - name: Extract version
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          scs03004/dependency-toolkit:latest
+          scs03004/dependency-toolkit:${{ steps.version.outputs.version }}
+        platforms: linux/amd64,linux/arm64

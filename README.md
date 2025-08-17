@@ -1,36 +1,99 @@
 # 🗺️ Dependency Toolkit
 
-A comprehensive suite of tools for managing, visualizing, and validating project dependencies across any codebase.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![GitHub Issues](https://img.shields.io/github/issues/scs03004/dependency-toolkit)](https://github.com/scs03004/dependency-toolkit/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/scs03004/dependency-toolkit)](https://github.com/scs03004/dependency-toolkit)
+
+A **production-ready** suite of tools for managing, visualizing, and validating project dependencies across any codebase. Built for developers who need **enterprise-grade dependency management** without the complexity.
 
 ## 🎯 **Overview**
 
-The Dependency Toolkit provides six powerful tools for dependency management:
+The Dependency Toolkit provides **six powerful tools** for comprehensive dependency management:
 
-1. **🌐 Automated Dependency Graph Visualization** - Generate interactive dependency trees and risk heat maps
-2. **🔒 Pre-commit Dependency Validation** - Git hooks that validate dependencies before commits
-3. **🚀 CI/CD Integration Tools** - Automated dependency checking in pipelines
-4. **📊 Real-time Monitoring Dashboard** - Live dependency health monitoring
-5. **🧠 Smart Code Analysis Tools** - Import usage analysis and refactoring suggestions
-6. **📚 Documentation Automation** - Auto-generated dependency documentation
+1. **🌐 Automated Dependency Graph Visualization** - Interactive dependency trees with risk analysis
+2. **🔒 Pre-commit Dependency Validation** - Git hooks preventing broken dependencies
+3. **🚀 CI/CD Integration Tools** - Automated workflows for GitHub Actions & GitLab CI
+4. **📊 Real-time Monitoring Dashboard** - Live dependency health monitoring with web interface
+5. **🧠 Smart Code Analysis Tools** - Unused import detection and technical debt scoring
+6. **📚 Documentation Automation** - Auto-generated dependency maps and architecture docs
 
 ## 🚀 **Quick Start**
 
 ### Installation
 ```bash
-# Clone the repository
-git clone <repository-url>
+# Install directly from GitHub
+pip install git+https://github.com/scs03004/dependency-toolkit.git
+
+# Or clone and install locally
+git clone https://github.com/scs03004/dependency-toolkit.git
 cd dependency-toolkit
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run setup
-python setup.py
+pip install -e .
 ```
 
 ### Basic Usage
 ```bash
 # Generate dependency graph for a project
+dependency-visualizer /path/to/project --format html
+
+# Set up pre-commit validation
+dependency-validator --install /path/to/project
+
+# Analyze code quality and unused imports
+dependency-analyzer /path/to/project --all
+
+# Generate documentation
+dependency-docs /path/to/project --output docs/
+
+# Start real-time monitoring dashboard
+dependency-monitor --start /path/to/project --server
+```
+
+## 📊 **Example Output**
+
+### Real Project Analysis (NPCGPT)
+```
+✅ NPCGPT Dependency Analysis Results:
+📁 Total Python files analyzed: 43
+🔗 Total import relationships: 62
+📦 External dependencies: 55
+⚠️  Circular dependencies: 0
+🔴 High-risk files: 12
+
+📊 Project Metrics:
+  • Total Files: 43
+  • Total Imports: 63
+  • External Dependencies: 55
+  • High Risk Files: 12
+  • Circular Dependencies: 0
+  • Total Lines Of Code: 13,667
+
+✅ No circular dependencies detected!
+
+🔴 High-Risk Files (require careful change management):
+  • config.py (138 LOC, 7 dependents)
+  • main.py (152 LOC, 3 dependents)
+  • api\routes.py (1489 LOC, 1 dependents)
+  • models\database.py (37 LOC, 11 dependents)
+  • llm\personality_engine.py (487 LOC, 5 dependents)
+```
+
+### Code Quality Analysis
+```
+Import Analysis: Found 37 unused imports out of 157 total
+
+Technical Debt Analysis: Analyzed 7 files
+High Priority Technical Debt:
+  • tools\code_analyzer.py - Debt Score: 121.1 (3-5 days effort)
+  • tools\doc_generator.py - Debt Score: 82.3 (3-5 days effort)
+  • Large file size, High cyclomatic complexity detected
+
+Architecture Analysis: Found 4 violations
+  • Single responsibility violations
+  • Interface segregation issues
+
+Summary: Found 47 total issues requiring attention
+```
 python tools/dependency_visualizer.py /path/to/project
 
 # Validate dependencies

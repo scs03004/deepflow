@@ -283,6 +283,9 @@ class DependencyVisualizer:
     
     def generate_text_tree(self) -> str:
         """Generate a text-based dependency tree."""
+        from rich.console import Console
+        from io import StringIO
+        
         output = []
         
         # Find root nodes (nodes with no dependencies)
@@ -297,7 +300,12 @@ class DependencyVisualizer:
         for root in root_nodes:
             tree = Tree(f"[bold blue]{root}[/bold blue]")
             self._build_tree_recursive(tree, root, visited=set())
-            output.append(str(tree))
+            
+            # Render tree to string
+            console = Console(file=StringIO(), width=80)
+            console.print(tree)
+            tree_str = console.file.getvalue()
+            output.append(tree_str)
         
         return '\n\n'.join(output)
     
@@ -392,8 +400,10 @@ class DependencyVisualizer:
         # Create the figure
         fig = go.Figure(data=[edge_trace, node_trace],
                        layout=go.Layout(
-                           title=f'Dependency Graph - {self.graph.metrics["total_files"]} modules',
-                           titlefont_size=16,
+                           title=dict(
+                               text=f'Dependency Graph - {self.graph.metrics["total_files"]} modules',
+                               font=dict(size=16)
+                           ),
                            showlegend=True,
                            hovermode='closest',
                            margin=dict(b=20,l=5,r=5,t=40),
@@ -514,6 +524,18 @@ class DependencyVisualizer:
 
 def main():
     """Main CLI interface."""
+    # Set up proper encoding for Windows console
+    import sys
+    if sys.platform == 'win32':
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stderr.reconfigure(encoding='utf-8')
+        except AttributeError:
+            # Fallback for older Python versions
+            import codecs
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer)
+    
     parser = argparse.ArgumentParser(description='Analyze and visualize project dependencies')
     parser.add_argument('project_path', help='Path to the project to analyze')
     parser.add_argument('--format', choices=['text', 'html', 'heatmap', 'all'], 
