@@ -1,0 +1,150 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dependency-toolkit"
+version = "1.0.0"
+description = "A comprehensive suite of tools for managing, visualizing, and validating project dependencies"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Dependency Toolkit Team", email = "team@dependency-toolkit.dev"}
+]
+maintainers = [
+    {name = "Dependency Toolkit Team", email = "team@dependency-toolkit.dev"}
+]
+keywords = ["dependency", "analysis", "visualization", "monitoring", "code-quality", "ci-cd"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0.0",
+    "networkx>=3.0",
+    "matplotlib>=3.5.0",
+    "plotly>=5.0.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "GitPython>=3.1.0",
+    "flask>=2.3.0",
+    "flask-socketio>=5.3.0",
+    "pandas>=2.0.0",
+    "psutil>=6.1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "flake8>=6.0.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "myst-parser>=0.18.0",
+]
+all = [
+    "dependency-toolkit[dev,docs]"
+]
+
+[project.urls]
+Homepage = "https://github.com/dependency-toolkit/dependency-toolkit"
+Documentation = "https://dependency-toolkit.readthedocs.io/"
+Repository = "https://github.com/dependency-toolkit/dependency-toolkit.git"
+"Bug Tracker" = "https://github.com/dependency-toolkit/dependency-toolkit/issues"
+Changelog = "https://github.com/dependency-toolkit/dependency-toolkit/blob/main/CHANGELOG.md"
+
+[project.scripts]
+dependency-visualizer = "tools.dependency_visualizer:main"
+dependency-validator = "tools.pre_commit_validator:main" 
+dependency-docs = "tools.doc_generator:main"
+dependency-ci = "tools.ci_cd_integrator:main"
+dependency-monitor = "tools.monitoring_dashboard:main"
+dependency-analyzer = "tools.code_analyzer:main"
+
+[tool.setuptools]
+packages = ["tools", "templates"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.html", "*.yml", "*.yaml"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --cov=tools --cov-report=term-missing"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["tools"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
