@@ -49,6 +49,7 @@ except ImportError as e:
 @dataclass
 class DependencyMetric:
     """Real-time dependency metric."""
+
     timestamp: datetime
     module_name: str
     import_count: int
@@ -61,6 +62,7 @@ class DependencyMetric:
 @dataclass
 class SystemHealth:
     """System health metrics."""
+
     timestamp: datetime
     cpu_percent: float
     memory_percent: float
@@ -72,7 +74,7 @@ class SystemHealth:
 
 class DependencyMonitor:
     """Real-time dependency monitoring system."""
-    
+
     def __init__(self, project_path: str):
         self.project_path = Path(project_path).resolve()
         self.console = Console()
@@ -80,34 +82,34 @@ class DependencyMonitor:
         self.health_history = []
         self.is_monitoring = False
         self.monitoring_thread = None
-        
+
         # Initialize Flask app for web dashboard
         self.app = Flask(__name__)
-        self.app.config['SECRET_KEY'] = 'dependency-monitor-secret'
+        # Use environment variable for secret key, fall back to generated key
+        import secrets
+
+        self.app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
-        
+
         self._setup_routes()
-    
+
     def start_monitoring(self, interval: int = 10):
         """Start real-time monitoring."""
         self.is_monitoring = True
-        self.monitoring_thread = threading.Thread(
-            target=self._monitoring_loop, 
-            args=(interval,)
-        )
+        self.monitoring_thread = threading.Thread(target=self._monitoring_loop, args=(interval,))
         self.monitoring_thread.daemon = True
         self.monitoring_thread.start()
-        
+
         self.console.print(f"[green]✅ Monitoring started for:[/green] {self.project_path}")
         self.console.print(f"[blue]📊 Dashboard available at:[/blue] http://localhost:5000")
-    
+
     def stop_monitoring(self):
         """Stop monitoring."""
         self.is_monitoring = False
         if self.monitoring_thread:
             self.monitoring_thread.join()
         self.console.print("[yellow]⏹️  Monitoring stopped[/yellow]")
-    
+
     def _monitoring_loop(self, interval: int):
         """Main monitoring loop."""
         while self.is_monitoring:
@@ -115,42 +117,46 @@ class DependencyMonitor:
                 # Collect metrics
                 metrics = self._collect_metrics()
                 health = self._collect_system_health()
-                
+
                 # Store metrics
                 self.metrics_history.append(metrics)
                 self.health_history.append(health)
-                
+
                 # Keep only last 100 entries
                 if len(self.metrics_history) > 100:
                     self.metrics_history.pop(0)
                 if len(self.health_history) > 100:
                     self.health_history.pop(0)
-                
+
                 # Emit to web dashboard
-                self.socketio.emit('metrics_update', {
-                    'metrics': [asdict(m) for m in self.metrics_history[-10:]],
-                    'health': [asdict(h) for h in self.health_history[-10:]]
-                })
-                
+                self.socketio.emit(
+                    "metrics_update",
+                    {
+                        "metrics": [asdict(m) for m in self.metrics_history[-10:]],
+                        "health": [asdict(h) for h in self.health_history[-10:]],
+                    },
+                )
+
                 # Check for alerts
                 self._check_alerts(metrics, health)
-                
+
                 time.sleep(interval)
-                
+
             except Exception as e:
                 self.console.print(f"[red]Monitoring error: {e}[/red]")
                 time.sleep(interval)
-    
+
     def _collect_metrics(self) -> List[DependencyMetric]:
         """Collect dependency metrics."""
         metrics = []
-        
+
         try:
             # Run dependency analysis
             from .dependency_visualizer import DependencyAnalyzer
+
             analyzer = DependencyAnalyzer(str(self.project_path))
             dep_graph = analyzer.analyze_project()
-            
+
             # Create metrics for each module
             for name, node in dep_graph.nodes.items():
                 metric = DependencyMetric(
@@ -158,18 +164,17 @@ class DependencyMonitor:
                     module_name=name,
                     import_count=len(node.imports),
                     memory_usage=0.0,  # Would need runtime analysis
-                    cpu_usage=0.0,     # Would need runtime analysis
-                    error_count=0,     # Would need error tracking
-                    circular_deps=len([c for c in dep_graph.circular_dependencies 
-                                     if name in c])
+                    cpu_usage=0.0,  # Would need runtime analysis
+                    error_count=0,  # Would need error tracking
+                    circular_deps=len([c for c in dep_graph.circular_dependencies if name in c]),
                 )
                 metrics.append(metric)
-        
+
         except Exception as e:
             self.console.print(f"[yellow]Warning: Could not collect metrics: {e}[/yellow]")
-        
+
         return metrics
-    
+
     def _collect_system_health(self) -> SystemHealth:
         """Collect system health metrics."""
         return SystemHealth(
@@ -177,97 +182,105 @@ class DependencyMonitor:
             cpu_percent=psutil.cpu_percent(interval=1),
             memory_percent=psutil.virtual_memory().percent,
             disk_usage=psutil.disk_usage(str(self.project_path)).percent,
-            active_modules=len([f for f in self.project_path.rglob('*.py')]),
+            active_modules=len([f for f in self.project_path.rglob("*.py")]),
             total_imports=0,  # Would calculate from analysis
-            error_rate=0.0    # Would track from logs
+            error_rate=0.0,  # Would track from logs
         )
-    
+
     def _check_alerts(self, metrics: List[DependencyMetric], health: SystemHealth):
         """Check for alert conditions."""
         alerts = []
-        
+
         # High CPU usage
         if health.cpu_percent > 80:
             alerts.append(f"High CPU usage: {health.cpu_percent:.1f}%")
-        
+
         # High memory usage
         if health.memory_percent > 85:
             alerts.append(f"High memory usage: {health.memory_percent:.1f}%")
-        
+
         # Circular dependencies
         circular_count = sum(m.circular_deps for m in metrics)
         if circular_count > 0:
             alerts.append(f"Circular dependencies detected: {circular_count}")
-        
+
         # Emit alerts
         if alerts:
-            self.socketio.emit('alerts', {'alerts': alerts})
+            self.socketio.emit("alerts", {"alerts": alerts})
             for alert in alerts:
                 self.console.print(f"[red]🚨 ALERT: {alert}[/red]")
-    
+
     def _setup_routes(self):
         """Set up Flask routes for web dashboard."""
-        
-        @self.app.route('/')
+
+        @self.app.route("/")
         def dashboard():
-            return render_template('dashboard.html')
-        
-        @self.app.route('/api/metrics')
+            return render_template("dashboard.html")
+
+        @self.app.route("/api/metrics")
         def get_metrics():
-            return jsonify({
-                'metrics': [asdict(m) for m in self.metrics_history],
-                'health': [asdict(h) for h in self.health_history]
-            })
-        
-        @self.app.route('/api/health')
+            return jsonify(
+                {
+                    "metrics": [asdict(m) for m in self.metrics_history],
+                    "health": [asdict(h) for h in self.health_history],
+                }
+            )
+
+        @self.app.route("/api/health")
         def get_health():
             if self.health_history:
                 latest = self.health_history[-1]
                 return jsonify(asdict(latest))
-            return jsonify({'error': 'No health data available'})
-        
-        @self.app.route('/api/dependency-graph')
+            return jsonify({"error": "No health data available"})
+
+        @self.app.route("/api/dependency-graph")
         def get_dependency_graph():
             try:
                 from .dependency_visualizer import DependencyAnalyzer
+
                 analyzer = DependencyAnalyzer(str(self.project_path))
                 dep_graph = analyzer.analyze_project()
-                
-                return jsonify({
-                    'nodes': [asdict(node) for node in dep_graph.nodes.values()],
-                    'edges': dep_graph.edges,
-                    'metrics': dep_graph.metrics,
-                    'circular_dependencies': dep_graph.circular_dependencies
-                })
+
+                return jsonify(
+                    {
+                        "nodes": [asdict(node) for node in dep_graph.nodes.values()],
+                        "edges": dep_graph.edges,
+                        "metrics": dep_graph.metrics,
+                        "circular_dependencies": dep_graph.circular_dependencies,
+                    }
+                )
             except Exception as e:
-                return jsonify({'error': str(e)})
-        
-        @self.socketio.on('connect')
+                return jsonify({"error": str(e)})
+
+        @self.socketio.on("connect")
         def handle_connect():
-            emit('status', {'msg': 'Connected to dependency monitor'})
-        
-        @self.socketio.on('request_update')
+            emit("status", {"msg": "Connected to dependency monitor"})
+
+        @self.socketio.on("request_update")
         def handle_request_update():
             if self.metrics_history and self.health_history:
-                emit('metrics_update', {
-                    'metrics': [asdict(m) for m in self.metrics_history[-10:]],
-                    'health': [asdict(h) for h in self.health_history[-10:]]
-                })
-    
-    def run_dashboard_server(self, host='127.0.0.1', port=5000, debug=False):
+                emit(
+                    "metrics_update",
+                    {
+                        "metrics": [asdict(m) for m in self.metrics_history[-10:]],
+                        "health": [asdict(h) for h in self.health_history[-10:]],
+                    },
+                )
+
+    def run_dashboard_server(self, host="127.0.0.1", port=5000, debug=False):
         """Run the web dashboard server."""
         # Create templates directory and template
         self._create_dashboard_template()
-        
+
         self.console.print(f"[blue]🌐 Starting dashboard server at http://{host}:{port}[/blue]")
         self.socketio.run(self.app, host=host, port=port, debug=debug)
-    
+
     def _create_dashboard_template(self):
         """Create the dashboard HTML template."""
-        templates_dir = Path(__file__).parent / 'templates'
+        templates_dir = Path(__file__).parent / "templates"
         templates_dir.mkdir(exist_ok=True)
-        
-        template_content = '''<!DOCTYPE html>
+
+        template_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -506,28 +519,28 @@ class DependencyMonitor:
         }, 10000);
     </script>
 </body>
-</html>'''
-        
-        template_file = templates_dir / 'dashboard.html'
-        with open(template_file, 'w') as f:
+</html>"""
+
+        template_file = templates_dir / "dashboard.html"
+        with open(template_file, "w") as f:
             f.write(template_content)
-    
+
     def generate_analysis_report(self) -> str:
         """Generate a comprehensive analysis report."""
         if not self.metrics_history or not self.health_history:
             return "No monitoring data available. Start monitoring first."
-        
+
         report = []
         report.append("# Dependency Monitoring Analysis Report")
         report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         report.append(f"Project: {self.project_path.name}")
         report.append("")
-        
+
         # Summary statistics
         latest_health = self.health_history[-1]
         avg_cpu = sum(h.cpu_percent for h in self.health_history) / len(self.health_history)
         avg_memory = sum(h.memory_percent for h in self.health_history) / len(self.health_history)
-        
+
         report.append("## System Health Summary")
         report.append(f"- Current CPU Usage: {latest_health.cpu_percent:.1f}%")
         report.append(f"- Average CPU Usage: {avg_cpu:.1f}%")
@@ -535,7 +548,7 @@ class DependencyMonitor:
         report.append(f"- Average Memory Usage: {avg_memory:.1f}%")
         report.append(f"- Disk Usage: {latest_health.disk_usage:.1f}%")
         report.append("")
-        
+
         # Dependency analysis
         if self.metrics_history:
             total_circular = sum(m.circular_deps for m in self.metrics_history[-1])
@@ -543,44 +556,45 @@ class DependencyMonitor:
             report.append(f"- Active Modules: {latest_health.active_modules}")
             report.append(f"- Circular Dependencies: {total_circular}")
             report.append("")
-        
+
         # Recommendations
         report.append("## Recommendations")
-        
+
         if avg_cpu > 70:
             report.append("- ⚠️ High average CPU usage detected. Consider optimizing performance.")
-        
+
         if avg_memory > 80:
             report.append("- ⚠️ High memory usage detected. Review memory-intensive operations.")
-        
+
         if total_circular > 0:
-            report.append("- 🔄 Circular dependencies found. Consider refactoring to remove cycles.")
-        
+            report.append(
+                "- 🔄 Circular dependencies found. Consider refactoring to remove cycles."
+            )
+
         if avg_cpu < 50 and avg_memory < 70:
             report.append("- ✅ System performance looks good.")
-        
+
         return "\n".join(report)
 
 
 def main():
     """Main CLI interface."""
-    parser = argparse.ArgumentParser(description='Real-time dependency monitoring')
-    parser.add_argument('--start', metavar='PROJECT_PATH',
-                       help='Start monitoring for project')
-    parser.add_argument('--server', action='store_true',
-                       help='Start web dashboard server')
-    parser.add_argument('--port', type=int, default=5000,
-                       help='Dashboard server port (default: 5000)')
-    parser.add_argument('--interval', type=int, default=10,
-                       help='Monitoring interval in seconds (default: 10)')
-    parser.add_argument('--analyze', metavar='PROJECT_PATH',
-                       help='Generate analysis report')
-    
+    parser = argparse.ArgumentParser(description="Real-time dependency monitoring")
+    parser.add_argument("--start", metavar="PROJECT_PATH", help="Start monitoring for project")
+    parser.add_argument("--server", action="store_true", help="Start web dashboard server")
+    parser.add_argument(
+        "--port", type=int, default=5000, help="Dashboard server port (default: 5000)"
+    )
+    parser.add_argument(
+        "--interval", type=int, default=10, help="Monitoring interval in seconds (default: 10)"
+    )
+    parser.add_argument("--analyze", metavar="PROJECT_PATH", help="Generate analysis report")
+
     args = parser.parse_args()
-    
+
     if args.start:
         monitor = DependencyMonitor(args.start)
-        
+
         try:
             if args.server:
                 # Start monitoring in background
@@ -590,52 +604,54 @@ def main():
             else:
                 # Console monitoring only
                 monitor.start_monitoring(args.interval)
-                
+
                 console = Console()
-                
+
                 with Live(console=console, refresh_per_second=1) as live:
                     try:
                         while monitor.is_monitoring:
                             # Create live dashboard
                             layout = Layout()
-                            
+
                             # System health table
                             health_table = Table(title="System Health")
                             health_table.add_column("Metric")
                             health_table.add_column("Value")
-                            
+
                             if monitor.health_history:
                                 latest = monitor.health_history[-1]
                                 health_table.add_row("CPU Usage", f"{latest.cpu_percent:.1f}%")
-                                health_table.add_row("Memory Usage", f"{latest.memory_percent:.1f}%")
+                                health_table.add_row(
+                                    "Memory Usage", f"{latest.memory_percent:.1f}%"
+                                )
                                 health_table.add_row("Disk Usage", f"{latest.disk_usage:.1f}%")
                                 health_table.add_row("Active Modules", str(latest.active_modules))
-                            
+
                             live.update(Panel(health_table, title="Dependency Monitor"))
                             time.sleep(1)
-                    
+
                     except KeyboardInterrupt:
                         monitor.stop_monitoring()
                         console.print("\n[yellow]Monitoring stopped by user[/yellow]")
-        
+
         except KeyboardInterrupt:
             monitor.stop_monitoring()
-        
+
         return
-    
+
     if args.analyze:
         monitor = DependencyMonitor(args.analyze)
         # Would need to load historical data
         report = monitor.generate_analysis_report()
         print(report)
         return
-    
+
     if args.server:
         # Server-only mode
-        monitor = DependencyMonitor('.')
+        monitor = DependencyMonitor(".")
         monitor.run_dashboard_server(port=args.port)
         return
-    
+
     parser.print_help()
 
 
