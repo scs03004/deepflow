@@ -32,7 +32,7 @@ jobs:
         twine check dist/*
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
@@ -41,8 +41,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13]
         python-version: ['3.8', '3.11']
     
     steps:
@@ -52,7 +53,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist/
@@ -85,7 +86,7 @@ jobs:
         python-version: '3.11'
     
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist/
@@ -202,7 +203,7 @@ jobs:
         dependency-docs release_examples/sample_project --output release_examples/sample_project_docs/
     
     - name: Upload release examples
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-examples
         path: release_examples/
@@ -214,13 +215,13 @@ jobs:
     
     steps:
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist/
     
     - name: Download examples
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: release-examples
         path: release_examples/
@@ -234,14 +235,11 @@ jobs:
         twine upload dist/*
     
     - name: Upload examples to release
-      uses: actions/upload-release-asset@v1
+      run: |
+        gh release upload ${{ github.ref_name }} \
+          release_examples/dependency_toolkit_graph.html#dependency-toolkit-analysis.html
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: release_examples/dependency_toolkit_graph.html
-        asset_name: dependency-toolkit-analysis.html
-        asset_content_type: text/html
 
   create-docker:
     runs-on: ubuntu-latest
@@ -260,7 +258,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist/

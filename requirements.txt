@@ -1,21 +1,19 @@
-# Core dependencies (minimal for better compatibility)
-networkx>=2.8             # Graph analysis (older version for compatibility)
-matplotlib>=3.5.0         # Graph visualization
-plotly>=5.0.0             # Interactive plots
-rich>=12.0.0              # Rich terminal output (older version)
+# Core dependencies (minimal for maximum compatibility)
+networkx>=2.8,<4.0        # Graph analysis 
+rich>=12.0.0,<14.0        # Rich terminal output
 
-# Data formats
-pandas>=1.4.0             # Data analysis (older version)
+# Optional visualization (graceful fallback if not available)
+matplotlib>=3.5.0,<4.0    # Graph visualization
+plotly>=5.0.0,<6.0        # Interactive plots
+pandas>=1.4.0,<3.0        # Data analysis
 
-# Git integration
-GitPython>=3.1.0          # Git operations
-
-# Web dashboard (optional)
-flask>=2.0.0              # Web framework (older version)
+# Optional integrations (graceful fallback if not available)  
+GitPython>=3.1.0,<4.0     # Git operations
+flask>=2.0.0,<3.0         # Web framework
 
 # Development dependencies
 pytest>=7.0.0             # Testing framework
 pytest-cov>=4.0.0         # Coverage reporting
-black>=22.0.0             # Code formatting (older version)
-mypy>=0.950               # Type checking (older version)
-flake8>=4.0.0             # Linting (older version)
+black>=22.0.0             # Code formatting
+mypy>=0.950               # Type checking
+flake8>=4.0.0             # Linting
