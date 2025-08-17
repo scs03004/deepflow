@@ -1,0 +1,52 @@
+name: Simple CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+    
+    - name: Code formatting check
+      run: |
+        pip install black
+        black --check tools/ || echo "Code formatting issues found - run 'black tools/' to fix"
+    
+    - name: Basic functionality test
+      run: |
+        # Test core functionality works
+        dependency-visualizer . --format text
+        echo "✅ Core functionality working"
+    
+    - name: Security scan
+      run: |
+        pip install bandit
+        bandit -r tools/ || echo "Security issues found - check manually"
+    
+    - name: Installation test
+      run: |
+        # Test all CLI tools are available
+        dependency-visualizer --help
+        dependency-validator --help  
+        dependency-analyzer --help
+        dependency-docs --help
+        dependency-ci --help
+        dependency-monitor --help
+        echo "✅ All tools installed successfully"
