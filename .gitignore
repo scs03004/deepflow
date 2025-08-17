@@ -142,3 +142,6 @@ tmp/
 # Local configuration
 .dependency-toolkit.yml
 local_config.yml
+
+# Claude Code guidance files (local only)
+CLAUDE.md
