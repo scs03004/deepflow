@@ -33,8 +33,11 @@ pip install -e .
 
 ### Basic Usage
 ```bash
-# Generate dependency graph for a project
-dependency-visualizer /path/to/project --format html
+# Generate modern web-native dependency graph (default)
+dependency-visualizer /path/to/project
+
+# Generate Mermaid syntax for GitHub README
+dependency-visualizer /path/to/project --format syntax
 
 # Set up pre-commit validation
 dependency-validator --install /path/to/project
@@ -106,11 +109,12 @@ python tools/doc_generator.py /path/to/project
 ## 🛠️ **Tools**
 
 ### 1. Dependency Graph Visualizer
-- **Text-based dependency trees** for quick analysis
-- **Interactive HTML graphs** with clickable nodes
-- **Risk heat maps** highlighting critical dependencies
-- **Circular dependency detection** with visual warnings
-- **Export formats**: PNG, SVG, HTML, JSON
+- **🌐 Web-native Mermaid graphs** - No installation dependencies, GitHub-ready
+- **📱 Mobile-responsive design** - Works perfectly on all devices
+- **🎨 Risk-based color coding** - Instant visual risk assessment
+- **⚡ Zero-dependency visualization** - Pure web technologies
+- **📋 Multiple formats**: Mermaid HTML, raw syntax (.mmd), text trees
+- **🔗 GitHub integration** - Renders natively in README files
 
 ### 2. Pre-commit Validator
 - **Import validation** - Check for broken imports before commit
@@ -201,11 +205,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🌟 **Features**
 
-- ✅ **Language Agnostic** - Works with Python, JavaScript, TypeScript, and more
-- ✅ **CI/CD Ready** - GitHub Actions, GitLab CI, Jenkins integration
+- ✅ **Web-Native Visualization** - Mermaid graphs work everywhere, no dependencies
+- ✅ **GitHub Ready** - Native rendering in README files and documentation
+- ✅ **CI/CD Friendly** - No system dependencies, faster builds
 - ✅ **Cross-Platform** - Windows, macOS, Linux support
-- ✅ **Extensible** - Plugin architecture for custom analysis
-- ✅ **Fast** - Optimized for large codebases
+- ✅ **Mobile Responsive** - Perfect visualization on any device
+- ✅ **Zero Installation** - Web-based graphs work immediately
 - ✅ **Open Source** - Free to use and modify
 
 ---

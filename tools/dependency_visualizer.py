@@ -359,12 +359,246 @@ class DependencyVisualizer:
                 subtree = tree.add(f"[{risk_color}]{imported}[/{risk_color}]")
                 self._build_tree_recursive(subtree, imported, visited.copy(), max_depth - 1)
     
+    def generate_mermaid_graph(self) -> str:
+        """Generate Mermaid syntax for dependency graph."""
+        lines = ["graph TD"]
+        
+        # Add nodes with risk-based styling
+        for node_name, node in self.graph.nodes.items():
+            # Sanitize node names for Mermaid (replace dots and special chars)
+            safe_name = node_name.replace('.', '_').replace('-', '_').replace('/', '_')
+            display_name = node_name.split('.')[-1]  # Show just the module name
+            
+            lines.append(f"    {safe_name}[\"{display_name}\"]")
+            
+            # Add edges
+            for imported in node.imports:
+                if imported in self.graph.nodes:
+                    safe_imported = imported.replace('.', '_').replace('-', '_').replace('/', '_')
+                    lines.append(f"    {safe_name} --> {safe_imported}")
+        
+        # Add risk-based styling classes
+        lines.extend([
+            "",
+            "    %% Risk-based styling",
+            "    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff",
+            "    classDef medium fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436", 
+            "    classDef low fill:#6bcf7f,stroke:#00b894,stroke-width:1px,color:#2d3436",
+            ""
+        ])
+        
+        # Apply classes to nodes based on risk level
+        for node_name, node in self.graph.nodes.items():
+            safe_name = node_name.replace('.', '_').replace('-', '_').replace('/', '_')
+            risk_class = node.risk_level.lower()
+            lines.append(f"    class {safe_name} {risk_class}")
+        
+        return "\n".join(lines)
+    
+    def save_mermaid_syntax(self, output_path: str):
+        """Save just the Mermaid syntax to a .mmd file for use in GitHub, etc."""
+        mermaid_syntax = self.generate_mermaid_graph()
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(mermaid_syntax)
+        
+        self.console.print(f"[green]Mermaid syntax saved to:[/green] {output_path}")
+        self.console.print("[blue]💡 Tip:[/blue] You can include this in GitHub README with:")
+        self.console.print(f"```mermaid\\n{mermaid_syntax[:100]}...\\n```")
+    
+    def generate_mermaid_html(self, output_path: str):
+        """Generate HTML file with Mermaid diagram."""
+        mermaid_graph = self.generate_mermaid_graph()
+        
+        # Create comprehensive HTML with Mermaid
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph - {len(self.graph.nodes)} modules</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }}
+        .metrics {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }}
+        .metric {{
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }}
+        .metric-value {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #495057;
+        }}
+        .metric-label {{
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }}
+        .legend {{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }}
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        .legend-color {{
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }}
+        .high {{ background: #ff6b6b; }}
+        .medium {{ background: #ffd93d; }}
+        .low {{ background: #6bcf7f; }}
+        .diagram-container {{
+            text-align: center;
+            margin: 20px 0;
+            min-height: 400px;
+        }}
+        .warning {{
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }}
+        @media (max-width: 768px) {{
+            .metrics {{ grid-template-columns: 1fr; }}
+            .legend {{ flex-direction: column; align-items: center; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Dependency Graph</h1>
+            <p>Visual representation of project dependencies and relationships</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics['total_files']}</div>
+                <div class="metric-label">Total Files</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics['total_imports']}</div>
+                <div class="metric-label">Total Imports</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics['external_dependencies']}</div>
+                <div class="metric-label">External Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics['high_risk_files']}</div>
+                <div class="metric-label">High Risk Files</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics['circular_dependencies']}</div>
+                <div class="metric-label">Circular Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{self.graph.metrics.get('total_lines_of_code', 'N/A')}</div>
+                <div class="metric-label">Lines of Code</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color high"></div>
+                <span>High Risk</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color medium"></div>
+                <span>Medium Risk</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color low"></div>
+                <span>Low Risk</span>
+            </div>
+        </div>
+        
+        {f'<div class="warning">⚠️ {len(self.graph.circular_dependencies)} Circular Dependencies Detected</div>' if self.graph.circular_dependencies else ''}
+        
+        <div class="diagram-container">
+            <div class="mermaid">
+{mermaid_graph}
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 12px;">
+            Generated by <a href="https://github.com/scs03004/dependency-toolkit" target="_blank">Dependency Toolkit</a>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({{ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {{
+                primaryColor: '#f8f9fa',
+                primaryTextColor: '#495057',
+                primaryBorderColor: '#dee2e6',
+                lineColor: '#adb5bd',
+                secondaryColor: '#e9ecef',
+                tertiaryColor: '#f8f9fa'
+            }},
+            flowchart: {{
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }}
+        }});
+    </script>
+</body>
+</html>"""
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        self.console.print(f"[green]Mermaid HTML graph saved to:[/green] {output_path}")
+
     def generate_html_interactive(self, output_path: str):
-        """Generate interactive HTML visualization using Plotly."""
+        """Generate interactive HTML visualization - now uses Mermaid by default."""
+        # Use Mermaid as the primary approach
+        self.generate_mermaid_html(output_path)
+        return
+        
+        # Fallback to Plotly if specifically requested
         if not PLOTLY_AVAILABLE or not NETWORKX_AVAILABLE:
-            self.console.print("[yellow]Warning: Plotly or NetworkX not available. Generating text report instead.[/yellow]")
-            with open(output_path, 'w') as f:
-                f.write(f"<html><body><pre>{self.generate_summary_report()}</pre></body></html>")
+            self.console.print("[yellow]Warning: Plotly or NetworkX not available. Using Mermaid instead.[/yellow]")
+            self.generate_mermaid_html(output_path)
             return
         
         # Prepare data for Plotly
@@ -574,8 +808,8 @@ def main():
     
     parser = argparse.ArgumentParser(description='Analyze and visualize project dependencies')
     parser.add_argument('project_path', help='Path to the project to analyze')
-    parser.add_argument('--format', choices=['text', 'html', 'heatmap', 'all'], 
-                       default='all', help='Output format')
+    parser.add_argument('--format', choices=['text', 'html', 'mermaid', 'syntax', 'heatmap', 'all'], 
+                       default='mermaid', help='Output format (mermaid=HTML+Mermaid, syntax=raw .mmd file)')
     parser.add_argument('--output', help='Output file path (default: auto-generated)')
     parser.add_argument('--no-interactive', action='store_true', 
                        help='Skip interactive features')
@@ -613,9 +847,19 @@ def main():
         print("="*50)
         print(summary)
     
-    if args.format in ['html', 'all']:
-        # HTML interactive graph
+    if args.format in ['mermaid', 'all']:
+        # Mermaid HTML graph (web-native)
         output_path = args.output or f"{base_name}_dependency_graph.html"
+        visualizer.generate_mermaid_html(output_path)
+    
+    if args.format in ['syntax']:
+        # Raw Mermaid syntax for GitHub/docs
+        output_path = args.output or f"{base_name}_dependency_graph.mmd"
+        visualizer.save_mermaid_syntax(output_path)
+    
+    if args.format in ['html']:
+        # Legacy Plotly HTML graph
+        output_path = args.output or f"{base_name}_dependency_graph_plotly.html"
         visualizer.generate_html_interactive(output_path)
     
     if args.format in ['heatmap', 'all']:

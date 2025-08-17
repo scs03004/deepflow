@@ -1,0 +1,21 @@
+graph TD
+    setup["setup"]
+    tools_ci_cd_integrator["ci_cd_integrator"]
+    tools_code_analyzer["code_analyzer"]
+    tools_dependency_visualizer["dependency_visualizer"]
+    tools_doc_generator["doc_generator"]
+    tools_monitoring_dashboard["monitoring_dashboard"]
+    tools_pre_commit_validator["pre_commit_validator"]
+
+    %% Risk-based styling
+    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff
+    classDef medium fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436
+    classDef low fill:#6bcf7f,stroke:#00b894,stroke-width:1px,color:#2d3436
+
+    class setup low
+    class tools_ci_cd_integrator medium
+    class tools_code_analyzer medium
+    class tools_dependency_visualizer medium
+    class tools_doc_generator high
+    class tools_monitoring_dashboard medium
+    class tools_pre_commit_validator medium
