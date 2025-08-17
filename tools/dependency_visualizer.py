@@ -29,20 +29,47 @@ import importlib.util
 
 try:
     import networkx as nx
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    NETWORKX_AVAILABLE = False
+
+try:
     import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+
+try:
     import plotly.graph_objects as go
     import plotly.express as px
     from plotly.subplots import make_subplots
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
+try:
     import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
+try:
     from rich.console import Console
     from rich.tree import Tree
     from rich.table import Table
     from rich.panel import Panel
     from rich.progress import track
-except ImportError as e:
-    print(f"Missing required dependency: {e}")
-    print("Install with: pip install -r requirements.txt")
-    sys.exit(1)
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    # Fallback console
+    class Console:
+        def print(self, *args, **kwargs):
+            print(*args)
+    
+    def track(items, description="Processing..."):
+        print(f"{description}")
+        return items
 
 
 @dataclass
@@ -74,7 +101,11 @@ class DependencyAnalyzer:
     def __init__(self, project_path: str):
         self.project_path = Path(project_path).resolve()
         self.console = Console()
-        self.graph = nx.DiGraph()
+        if NETWORKX_AVAILABLE:
+            self.graph = nx.DiGraph()
+        else:
+            # Fallback simple graph representation
+            self.graph = defaultdict(list)
         self.nodes = {}
         self.external_deps = defaultdict(list)
         
@@ -330,6 +361,11 @@ class DependencyVisualizer:
     
     def generate_html_interactive(self, output_path: str):
         """Generate interactive HTML visualization using Plotly."""
+        if not PLOTLY_AVAILABLE or not NETWORKX_AVAILABLE:
+            self.console.print("[yellow]Warning: Plotly or NetworkX not available. Generating text report instead.[/yellow]")
+            with open(output_path, 'w') as f:
+                f.write(f"<html><body><pre>{self.generate_summary_report()}</pre></body></html>")
+            return
         
         # Prepare data for Plotly
         node_names = list(self.graph.nodes.keys())

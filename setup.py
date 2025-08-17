@@ -24,7 +24,7 @@ setup(
     description="A comprehensive suite of tools for managing, visualizing, and validating project dependencies",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dependency-toolkit/dependency-toolkit",
+    url="https://github.com/scs03004/dependency-toolkit",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -58,8 +58,8 @@ setup(
     },
     keywords="dependency analysis visualization monitoring code-quality ci-cd",
     project_urls={
-        "Bug Reports": "https://github.com/dependency-toolkit/dependency-toolkit/issues",
-        "Source": "https://github.com/dependency-toolkit/dependency-toolkit",
-        "Documentation": "https://dependency-toolkit.readthedocs.io/",
+        "Bug Reports": "https://github.com/scs03004/dependency-toolkit/issues",
+        "Source": "https://github.com/scs03004/dependency-toolkit",
+        "Documentation": "https://github.com/scs03004/dependency-toolkit/blob/main/README.md",
     },
 )

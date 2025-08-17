@@ -1,35 +1,21 @@
-# Core dependencies
-click>=8.0.0              # CLI interface
-networkx>=3.0             # Graph analysis
+# Core dependencies (minimal for better compatibility)
+networkx>=2.8             # Graph analysis (older version for compatibility)
 matplotlib>=3.5.0         # Graph visualization
 plotly>=5.0.0             # Interactive plots
-jinja2>=3.1.0             # Template rendering
-pyyaml>=6.0               # Configuration files
-rich>=13.0.0              # Rich terminal output
-typer>=0.9.0              # Modern CLI framework
+rich>=12.0.0              # Rich terminal output (older version)
 
-# Code analysis
-ast-monitor>=1.0.0        # AST parsing
-importlib-metadata>=4.0.0 # Import analysis
-rope>=1.0.0               # Refactoring analysis
+# Data formats
+pandas>=1.4.0             # Data analysis (older version)
 
 # Git integration
 GitPython>=3.1.0          # Git operations
-pre-commit>=3.0.0         # Pre-commit hooks
 
-# Web dashboard
-flask>=2.3.0              # Web framework
-flask-socketio>=5.3.0     # Real-time updates
-gunicorn>=21.0.0          # WSGI server
-
-# Data formats
-pandas>=2.0.0             # Data analysis
-openpyxl>=3.1.0           # Excel export
-graphviz>=0.20.0          # DOT graph rendering
+# Web dashboard (optional)
+flask>=2.0.0              # Web framework (older version)
 
 # Development dependencies
 pytest>=7.0.0             # Testing framework
 pytest-cov>=4.0.0         # Coverage reporting
-black>=23.0.0             # Code formatting
-mypy>=1.0.0               # Type checking
-flake8>=6.0.0             # Linting
+black>=22.0.0             # Code formatting (older version)
+mypy>=0.950               # Type checking (older version)
+flake8>=4.0.0             # Linting (older version)
