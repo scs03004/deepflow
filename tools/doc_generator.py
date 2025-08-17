@@ -992,6 +992,7 @@ def main():
     """Main CLI interface."""
     # Set up proper encoding for Windows console
     import sys
+
     if sys.platform == "win32":
         try:
             sys.stdout.reconfigure(encoding="utf-8")
@@ -999,9 +1000,10 @@ def main():
         except AttributeError:
             # Fallback for older Python versions
             import codecs
+
             sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
             sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer)
-    
+
     parser = argparse.ArgumentParser(description="Generate project documentation")
     parser.add_argument("project_path", help="Path to the project to document")
     parser.add_argument(
