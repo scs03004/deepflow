@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph - 44 modules</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #495057;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .high { background: #ff6b6b; }
+        .medium { background: #ffd93d; }
+        .low { background: #6bcf7f; }
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 400px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .metrics { grid-template-columns: 1fr; }
+            .legend { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Dependency Graph</h1>
+            <p>Visual representation of project dependencies and relationships</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">44</div>
+                <div class="metric-label">Total Files</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">93</div>
+                <div class="metric-label">Total Imports</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">41</div>
+                <div class="metric-label">External Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">15</div>
+                <div class="metric-label">High Risk Files</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">Circular Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">11965</div>
+                <div class="metric-label">Lines of Code</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color high"></div>
+                <span>High Risk</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color medium"></div>
+                <span>Medium Risk</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color low"></div>
+                <span>Low Risk</span>
+            </div>
+        </div>
+        
+        
+        
+        <div class="diagram-container">
+            <div class="mermaid">
+graph TD
+    config["config (1739t)"]
+    main["main (1288t)"]
+    main --> api_main_router
+    main --> llm_personality_engine
+    main --> models_database
+    main --> config
+    main --> rules_rules_loader
+    api_campaign_routes["campaign_routes (1153t)"]
+    api_campaign_routes --> models_database
+    api_campaign_routes --> models_npc
+    api_campaign_routes --> api_models
+    api_campaign_routes --> api_shared
+    api_health_routes["health_routes (1600t)"]
+    api_health_routes --> models_database
+    api_health_routes --> llm_personality_engine
+    api_health_routes --> config
+    api_health_routes --> api_shared
+    api_health_routes --> config
+    api_main_router["main_router (277t)"]
+    api_main_router --> api_campaign_routes
+    api_main_router --> api_npc_routes
+    api_main_router --> api_health_routes
+    api_main_router --> api_routes
+    api_models["models (624t)"]
+    api_npc_routes["npc_routes (2756t)"]
+    api_npc_routes --> models_database
+    api_npc_routes --> models_npc
+    api_npc_routes --> generators_npc_generator
+    api_npc_routes --> llm_personality_engine
+    api_npc_routes --> api_models
+    api_npc_routes --> api_shared
+    api_routes["routes (14708t)"]
+    api_routes --> models_database
+    api_routes --> models_npc
+    api_routes --> models_rules
+    api_routes --> generators_npc_generator
+    api_routes --> llm_personality_engine
+    api_routes --> llm_model_config
+    api_routes --> llm_model_downloader
+    api_routes --> rules_rules_loader
+    api_routes --> config
+    api_routes --> config
+    api_routes_backup["routes_backup (14708t)"]
+    api_routes_backup --> models_database
+    api_routes_backup --> models_npc
+    api_routes_backup --> models_rules
+    api_routes_backup --> generators_npc_generator
+    api_routes_backup --> llm_personality_engine
+    api_routes_backup --> llm_model_config
+    api_routes_backup --> llm_model_downloader
+    api_routes_backup --> rules_rules_loader
+    api_routes_backup --> config
+    api_routes_backup --> config
+    api_shared["shared (380t)"]
+    api___init__["__init__ (3t)"]
+    examples_demo_web_interface["demo_web_interface (610t)"]
+    examples_demo_web_interface --> main
+    generators_npc_generator["npc_generator (2628t)"]
+    generators_npc_generator --> config
+    generators___init__["__init__ (6t)"]
+    llm_emotional_engine["emotional_engine (3806t)"]
+    llm_emotional_engine --> models_database
+    llm_emotional_engine --> models_npc
+    llm_memory_system["memory_system (3933t)"]
+    llm_memory_system --> models_database
+    llm_memory_system --> models_npc
+    llm_model_config["model_config (2019t)"]
+    llm_model_downloader["model_downloader (2955t)"]
+    llm_model_downloader --> llm_model_config
+    llm_model_router["model_router (4396t)"]
+    llm_model_router --> llm_model_config
+    llm_personality_engine["personality_engine (5058t)"]
+    llm_personality_engine --> config
+    llm_personality_engine --> llm_model_config
+    llm_personality_engine --> llm_model_router
+    llm_personality_engine --> llm_model_downloader
+    llm_personality_engine --> llm_memory_system
+    llm_personality_engine --> llm_emotional_engine
+    llm_personality_engine --> llm_personality_evolution
+    llm_personality_evolution["personality_evolution (4864t)"]
+    llm_personality_evolution --> models_database
+    llm_personality_evolution --> models_npc
+    llm___init__["__init__ (6t)"]
+    models_database["database (258t)"]
+    models_database --> config
+    models_npc["npc (1559t)"]
+    models_npc --> models_database
+    models_rules["rules (1106t)"]
+    models_rules --> models_database
+    models___init__["__init__ (6t)"]
+    rules_rules_loader["rules_loader (7216t)"]
+    rules_rules_loader --> models_database
+    rules_rules_loader --> models_rules
+    tests_conftest["conftest (1095t)"]
+    tests_conftest --> main
+    tests_conftest --> models_database
+    tests_conftest --> models_npc
+    tests_conftest --> config
+    tests_manual_management_test["manual_management_test (1013t)"]
+    tests_run_tests["run_tests (1111t)"]
+    tests_test_api["test_api (3176t)"]
+    tests_test_basic["test_basic (1179t)"]
+    tests_test_basic --> generators_npc_generator
+    tests_test_basic --> llm_personality_engine
+    tests_test_basic --> models_database
+    tests_test_basic --> models_npc
+    tests_test_config["test_config (1299t)"]
+    tests_test_enhanced_ai_systems["test_enhanced_ai_systems (5088t)"]
+    tests_test_enhanced_ai_systems --> models_database
+    tests_test_enhanced_ai_systems --> models_npc
+    tests_test_enhanced_ai_systems --> llm_memory_system
+    tests_test_enhanced_ai_systems --> llm_emotional_engine
+    tests_test_enhanced_ai_systems --> llm_personality_evolution
+    tests_test_enhanced_ai_systems --> llm_personality_engine
+    tests_test_generator["test_generator (1643t)"]
+    tests_test_generator --> generators_npc_generator
+    tests_test_generator --> config
+    tests_test_models["test_models (2248t)"]
+    tests_test_models --> models_npc
+    tests_test_multi_model["test_multi_model (3905t)"]
+    tests_test_multi_model --> llm_model_config
+    tests_test_multi_model --> llm_model_router
+    tests_test_multi_model --> llm_model_downloader
+    tests_test_multi_model --> llm_personality_engine
+    tests_test_multi_model --> main
+    tests_test_personality_engine["test_personality_engine (3168t)"]
+    tests_test_personality_engine --> llm_personality_engine
+    tests_test_rules["test_rules (3287t)"]
+    tests_test_rules --> models_rules
+    tests_test_rules --> rules_rules_loader
+    tests_test_themes["test_themes (2513t)"]
+    tests_test_web_interface["test_web_interface (2542t)"]
+    tests___init__["__init__ (3t)"]
+    tools_download_models["download_models (2178t)"]
+    tools_download_models --> llm_model_config
+    tools_initialize_rules["initialize_rules (468t)"]
+    tools_initialize_rules --> rules_rules_loader
+
+    %% AI Context Window Health Styling
+    classDef good fill:#6bcf7f,stroke:#00b894,stroke-width:2px,color:#2d3436
+    classDef warning fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436
+    classDef critical fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff
+
+    class config good
+    class main good
+    class api_campaign_routes good
+    class api_health_routes good
+    class api_main_router good
+    class api_models good
+    class api_npc_routes warning
+    class api_routes critical
+    class api_routes_backup critical
+    class api_shared good
+    class api___init__ good
+    class examples_demo_web_interface good
+    class generators_npc_generator warning
+    class generators___init__ good
+    class llm_emotional_engine warning
+    class llm_memory_system warning
+    class llm_model_config warning
+    class llm_model_downloader warning
+    class llm_model_router critical
+    class llm_personality_engine critical
+    class llm_personality_evolution critical
+    class llm___init__ good
+    class models_database good
+    class models_npc good
+    class models_rules good
+    class models___init__ good
+    class rules_rules_loader critical
+    class tests_conftest good
+    class tests_manual_management_test good
+    class tests_run_tests good
+    class tests_test_api warning
+    class tests_test_basic good
+    class tests_test_config good
+    class tests_test_enhanced_ai_systems critical
+    class tests_test_generator good
+    class tests_test_models warning
+    class tests_test_multi_model warning
+    class tests_test_personality_engine warning
+    class tests_test_rules warning
+    class tests_test_themes warning
+    class tests_test_web_interface warning
+    class tests___init__ good
+    class tools_download_models warning
+    class tools_initialize_rules good
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 12px;">
+            Generated by <a href="https://github.com/scs03004/dependency-toolkit" target="_blank">Dependency Toolkit</a>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#f8f9fa',
+                primaryTextColor: '#495057',
+                primaryBorderColor: '#dee2e6',
+                lineColor: '#adb5bd',
+                secondaryColor: '#e9ecef',
+                tertiaryColor: '#f8f9fa'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>

@@ -17,11 +17,11 @@ if requirements_path.exists():
     requirements = requirements_path.read_text().strip().split('\n')
 
 setup(
-    name="dependency-toolkit",
-    version="1.0.0",
-    author="Dependency Toolkit Team",
-    author_email="team@dependency-toolkit.dev",
-    description="A comprehensive suite of tools for managing, visualizing, and validating project dependencies",
+    name="ai-codebase-hygiene-toolkit",
+    version="2.0.0",
+    author="AI Codebase Hygiene Team",
+    author_email="team@ai-codebase-hygiene.dev",
+    description="Keep AI-assisted codebases clean, consistent, and maintainable. Specialized tools for Claude Code, Cursor, GitHub Copilot users.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/scs03004/dependency-toolkit",
@@ -56,7 +56,7 @@ setup(
     package_data={
         "": ["templates/*.md", "templates/*.html", "*.yml", "*.yaml"],
     },
-    keywords="dependency analysis visualization monitoring code-quality ci-cd",
+    keywords="ai-development codebase-hygiene pattern-consistency context-window architecture-drift claude-code cursor copilot",
     project_urls={
         "Bug Reports": "https://github.com/scs03004/dependency-toolkit/issues",
         "Source": "https://github.com/scs03004/dependency-toolkit",

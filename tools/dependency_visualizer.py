@@ -68,14 +68,45 @@ try:
 except ImportError:
     RICH_AVAILABLE = False
 
-    # Fallback console
+    # Fallback console and tree
     class Console:
         def print(self, *args, **kwargs):
             print(*args)
+    
+    class Tree:
+        def __init__(self, label):
+            self.label = label
+            self.children = []
+        
+        def add(self, label):
+            child = Tree(label)
+            self.children.append(child)
+            return child
 
     def track(items, description="Processing..."):
         print(f"{description}")
         return items
+
+
+def estimate_token_count(file_path: str) -> int:
+    """Estimate token count for AI context window analysis."""
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        # Rough estimation: ~4 characters per token for code
+        return len(content) // 4
+    except:
+        return 0
+
+
+def get_ai_context_health(token_count: int) -> str:
+    """Determine AI context health based on token count."""
+    if token_count < 2000:
+        return "GOOD"
+    elif token_count < 4000:
+        return "WARNING"
+    else:
+        return "CRITICAL"
 
 
 @dataclass
@@ -90,6 +121,10 @@ class DependencyNode:
     risk_level: str  # 'HIGH', 'MEDIUM', 'LOW'
     lines_of_code: int
     last_modified: Optional[str] = None
+    # AI-specific fields
+    ai_context_tokens: Optional[int] = None
+    ai_context_health: Optional[str] = None  # 'GOOD', 'WARNING', 'CRITICAL'
+    pattern_consistency_score: Optional[float] = None
 
 
 @dataclass
@@ -106,8 +141,9 @@ class DependencyGraph:
 class DependencyAnalyzer:
     """Core dependency analysis engine."""
 
-    def __init__(self, project_path: str):
+    def __init__(self, project_path: str, ai_awareness: bool = False):
         self.project_path = Path(project_path).resolve()
+        self.ai_awareness = ai_awareness
         self.console = Console()
         if NETWORKX_AVAILABLE:
             self.graph = nx.DiGraph()
@@ -189,6 +225,17 @@ class DependencyAnalyzer:
             # Analyze imports
             imports = self._extract_imports(tree, file_path)
 
+            # AI-specific analysis
+            ai_context_tokens = None
+            ai_context_health = None
+            pattern_consistency_score = None
+            
+            if self.ai_awareness:
+                ai_context_tokens = estimate_token_count(file_path)
+                ai_context_health = get_ai_context_health(ai_context_tokens)
+                # Placeholder for pattern consistency analysis
+                pattern_consistency_score = 0.85  # Would implement actual analysis
+            
             # Create node
             node = DependencyNode(
                 name=module_name,
@@ -199,6 +246,9 @@ class DependencyAnalyzer:
                 risk_level="LOW",  # Will be calculated later
                 lines_of_code=len(content.splitlines()),
                 last_modified=None,  # Could add file stat info
+                ai_context_tokens=ai_context_tokens,
+                ai_context_health=ai_context_health,
+                pattern_consistency_score=pattern_consistency_score,
             )
 
             self.nodes[module_name] = node
@@ -376,17 +426,22 @@ class DependencyVisualizer:
                 subtree = tree.add(f"[{risk_color}]{imported}[/{risk_color}]")
                 self._build_tree_recursive(subtree, imported, visited.copy(), max_depth - 1)
 
-    def generate_mermaid_graph(self) -> str:
+    def generate_mermaid_graph(self, ai_awareness: bool = False) -> str:
         """Generate Mermaid syntax for dependency graph."""
         lines = ["graph TD"]
 
-        # Add nodes with risk-based styling
+        # Add nodes with appropriate styling
         for node_name, node in self.graph.nodes.items():
             # Sanitize node names for Mermaid (replace dots and special chars)
             safe_name = node_name.replace(".", "_").replace("-", "_").replace("/", "_")
             display_name = node_name.split(".")[-1]  # Show just the module name
-
-            lines.append(f'    {safe_name}["{display_name}"]')
+            
+            # Add AI context info to display name if AI-awareness is enabled
+            if ai_awareness and hasattr(node, 'ai_context_tokens') and node.ai_context_tokens:
+                token_suffix = f" ({node.ai_context_tokens}t)"
+                lines.append(f'    {safe_name}["{display_name}{token_suffix}"]')
+            else:
+                lines.append(f'    {safe_name}["{display_name}"]')
 
             # Add edges
             for imported in node.imports:
@@ -394,29 +449,42 @@ class DependencyVisualizer:
                     safe_imported = imported.replace(".", "_").replace("-", "_").replace("/", "_")
                     lines.append(f"    {safe_name} --> {safe_imported}")
 
-        # Add risk-based styling classes
-        lines.extend(
-            [
+        # Add styling classes based on mode
+        if ai_awareness:
+            lines.extend([
+                "",
+                "    %% AI Context Window Health Styling",
+                "    classDef good fill:#6bcf7f,stroke:#00b894,stroke-width:2px,color:#2d3436",
+                "    classDef warning fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436", 
+                "    classDef critical fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff",
+                "",
+            ])
+        else:
+            lines.extend([
                 "",
                 "    %% Risk-based styling",
                 "    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:3px,color:#fff",
                 "    classDef medium fill:#ffd93d,stroke:#f39c12,stroke-width:2px,color:#2d3436",
                 "    classDef low fill:#6bcf7f,stroke:#00b894,stroke-width:1px,color:#2d3436",
                 "",
-            ]
-        )
+            ])
 
-        # Apply classes to nodes based on risk level
+        # Apply classes to nodes
         for node_name, node in self.graph.nodes.items():
             safe_name = node_name.replace(".", "_").replace("-", "_").replace("/", "_")
-            risk_class = node.risk_level.lower()
-            lines.append(f"    class {safe_name} {risk_class}")
+            
+            if ai_awareness and hasattr(node, 'ai_context_health') and node.ai_context_health:
+                health_class = node.ai_context_health.lower()
+                lines.append(f"    class {safe_name} {health_class}")
+            else:
+                risk_class = node.risk_level.lower()
+                lines.append(f"    class {safe_name} {risk_class}")
 
         return "\n".join(lines)
 
-    def save_mermaid_syntax(self, output_path: str):
+    def save_mermaid_syntax(self, output_path: str, ai_awareness: bool = False):
         """Save just the Mermaid syntax to a .mmd file for use in GitHub, etc."""
-        mermaid_syntax = self.generate_mermaid_graph()
+        mermaid_syntax = self.generate_mermaid_graph(ai_awareness)
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(mermaid_syntax)
@@ -425,9 +493,9 @@ class DependencyVisualizer:
         self.console.print("[blue]💡 Tip:[/blue] You can include this in GitHub README with:")
         self.console.print(f"```mermaid\\n{mermaid_syntax[:100]}...\\n```")
 
-    def generate_mermaid_html(self, output_path: str):
+    def generate_mermaid_html(self, output_path: str, ai_awareness: bool = False):
         """Generate HTML file with Mermaid diagram."""
-        mermaid_graph = self.generate_mermaid_graph()
+        mermaid_graph = self.generate_mermaid_graph(ai_awareness)
 
         # Create comprehensive HTML with Mermaid
         html_content = f"""<!DOCTYPE html>
@@ -859,11 +927,12 @@ def main():
     )
     parser.add_argument("--output", help="Output file path (default: auto-generated)")
     parser.add_argument("--no-interactive", action="store_true", help="Skip interactive features")
+    parser.add_argument("--ai-awareness", action="store_true", help="Enable AI-specific analysis and visualization features")
 
     args = parser.parse_args()
 
     # Initialize analyzer
-    analyzer = DependencyAnalyzer(args.project_path)
+    analyzer = DependencyAnalyzer(args.project_path, ai_awareness=args.ai_awareness)
 
     # Analyze project
     try:
@@ -896,12 +965,16 @@ def main():
     if args.format in ["mermaid", "all"]:
         # Mermaid HTML graph (web-native)
         output_path = args.output or f"{base_name}_dependency_graph.html"
-        visualizer.generate_mermaid_html(output_path)
+        if args.ai_awareness:
+            output_path = output_path.replace('.html', '_ai_aware.html')
+        visualizer.generate_mermaid_html(output_path, ai_awareness=args.ai_awareness)
 
     if args.format in ["syntax"]:
         # Raw Mermaid syntax for GitHub/docs
         output_path = args.output or f"{base_name}_dependency_graph.mmd"
-        visualizer.save_mermaid_syntax(output_path)
+        if args.ai_awareness:
+            output_path = output_path.replace('.mmd', '_ai_aware.mmd')
+        visualizer.save_mermaid_syntax(output_path, ai_awareness=args.ai_awareness)
 
     if args.format in ["html"]:
         # Legacy Plotly HTML graph
@@ -920,6 +993,19 @@ def main():
     print(f"\n✅ Analysis complete for {dependency_graph.metrics['total_files']} files")
     if dependency_graph.circular_dependencies:
         print(f"⚠️  Found {len(dependency_graph.circular_dependencies)} circular dependencies")
+    
+    if args.ai_awareness:
+        # Show AI-specific summary
+        total_tokens = sum(node.ai_context_tokens or 0 for node in dependency_graph.nodes.values())
+        critical_files = [node for node in dependency_graph.nodes.values() 
+                         if hasattr(node, 'ai_context_health') and node.ai_context_health == 'CRITICAL']
+        warning_files = [node for node in dependency_graph.nodes.values() 
+                        if hasattr(node, 'ai_context_health') and node.ai_context_health == 'WARNING']
+        
+        print(f"\n🤖 AI Development Analysis:")
+        print(f"   📏 Total tokens across codebase: {total_tokens:,}")
+        print(f"   ⚠️  Files needing attention: {len(critical_files)} critical, {len(warning_files)} warnings")
+        print(f"   🎯 AI-optimized visualization generated with context health indicators")
 
 
 if __name__ == "__main__":
