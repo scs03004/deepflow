@@ -22,24 +22,19 @@ import time
 import threading
 import argparse
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List
 from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-import subprocess
+from datetime import datetime
 import psutil
 
 try:
-    from flask import Flask, render_template, jsonify, request
+    from flask import Flask, render_template, jsonify
     from flask_socketio import SocketIO, emit
-    import pandas as pd
     from rich.console import Console
     from rich.live import Live
     from rich.table import Table
     from rich.panel import Panel
     from rich.layout import Layout
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.utils import PlotlyJSONEncoder
 except ImportError as e:
     print(f"Missing required dependency: {e}")
     print("Install with: pip install flask flask-socketio pandas plotly psutil")

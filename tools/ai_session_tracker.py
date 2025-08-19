@@ -15,7 +15,6 @@ Usage:
     python ai_session_tracker.py analyze /path/to/project
 """
 
-import os
 import json
 import argparse
 import datetime
@@ -23,14 +22,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import hashlib
-import subprocess
 import sys
 
 try:
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
-    from rich.progress import track
     import git
 except ImportError as e:
     print(f"Missing required dependency: {e}")

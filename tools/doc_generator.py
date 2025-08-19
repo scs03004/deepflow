@@ -21,19 +21,13 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 from datetime import datetime
-import importlib.util
-import subprocess
 
 try:
-    import networkx as nx
-    import pandas as pd
     from jinja2 import Template, Environment, FileSystemLoader
     from rich.console import Console
-    from rich.progress import track
-    import yaml
 except ImportError as e:
     print(f"Missing required dependency: {e}")
     print("Install with: pip install -r requirements.txt")

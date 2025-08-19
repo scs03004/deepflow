@@ -19,13 +19,11 @@ Usage:
 import ast
 import os
 import sys
-import json
 import argparse
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Optional
 from dataclasses import dataclass, asdict
-from collections import defaultdict, deque
-import importlib.util
+from collections import defaultdict
 
 try:
     import networkx as nx
@@ -35,7 +33,6 @@ except ImportError:
     NETWORKX_AVAILABLE = False
 
 try:
-    import matplotlib.pyplot as plt
 
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
@@ -44,7 +41,6 @@ except ImportError:
 try:
     import plotly.graph_objects as go
     import plotly.express as px
-    from plotly.subplots import make_subplots
 
     PLOTLY_AVAILABLE = True
 except ImportError:
@@ -60,8 +56,6 @@ except ImportError:
 try:
     from rich.console import Console
     from rich.tree import Tree
-    from rich.table import Table
-    from rich.panel import Panel
     from rich.progress import track
 
     RICH_AVAILABLE = True

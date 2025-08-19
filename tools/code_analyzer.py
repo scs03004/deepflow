@@ -21,20 +21,16 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, asdict
 from collections import defaultdict, Counter
-import importlib.util
 import re
 
 try:
     from rich.console import Console
     from rich.table import Table
-    from rich.panel import Panel
     from rich.progress import track
-    from rich.tree import Tree
     import networkx as nx
-    import pandas as pd
 except ImportError as e:
     print(f"Missing required dependency: {e}")
     print("Install with: pip install rich networkx pandas")

@@ -27,7 +27,7 @@ import json
 import subprocess
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Set, Optional
 from dataclasses import dataclass
 import importlib.util
 import tempfile
