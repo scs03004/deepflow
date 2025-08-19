@@ -50,6 +50,7 @@ setup(
             "dependency-ci=tools.ci_cd_integrator:main",
             "dependency-monitor=tools.monitoring_dashboard:main",
             "dependency-analyzer=tools.code_analyzer:main",
+            "ai-session-tracker=tools.ai_session_tracker:main",
         ],
     },
     include_package_data=True,

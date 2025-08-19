@@ -1,0 +1,27 @@
+{
+  "session_id": "791f693d",
+  "name": "test-session",
+  "description": "Testing the AI session tracker",
+  "start_time": "2025-08-18T22:35:41.088577",
+  "end_time": "2025-08-18T22:36:01.483747",
+  "project_path": "C:\\Users\\Sebastian\\PycharmProjects\\npcgpt-dependency\\dependency-toolkit",
+  "initial_commit": "90671f2634d4b31db5cc4ee3dd22cfde281a9d99",
+  "final_commit": "90671f2634d4b31db5cc4ee3dd22cfde281a9d99",
+  "files_changed": [
+    {
+      "file_path": "setup.py",
+      "change_type": "modified",
+      "lines_added": 1,
+      "lines_removed": 0,
+      "tokens_before": 671,
+      "tokens_after": 675,
+      "timestamp": "2025-08-18T22:36:01.567694"
+    }
+  ],
+  "total_tokens_added": 4,
+  "total_tokens_removed": 0,
+  "pattern_consistency_scores": {},
+  "architecture_violations": [],
+  "ai_suggestions_followed": [],
+  "session_notes": []
+}
