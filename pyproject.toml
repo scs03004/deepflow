@@ -3,18 +3,18 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dependency-toolkit"
-version = "1.0.0"
-description = "A comprehensive suite of tools for managing, visualizing, and validating project dependencies"
+name = "ai-codebase-hygiene-toolkit"
+version = "2.0.0"
+description = "Keep AI-assisted codebases clean, consistent, and maintainable. Specialized tools for Claude Code, Cursor, GitHub Copilot users."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Dependency Toolkit Team", email = "team@dependency-toolkit.dev"}
+    {name = "AI Codebase Hygiene Team", email = "team@ai-codebase-hygiene.dev"}
 ]
 maintainers = [
-    {name = "Dependency Toolkit Team", email = "team@dependency-toolkit.dev"}
+    {name = "AI Codebase Hygiene Team", email = "team@ai-codebase-hygiene.dev"}
 ]
-keywords = ["dependency", "analysis", "visualization", "monitoring", "code-quality", "ci-cd"]
+keywords = ["ai-development", "codebase-hygiene", "pattern-consistency", "context-window", "architecture-drift", "claude-code", "cursor", "copilot"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -65,11 +65,11 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/dependency-toolkit/dependency-toolkit"
-Documentation = "https://dependency-toolkit.readthedocs.io/"
-Repository = "https://github.com/dependency-toolkit/dependency-toolkit.git"
-"Bug Tracker" = "https://github.com/dependency-toolkit/dependency-toolkit/issues"
-Changelog = "https://github.com/dependency-toolkit/dependency-toolkit/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/scs03004/dependency-toolkit"
+Documentation = "https://github.com/scs03004/dependency-toolkit/blob/main/README.md"
+Repository = "https://github.com/scs03004/dependency-toolkit.git"
+"Bug Tracker" = "https://github.com/scs03004/dependency-toolkit/issues"
+Changelog = "https://github.com/scs03004/dependency-toolkit/blob/main/CHANGELOG.md"
 
 [project.scripts]
 dependency-visualizer = "tools.dependency_visualizer:main"
@@ -78,6 +78,7 @@ dependency-docs = "tools.doc_generator:main"
 dependency-ci = "tools.ci_cd_integrator:main"
 dependency-monitor = "tools.monitoring_dashboard:main"
 dependency-analyzer = "tools.code_analyzer:main"
+ai-session-tracker = "tools.ai_session_tracker:main"
 
 [tool.setuptools]
 packages = ["tools", "templates"]
@@ -101,6 +102,8 @@ exclude = '''
   | buck-out
   | build
   | dist
+  | \.ai-sessions
+  | \.claude-agents
 )/
 '''
 
