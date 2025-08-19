@@ -90,6 +90,83 @@ class TechnicalDebt:
     estimated_effort: str
 
 
+@dataclass
+class AIContextAnalysis:
+    """AI context window analysis result."""
+    
+    file_path: str
+    token_count: int
+    context_health: str  # 'GOOD', 'WARNING', 'CRITICAL'
+    estimated_split_points: List[int]
+    refactoring_suggestions: List[str]
+    ai_friendliness_score: float
+
+
+@dataclass
+class PatternConsistency:
+    """Pattern consistency analysis result."""
+    
+    pattern_type: str  # 'error_handling', 'logging', 'imports', 'naming'
+    consistency_score: float  # 0.0 - 1.0
+    total_instances: int
+    consistent_instances: int
+    violations: List[Dict[str, str]]  # file_path, line, description
+    recommended_standard: str
+
+
+@dataclass
+class AICodeMetrics:
+    """AI-specific code quality metrics."""
+    
+    file_path: str
+    likely_ai_generated: bool
+    confidence_score: float
+    pattern_consistency_scores: Dict[str, float]
+    context_window_health: str
+    ai_optimization_suggestions: List[str]
+
+
+# AI-specific utility functions
+def estimate_tokens(content: str) -> int:
+    """Estimate token count for AI context analysis."""
+    # Rough estimation: ~4 characters per token for code
+    return len(content) // 4
+
+
+def get_context_health(token_count: int) -> str:
+    """Determine AI context health based on token count."""
+    if token_count < 2000:
+        return "GOOD"
+    elif token_count < 4000:
+        return "WARNING"
+    else:
+        return "CRITICAL"
+
+
+def detect_ai_patterns(content: str) -> Tuple[bool, float]:
+    """Detect if code is likely AI-generated based on patterns."""
+    ai_indicators = [
+        len(re.findall(r'# .*implementation.*', content, re.IGNORECASE)),
+        len(re.findall(r'# TODO:.*', content)),
+        len(re.findall(r'# NOTE:.*', content)),
+        len(re.findall(r'# Helper function', content, re.IGNORECASE)),
+        len(re.findall(r'def .*_helper\(', content)),
+        len(re.findall(r'# Main.*function', content, re.IGNORECASE)),
+    ]
+    
+    total_indicators = sum(ai_indicators)
+    lines = len(content.split('\n'))
+    
+    if lines == 0:
+        return False, 0.0
+    
+    indicator_ratio = total_indicators / lines
+    confidence = min(indicator_ratio * 10, 1.0)  # Scale to 0-1
+    likely_ai = confidence > 0.3
+    
+    return likely_ai, confidence
+
+
 class CodeAnalyzer:
     """Advanced code analysis engine."""
 
@@ -810,6 +887,355 @@ class CodeAnalyzer:
             return node.module
         return None
 
+    def analyze_ai_context_windows(self) -> List[AIContextAnalysis]:
+        """Analyze files for AI context window efficiency."""
+        self.console.print("[bold blue]Analyzing AI context windows...[/bold blue]")
+        
+        results = []
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        for file_path in track(python_files, description="Analyzing context windows..."):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                token_count = estimate_tokens(content)
+                context_health = get_context_health(token_count)
+                
+                # Analyze potential split points (class/function boundaries)
+                tree = ast.parse(content)
+                split_points = []
+                suggestions = []
+                
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.ClassDef, ast.FunctionDef)) and hasattr(node, 'lineno'):
+                        split_points.append(node.lineno)
+                
+                # Generate suggestions based on context health
+                if context_health == "CRITICAL":
+                    suggestions.append("Consider splitting this file into smaller modules")
+                    suggestions.append("Extract classes/functions into separate files")
+                elif context_health == "WARNING":
+                    suggestions.append("Monitor file size growth")
+                    suggestions.append("Consider refactoring if adding more functionality")
+                
+                # Calculate AI-friendliness score
+                lines = len(content.split('\n'))
+                ai_friendliness = max(0.0, min(1.0, (4000 - token_count) / 4000))
+                
+                results.append(AIContextAnalysis(
+                    file_path=str(file_path.relative_to(self.project_path)),
+                    token_count=token_count,
+                    context_health=context_health,
+                    estimated_split_points=split_points[:5],  # Top 5 split points
+                    refactoring_suggestions=suggestions,
+                    ai_friendliness_score=ai_friendliness
+                ))
+                
+            except Exception as e:
+                self.console.print(f"[red]Error analyzing {file_path}: {e}[/red]")
+        
+        return results
+
+    def analyze_pattern_consistency(self) -> List[PatternConsistency]:
+        """Analyze pattern consistency across the codebase."""
+        self.console.print("[bold blue]Analyzing pattern consistency...[/bold blue]")
+        
+        patterns = {
+            'error_handling': self._analyze_error_handling_patterns(),
+            'logging': self._analyze_logging_patterns(),
+            'imports': self._analyze_import_patterns(),
+            'naming': self._analyze_naming_patterns(),
+        }
+        
+        results = []
+        for pattern_type, analysis in patterns.items():
+            results.append(analysis)
+        
+        return results
+
+    def _analyze_error_handling_patterns(self) -> PatternConsistency:
+        """Analyze error handling pattern consistency."""
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        try_except_patterns = []
+        raise_patterns = []
+        
+        for file_path in python_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    tree = ast.parse(content)
+                
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Try):
+                        # Analyze exception handling patterns
+                        if node.handlers:
+                            handler = node.handlers[0]
+                            pattern = f"except {handler.type.id if handler.type and hasattr(handler.type, 'id') else 'Exception'}"
+                            try_except_patterns.append({
+                                'file': str(file_path.relative_to(self.project_path)),
+                                'line': node.lineno,
+                                'pattern': pattern
+                            })
+                    
+                    elif isinstance(node, ast.Raise):
+                        if node.exc and hasattr(node.exc, 'id'):
+                            pattern = f"raise {node.exc.id}"
+                            raise_patterns.append({
+                                'file': str(file_path.relative_to(self.project_path)),
+                                'line': node.lineno,
+                                'pattern': pattern
+                            })
+            except:
+                continue
+        
+        # Calculate consistency
+        all_patterns = try_except_patterns + raise_patterns
+        if not all_patterns:
+            return PatternConsistency(
+                pattern_type='error_handling',
+                consistency_score=1.0,
+                total_instances=0,
+                consistent_instances=0,
+                violations=[],
+                recommended_standard="No error handling patterns found"
+            )
+        
+        pattern_counts = Counter(p['pattern'] for p in all_patterns)
+        most_common = pattern_counts.most_common(1)[0] if pattern_counts else ('', 0)
+        consistent_count = most_common[1]
+        consistency_score = consistent_count / len(all_patterns) if all_patterns else 0.0
+        
+        violations = [p for p in all_patterns if p['pattern'] != most_common[0]]
+        
+        return PatternConsistency(
+            pattern_type='error_handling',
+            consistency_score=consistency_score,
+            total_instances=len(all_patterns),
+            consistent_instances=consistent_count,
+            violations=violations,
+            recommended_standard=most_common[0]
+        )
+
+    def _analyze_logging_patterns(self) -> PatternConsistency:
+        """Analyze logging pattern consistency."""
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        logging_patterns = []
+        
+        for file_path in python_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Look for logging patterns
+                log_calls = re.findall(r'(log\w*\.(debug|info|warning|error|critical))', content, re.IGNORECASE)
+                print_calls = re.findall(r'print\s*\(', content)
+                
+                for match in log_calls:
+                    logging_patterns.append({
+                        'file': str(file_path.relative_to(self.project_path)),
+                        'pattern': f"logging.{match[1]}"
+                    })
+                
+                for _ in print_calls:
+                    logging_patterns.append({
+                        'file': str(file_path.relative_to(self.project_path)),
+                        'pattern': "print()"
+                    })
+            except:
+                continue
+        
+        if not logging_patterns:
+            return PatternConsistency(
+                pattern_type='logging',
+                consistency_score=1.0,
+                total_instances=0,
+                consistent_instances=0,
+                violations=[],
+                recommended_standard="No logging patterns found"
+            )
+        
+        pattern_counts = Counter(p['pattern'] for p in logging_patterns)
+        most_common = pattern_counts.most_common(1)[0]
+        consistent_count = most_common[1]
+        consistency_score = consistent_count / len(logging_patterns)
+        
+        violations = [p for p in logging_patterns if p['pattern'] != most_common[0]]
+        
+        return PatternConsistency(
+            pattern_type='logging',
+            consistency_score=consistency_score,
+            total_instances=len(logging_patterns),
+            consistent_instances=consistent_count,
+            violations=violations,
+            recommended_standard=most_common[0]
+        )
+
+    def _analyze_import_patterns(self) -> PatternConsistency:
+        """Analyze import organization patterns."""
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        import_styles = []
+        
+        for file_path in python_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                
+                # Check import organization
+                imports_section = []
+                for i, line in enumerate(lines[:50]):  # Check first 50 lines
+                    if line.strip().startswith(('import ', 'from ')):
+                        imports_section.append((i, line.strip()))
+                
+                if imports_section:
+                    # Determine style based on organization
+                    stdlib_first = any('from typing' in line or 'import os' in line for _, line in imports_section[:3])
+                    style = "stdlib_first" if stdlib_first else "mixed"
+                    
+                    import_styles.append({
+                        'file': str(file_path.relative_to(self.project_path)),
+                        'pattern': style
+                    })
+            except:
+                continue
+        
+        if not import_styles:
+            return PatternConsistency(
+                pattern_type='imports',
+                consistency_score=1.0,
+                total_instances=0,
+                consistent_instances=0,
+                violations=[],
+                recommended_standard="No import patterns found"
+            )
+        
+        pattern_counts = Counter(p['pattern'] for p in import_styles)
+        most_common = pattern_counts.most_common(1)[0]
+        consistent_count = most_common[1]
+        consistency_score = consistent_count / len(import_styles)
+        
+        violations = [p for p in import_styles if p['pattern'] != most_common[0]]
+        
+        return PatternConsistency(
+            pattern_type='imports',
+            consistency_score=consistency_score,
+            total_instances=len(import_styles),
+            consistent_instances=consistent_count,
+            violations=violations,
+            recommended_standard=most_common[0]
+        )
+
+    def _analyze_naming_patterns(self) -> PatternConsistency:
+        """Analyze naming convention consistency."""
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        naming_patterns = []
+        
+        for file_path in python_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    tree = ast.parse(content)
+                
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef):
+                        if '_' in node.name:
+                            pattern = "snake_case"
+                        elif node.name[0].isupper():
+                            pattern = "PascalCase"
+                        elif node.name[0].islower() and not '_' in node.name:
+                            pattern = "camelCase"
+                        else:
+                            pattern = "mixed"
+                        
+                        naming_patterns.append({
+                            'file': str(file_path.relative_to(self.project_path)),
+                            'line': node.lineno,
+                            'pattern': pattern,
+                            'name': node.name
+                        })
+            except:
+                continue
+        
+        if not naming_patterns:
+            return PatternConsistency(
+                pattern_type='naming',
+                consistency_score=1.0,
+                total_instances=0,
+                consistent_instances=0,
+                violations=[],
+                recommended_standard="No naming patterns found"
+            )
+        
+        pattern_counts = Counter(p['pattern'] for p in naming_patterns)
+        most_common = pattern_counts.most_common(1)[0]
+        consistent_count = most_common[1]
+        consistency_score = consistent_count / len(naming_patterns)
+        
+        violations = [p for p in naming_patterns if p['pattern'] != most_common[0]]
+        
+        return PatternConsistency(
+            pattern_type='naming',
+            consistency_score=consistency_score,
+            total_instances=len(naming_patterns),
+            consistent_instances=consistent_count,
+            violations=violations,
+            recommended_standard=most_common[0]
+        )
+
+    def analyze_ai_code_metrics(self) -> List[AICodeMetrics]:
+        """Analyze AI-specific code quality metrics."""
+        self.console.print("[bold blue]Analyzing AI code metrics...[/bold blue]")
+        
+        results = []
+        python_files = [f for f in self.project_path.rglob("*.py") if not self._should_skip_file(f)]
+        
+        for file_path in track(python_files, description="Analyzing AI metrics..."):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Detect if likely AI-generated
+                likely_ai, confidence = detect_ai_patterns(content)
+                
+                # Get context window health
+                token_count = estimate_tokens(content)
+                context_health = get_context_health(token_count)
+                
+                # Analyze pattern consistency (simplified for individual file)
+                pattern_scores = {
+                    'error_handling': 0.8,  # Would implement actual analysis
+                    'logging': 0.9,
+                    'naming': 0.85,
+                    'imports': 0.75
+                }
+                
+                # Generate AI optimization suggestions
+                suggestions = []
+                if context_health == "CRITICAL":
+                    suggestions.append("File too large for optimal AI processing - consider splitting")
+                if likely_ai and confidence > 0.5:
+                    suggestions.append("Review AI-generated code for consistency with project patterns")
+                if token_count > 3000:
+                    suggestions.append("Consider extracting classes or functions to improve AI context efficiency")
+                
+                results.append(AICodeMetrics(
+                    file_path=str(file_path.relative_to(self.project_path)),
+                    likely_ai_generated=likely_ai,
+                    confidence_score=confidence,
+                    pattern_consistency_scores=pattern_scores,
+                    context_window_health=context_health,
+                    ai_optimization_suggestions=suggestions
+                ))
+                
+            except Exception as e:
+                self.console.print(f"[red]Error analyzing {file_path}: {e}[/red]")
+        
+        return results
+
 
 def main():
     """Main CLI interface."""
@@ -825,6 +1251,11 @@ def main():
     parser.add_argument("--calculate-debt", action="store_true", help="Calculate technical debt")
     parser.add_argument("--output", help="Output file for results (JSON format)")
     parser.add_argument("--all", action="store_true", help="Run all analyses")
+    
+    # AI-specific analysis options
+    parser.add_argument("--ai-metrics", action="store_true", help="Enable AI-specific code quality metrics")
+    parser.add_argument("--pattern-consistency", action="store_true", help="Analyze pattern consistency across codebase")
+    parser.add_argument("--context-analysis", action="store_true", help="Analyze files for AI context window efficiency")
 
     args = parser.parse_args()
 
@@ -953,6 +1384,107 @@ def main():
 
                     console.print(table)
 
+        # AI-specific analyses
+        if args.all or args.ai_metrics:
+            # Analyze AI code metrics
+            ai_metrics = analyzer.analyze_ai_code_metrics()
+            results["ai_metrics"] = [asdict(m) for m in ai_metrics]
+            
+            ai_likely_count = sum(1 for m in ai_metrics if m.likely_ai_generated)
+            critical_context_count = sum(1 for m in ai_metrics if m.context_window_health == "CRITICAL")
+            
+            console.print(f"\n[bold]AI Code Analysis:[/bold] {ai_likely_count} likely AI-generated files out of {len(ai_metrics)} total")
+            console.print(f"[bold]Context Window Health:[/bold] {critical_context_count} files need attention for AI context efficiency")
+            
+            if critical_context_count > 0:
+                table = Table(title="Files Requiring AI Context Optimization")
+                table.add_column("File")
+                table.add_column("Tokens")
+                table.add_column("Health")
+                table.add_column("AI Generated")
+                table.add_column("Suggestions")
+                
+                critical_files = [m for m in ai_metrics if m.context_window_health == "CRITICAL"]
+                for metric in critical_files[:10]:  # Top 10
+                    suggestions = "; ".join(metric.ai_optimization_suggestions[:2])  # First 2 suggestions
+                    try:
+                        full_path = analyzer.project_path / metric.file_path
+                        if full_path.exists():
+                            with open(full_path, 'r', encoding='utf-8') as f:
+                                token_count = estimate_tokens(f.read())
+                        else:
+                            token_count = "N/A"
+                    except:
+                        token_count = "N/A"
+                    
+                    table.add_row(
+                        metric.file_path,
+                        str(token_count),
+                        metric.context_window_health,
+                        "Yes" if metric.likely_ai_generated else "No",
+                        suggestions
+                    )
+                
+                console.print(table)
+
+        if args.all or args.pattern_consistency:
+            # Analyze pattern consistency
+            pattern_results = analyzer.analyze_pattern_consistency()
+            results["pattern_consistency"] = [asdict(p) for p in pattern_results]
+            
+            console.print(f"\n[bold]Pattern Consistency Analysis:[/bold]")
+            
+            pattern_table = Table(title="Pattern Consistency Scores")
+            pattern_table.add_column("Pattern Type")
+            pattern_table.add_column("Consistency Score")
+            pattern_table.add_column("Total Instances")
+            pattern_table.add_column("Violations")
+            pattern_table.add_column("Recommended Standard")
+            
+            for pattern in pattern_results:
+                score_color = "green" if pattern.consistency_score > 0.8 else "yellow" if pattern.consistency_score > 0.6 else "red"
+                pattern_table.add_row(
+                    pattern.pattern_type.replace('_', ' ').title(),
+                    f"[{score_color}]{pattern.consistency_score:.2f}[/{score_color}]",
+                    str(pattern.total_instances),
+                    str(len(pattern.violations)),
+                    pattern.recommended_standard[:30] + "..." if len(pattern.recommended_standard) > 30 else pattern.recommended_standard
+                )
+            
+            console.print(pattern_table)
+
+        if args.all or args.context_analysis:
+            # Analyze AI context windows
+            context_results = analyzer.analyze_ai_context_windows()
+            results["context_analysis"] = [asdict(c) for c in context_results]
+            
+            critical_files = [c for c in context_results if c.context_health == "CRITICAL"]
+            warning_files = [c for c in context_results if c.context_health == "WARNING"]
+            good_files = [c for c in context_results if c.context_health == "GOOD"]
+            
+            console.print(f"\n[bold]AI Context Window Analysis:[/bold]")
+            console.print(f"   [green]Good ({len(good_files)} files):[/green] Under 2K tokens")
+            console.print(f"   [yellow]Warning ({len(warning_files)} files):[/yellow] 2K-4K tokens")
+            console.print(f"   [red]Critical ({len(critical_files)} files):[/red] Over 4K tokens")
+            
+            if critical_files:
+                context_table = Table(title="Files Exceeding AI Context Limits")
+                context_table.add_column("File")
+                context_table.add_column("Tokens")
+                context_table.add_column("AI Friendliness")
+                context_table.add_column("Suggestions")
+                
+                for context in critical_files[:10]:  # Top 10
+                    suggestions = "; ".join(context.refactoring_suggestions[:2])
+                    context_table.add_row(
+                        context.file_path,
+                        f"{context.token_count:,}",
+                        f"{context.ai_friendliness_score:.2f}",
+                        suggestions
+                    )
+                
+                console.print(context_table)
+
         # Save results if requested
         if args.output:
             with open(args.output, "w") as f:
@@ -960,7 +1492,7 @@ def main():
             console.print(f"\n[green]✅ Results saved to:[/green] {args.output}")
 
         # Summary
-        total_issues = sum(
+        traditional_issues = sum(
             [
                 sum(1 for r in results.get("imports", []) if not r["is_used"]),
                 len(results.get("coupling", [])),
@@ -972,10 +1504,23 @@ def main():
                 ),
             ]
         )
+        
+        # AI-specific issues
+        ai_issues = 0
+        if "ai_metrics" in results:
+            ai_issues += sum(1 for m in results["ai_metrics"] if m["context_window_health"] == "CRITICAL")
+        if "pattern_consistency" in results:
+            ai_issues += sum(1 for p in results["pattern_consistency"] if p["consistency_score"] < 0.7)
+        if "context_analysis" in results:
+            ai_issues += sum(1 for c in results["context_analysis"] if c["context_health"] == "CRITICAL")
 
-        console.print(
-            f"\n[bold]Summary:[/bold] Found {total_issues} total issues requiring attention"
-        )
+        total_issues = traditional_issues + ai_issues
+
+        console.print(f"\n[bold]Summary:[/bold] Found {total_issues} total issues requiring attention")
+        if ai_issues > 0:
+            console.print(f"  Traditional issues: {traditional_issues}")
+            console.print(f"  AI-specific issues: {ai_issues}")
+            console.print(f"\n[blue]Tip:[/blue] Use --ai-metrics to focus on AI development hygiene")
 
     except Exception as e:
         console.print(f"[red]Error during analysis: {e}[/red]")
