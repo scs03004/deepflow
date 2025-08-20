@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub Issues](https://img.shields.io/github/issues/scs03004/dependency-toolkit)](https://github.com/scs03004/dependency-toolkit/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/scs03004/dependency-toolkit)](https://github.com/scs03004/dependency-toolkit)
+[![GitHub Issues](https://img.shields.io/github/issues/scs03004/deepflow)](https://github.com/scs03004/deepflow/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/scs03004/deepflow)](https://github.com/scs03004/deepflow)
 
 **Keep AI-assisted codebases clean, consistent, and maintainable**
 
@@ -41,11 +41,11 @@ The AI Codebase Hygiene Toolkit provides **specialized tools** for AI-assisted d
 ### Installation
 ```bash
 # Install directly from GitHub
-pip install git+https://github.com/scs03004/dependency-toolkit.git
+pip install git+https://github.com/scs03004/deepflow.git
 
 # Or clone and install locally
-git clone https://github.com/scs03004/dependency-toolkit.git
-cd dependency-toolkit
+git clone https://github.com/scs03004/deepflow.git
+cd deepflow
 pip install -e .
 ```
 
@@ -55,7 +55,7 @@ pip install -e .
 ai-session-tracker start "feature-implementation"
 
 # Analyze codebase with AI-awareness
-dependency-visualizer /path/to/project --ai-awareness
+deepflow-visualizer /path/to/project --ai-awareness
 
 # Check pattern consistency across AI sessions
 code-analyzer /path/to/project --ai-metrics --pattern-consistency
@@ -155,10 +155,10 @@ graph TD
 ### Alternative Command Usage
 ```bash
 # Generate GitHub-ready Mermaid syntax
-dependency-visualizer /path/to/project --format syntax
+deepflow-visualizer /path/to/project --format syntax
 
 # Generate interactive HTML dashboard (default)
-dependency-visualizer /path/to/project --format mermaid
+deepflow-visualizer /path/to/project --format mermaid
 ```
 
 ## 🛠️ **AI-Aware Tools**
@@ -170,7 +170,7 @@ dependency-visualizer /path/to/project --format mermaid
 - **📝 Session reports** - Generate summaries of AI development impact
 - **⏱️ Time tracking** - Monitor AI development velocity and patterns
 
-### 2. AI-Aware Dependency Visualizer (`dependency-visualizer --ai-awareness`)
+### 2. AI-Aware Dependency Visualizer (`deepflow-visualizer --ai-awareness`)
 - **🌐 Context window heatmaps** - Visual indication of files approaching AI limits
 - **🎯 Pattern consistency coloring** - Highlight inconsistent code patterns
 - **📱 AI session timeline** - Show how dependencies evolved across sessions
@@ -207,7 +207,7 @@ dependency-visualizer /path/to/project --format mermaid
 ## 📁 **Project Structure**
 
 ```
-dependency-toolkit/
+deepflow/
 ├── tools/                          # Core dependency management tools
 │   ├── dependency_visualizer.py    # Graph generation and visualization
 │   ├── pre_commit_validator.py     # Git hook validation
@@ -290,7 +290,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **architecture-guardian**: Prevent gradual architectural violations
 
 ### 🔄 Enhanced Existing Tools
-- **dependency-visualizer --ai-awareness**: AI development timeline visualization
+- **deepflow-visualizer --ai-awareness**: AI development timeline visualization
 - **code-analyzer --ai-metrics**: Pattern consistency and AI code quality analysis
 
 ### Migration from v1.x

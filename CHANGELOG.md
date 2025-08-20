@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Dependency Toolkit will be documented in this file.
+All notable changes to Deepflow will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -75,28 +75,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Installation
 ```bash
-pip install dependency-toolkit
+pip install deepflow
 ```
 
 ### Quick Start
 ```bash
 # Generate dependency graph
-dependency-visualizer /path/to/project
+deepflow-visualizer /path/to/project
 
 # Install pre-commit hooks
-dependency-validator --install /path/to/project
+deepflow-validator --install /path/to/project
 
 # Generate documentation
-dependency-docs /path/to/project --output docs/
+deepflow-docs /path/to/project --output docs/
 
 # Start monitoring dashboard
-dependency-monitor --start /path/to/project --server
+deepflow-monitor --start /path/to/project --server
 ```
 
 ### Configuration
 The toolkit supports configuration through:
 - Command-line arguments
-- YAML configuration files (`.dependency-toolkit.yml`)
+- YAML configuration files (`.deepflow.yml`)
 - Environment variables
 - Project-specific settings
 
@@ -129,4 +129,4 @@ The toolkit supports configuration through:
 
 ---
 
-For more information, see the [documentation](https://dependency-toolkit.readthedocs.io/) or visit our [GitHub repository](https://github.com/dependency-toolkit/dependency-toolkit).
+For more information, see the [documentation](https://deepflow.readthedocs.io/) or visit our [GitHub repository](https://github.com/deepflow/deepflow).

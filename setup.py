@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for Dependency Toolkit
+Setup script for Deepflow
 """
 
 from setuptools import setup, find_packages
@@ -17,14 +17,14 @@ if requirements_path.exists():
     requirements = requirements_path.read_text().strip().split('\n')
 
 setup(
-    name="ai-codebase-hygiene-toolkit",
+    name="deepflow",
     version="2.0.0",
-    author="AI Codebase Hygiene Team",
-    author_email="team@ai-codebase-hygiene.dev",
+    author="Deepflow Team",
+    author_email="team@deepflow.dev",
     description="Keep AI-assisted codebases clean, consistent, and maintainable. Specialized tools for Claude Code, Cursor, GitHub Copilot users.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/scs03004/dependency-toolkit",
+    url="https://github.com/scs03004/deepflow",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -44,12 +44,12 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "dependency-visualizer=tools.dependency_visualizer:main",
-            "dependency-validator=tools.pre_commit_validator:main",
-            "dependency-docs=tools.doc_generator:main",
-            "dependency-ci=tools.ci_cd_integrator:main",
-            "dependency-monitor=tools.monitoring_dashboard:main",
-            "dependency-analyzer=tools.code_analyzer:main",
+            "deepflow-visualizer=tools.dependency_visualizer:main",
+            "deepflow-validator=tools.pre_commit_validator:main",
+            "deepflow-docs=tools.doc_generator:main",
+            "deepflow-ci=tools.ci_cd_integrator:main",
+            "deepflow-monitor=tools.monitoring_dashboard:main",
+            "deepflow-analyzer=tools.code_analyzer:main",
             "ai-session-tracker=tools.ai_session_tracker:main",
         ],
     },
@@ -59,8 +59,8 @@ setup(
     },
     keywords="ai-development codebase-hygiene pattern-consistency context-window architecture-drift claude-code cursor copilot",
     project_urls={
-        "Bug Reports": "https://github.com/scs03004/dependency-toolkit/issues",
-        "Source": "https://github.com/scs03004/dependency-toolkit",
-        "Documentation": "https://github.com/scs03004/dependency-toolkit/blob/main/README.md",
+        "Bug Reports": "https://github.com/scs03004/deepflow/issues",
+        "Source": "https://github.com/scs03004/deepflow",
+        "Documentation": "https://github.com/scs03004/deepflow/blob/main/README.md",
     },
 )

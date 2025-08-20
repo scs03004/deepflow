@@ -116,4 +116,4 @@
 
 ---
 
-*Generated automatically by [Dependency Toolkit](https://github.com/scs03004/dependency-toolkit) on {{ generated_date }}*
+*Generated automatically by [Deepflow](https://github.com/scs03004/deepflow) on {{ generated_date }}*

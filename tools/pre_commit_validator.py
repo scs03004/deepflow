@@ -497,7 +497,7 @@ class PreCommitHookInstaller:
         pre_commit_hook.chmod(0o755)
 
         # Create configuration file
-        config_file = self.project_path / ".dependency-validator.yml"
+        config_file = self.project_path / ".deepflow-validator.yml"
         self._write_config_file(config_file)
 
         self.console.print("[green]✅ Pre-commit hooks installed successfully![/green]")
@@ -513,7 +513,7 @@ import subprocess
 from pathlib import Path
 
 # Path to this script
-SCRIPT_PATH = Path(__file__).parent.parent.parent / "dependency-toolkit" / "tools" / "pre_commit_validator.py"
+SCRIPT_PATH = Path(__file__).parent.parent.parent / "deepflow" / "tools" / "pre_commit_validator.py"
 
 def main():
     """Run pre-commit validation."""

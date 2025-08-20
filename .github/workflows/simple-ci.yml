@@ -32,7 +32,7 @@ jobs:
     - name: Basic functionality test
       run: |
         # Test core functionality works
-        dependency-visualizer . --format text
+        deepflow-visualizer . --format text
         echo "✅ Core functionality working"
     
     - name: Security scan
@@ -43,10 +43,10 @@ jobs:
     - name: Installation test
       run: |
         # Test all CLI tools are available
-        dependency-visualizer --help
-        dependency-validator --help  
-        dependency-analyzer --help
-        dependency-docs --help
-        dependency-ci --help
-        dependency-monitor --help
+        deepflow-visualizer --help
+        deepflow-validator --help  
+        deepflow-analyzer --help
+        deepflow-docs --help
+        deepflow-ci --help
+        deepflow-monitor --help
         echo "✅ All tools installed successfully"
