@@ -149,3 +149,6 @@ CLAUDE.md
 
 # AI Session Tracker data (local only)
 .ai-sessions/
+
+# Local project planning files
+NEXT_STEPS.md
