@@ -50,10 +50,14 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "pytest-xdist>=3.2.0",
     "black>=23.0.0",
     "mypy>=1.0.0",
     "flake8>=6.0.0",
     "pre-commit>=3.0.0",
+    "coverage[toml]>=7.0.0",
 ]
 docs = [
     "sphinx>=5.0.0",
@@ -128,19 +132,35 @@ strict_equality = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --strict-markers --cov=tools --cov-report=term-missing"
+addopts = "-ra -q --strict-markers --cov=tools --cov=deepflow --cov-report=term-missing --cov-report=html --cov-report=xml"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "unit: unit tests",
+    "integration: integration tests", 
+    "mcp: MCP protocol tests",
+    "slow: slow running tests",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
 
 [tool.coverage.run]
-source = ["tools"]
+source = ["tools", "deepflow"]
 omit = [
     "*/tests/*",
-    "*/test_*",
+    "*/test_*", 
     "setup.py",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/build/*",
+    "*/dist/*",
 ]
+branch = true
 
 [tool.coverage.report]
 exclude_lines = [
@@ -154,4 +174,10 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
+    "except ImportError:",
+    "if.*AVAILABLE.*:",
 ]
+precision = 2
+show_missing = true
+skip_covered = false
+fail_under = 85
