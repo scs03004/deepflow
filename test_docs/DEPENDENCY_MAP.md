@@ -1,7 +1,7 @@
-# dependency-toolkit Dependency Map
+# deepflow Dependency Map
 
 **Generated**: 2025-08-17
-**Project Path**: C:\Users\Sebastian\NPCGPT\NPCGPT\dependency-toolkit
+**Project Path**: C:\Users\Sebastian\NPCGPT\NPCGPT\deepflow
 **Language**: Python
 **Framework**: Not detected
 
@@ -310,4 +310,4 @@
 
 ---
 
-*Generated automatically by [Dependency Toolkit](https://github.com/scs03004/dependency-toolkit) on 2025-08-17*
+*Generated automatically by [Deepflow](https://github.com/scs03004/deepflow) on 2025-08-17*

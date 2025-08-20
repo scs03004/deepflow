@@ -3,16 +3,16 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ai-codebase-hygiene-toolkit"
+name = "deepflow"
 version = "2.0.0"
 description = "Keep AI-assisted codebases clean, consistent, and maintainable. Specialized tools for Claude Code, Cursor, GitHub Copilot users."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "AI Codebase Hygiene Team", email = "team@ai-codebase-hygiene.dev"}
+    {name = "Deepflow Team", email = "team@deepflow.dev"}
 ]
 maintainers = [
-    {name = "AI Codebase Hygiene Team", email = "team@ai-codebase-hygiene.dev"}
+    {name = "Deepflow Team", email = "team@deepflow.dev"}
 ]
 keywords = ["ai-development", "codebase-hygiene", "pattern-consistency", "context-window", "architecture-drift", "claude-code", "cursor", "copilot"]
 classifiers = [
@@ -61,23 +61,23 @@ docs = [
     "myst-parser>=0.18.0",
 ]
 all = [
-    "dependency-toolkit[dev,docs]"
+    "deepflow[dev,docs]"
 ]
 
 [project.urls]
-Homepage = "https://github.com/scs03004/dependency-toolkit"
-Documentation = "https://github.com/scs03004/dependency-toolkit/blob/main/README.md"
-Repository = "https://github.com/scs03004/dependency-toolkit.git"
-"Bug Tracker" = "https://github.com/scs03004/dependency-toolkit/issues"
-Changelog = "https://github.com/scs03004/dependency-toolkit/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/scs03004/deepflow"
+Documentation = "https://github.com/scs03004/deepflow/blob/main/README.md"
+Repository = "https://github.com/scs03004/deepflow.git"
+"Bug Tracker" = "https://github.com/scs03004/deepflow/issues"
+Changelog = "https://github.com/scs03004/deepflow/blob/main/CHANGELOG.md"
 
 [project.scripts]
-dependency-visualizer = "tools.dependency_visualizer:main"
-dependency-validator = "tools.pre_commit_validator:main" 
-dependency-docs = "tools.doc_generator:main"
-dependency-ci = "tools.ci_cd_integrator:main"
-dependency-monitor = "tools.monitoring_dashboard:main"
-dependency-analyzer = "tools.code_analyzer:main"
+deepflow-visualizer = "tools.dependency_visualizer:main"
+deepflow-validator = "tools.pre_commit_validator:main" 
+deepflow-docs = "tools.doc_generator:main"
+deepflow-ci = "tools.ci_cd_integrator:main"
+deepflow-monitor = "tools.monitoring_dashboard:main"
+deepflow-analyzer = "tools.code_analyzer:main"
 ai-session-tracker = "tools.ai_session_tracker:main"
 
 [tool.setuptools]

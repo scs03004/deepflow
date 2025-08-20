@@ -1,14 +1,14 @@
-# Contributing to Dependency Toolkit
+# Contributing to Deepflow
 
-Thank you for your interest in contributing to the Dependency Toolkit! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Deepflow! This document provides guidelines and information for contributors.
 
 ## 🚀 Quick Start
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/your-username/dependency-toolkit.git
-   cd dependency-toolkit
+   git clone https://github.com/your-username/deepflow.git
+   cd deepflow
    ```
 3. **Create a virtual environment**:
    ```bash
@@ -63,7 +63,7 @@ This will automatically run checks before each commit.
 ### Code Structure
 
 ```
-dependency-toolkit/
+deepflow/
 ├── tools/                  # Core tools and engines
 │   ├── dependency_visualizer.py
 │   ├── pre_commit_validator.py
@@ -213,7 +213,7 @@ pytest
 pytest --cov=tools --cov-report=html
 
 # Run specific test file
-pytest tests/test_dependency_visualizer.py
+pytest tests/test_deepflow_visualizer.py
 
 # Run tests matching pattern
 pytest -k "test_import_analysis"
@@ -379,4 +379,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for contributing to the Dependency Toolkit! Your efforts help make dependency management better for everyone. 🙏
+Thank you for contributing to Deepflow! Your efforts help make dependency management better for everyone. 🙏

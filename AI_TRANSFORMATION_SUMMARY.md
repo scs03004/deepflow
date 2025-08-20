@@ -3,7 +3,7 @@
 ## Project Rebranding Complete
 
 **From:** Dependency Toolkit - Generic dependency management  
-**To:** AI Codebase Hygiene Toolkit - Specialized for AI-assisted development
+**To:** Deepflow - Specialized for AI-assisted development
 
 ## New Value Proposition
 
@@ -14,21 +14,21 @@ Stop AI development from turning your codebase into a mess. Specialized tools fo
 ## Major Changes Implemented
 
 ### 1. Complete Rebranding
-- **Package name:** `dependency-toolkit` → `ai-codebase-hygiene-toolkit`
+- **Package name:** `dependency-toolkit` → `deepflow`
 - **Version:** 1.0.0 → 2.0.0 (AI-focused major release)
 - **Description:** Focused on AI development pain points
 - **Keywords:** Updated to AI-specific terms
 
 ### 2. Enhanced Existing Tools
 
-#### Dependency Visualizer (`dependency-visualizer`)
+#### Dependency Visualizer (`deepflow-visualizer`)
 - **NEW:** `--ai-awareness` flag for AI-specific analysis
 - **NEW:** Token count display in node labels (e.g., "config (1739t)")
 - **NEW:** AI context window health coloring (GOOD/WARNING/CRITICAL)
 - **NEW:** AI-optimized Mermaid output with health indicators
 - **Enhanced:** Real-time AI analysis summary
 
-#### Code Analyzer (`dependency-analyzer`)  
+#### Code Analyzer (`deepflow-analyzer`)  
 - **NEW:** `--ai-metrics` flag for AI-specific code quality metrics
 - **NEW:** `--pattern-consistency` flag for pattern analysis
 - **NEW:** `--context-analysis` flag for AI context window analysis
@@ -100,25 +100,25 @@ All tools now support AI-specific flags and provide AI-focused output with actio
 ### AI-Aware Dependency Analysis:
 ```bash
 # Generate AI-optimized dependency visualization
-dependency-visualizer /path/to/project --ai-awareness
+deepflow-visualizer /path/to/project --ai-awareness
 
 # Analyze with context window health indicators  
-dependency-visualizer /path/to/project --ai-awareness --format mermaid
+deepflow-visualizer /path/to/project --ai-awareness --format mermaid
 ```
 
 ### AI Code Quality Analysis:
 ```bash
 # Complete AI-focused analysis
-dependency-analyzer /path/to/project --ai-metrics
+deepflow-analyzer /path/to/project --ai-metrics
 
 # Pattern consistency across codebase
-dependency-analyzer /path/to/project --pattern-consistency
+deepflow-analyzer /path/to/project --pattern-consistency
 
 # AI context window optimization
-dependency-analyzer /path/to/project --context-analysis
+deepflow-analyzer /path/to/project --context-analysis
 
 # All AI analyses
-dependency-analyzer /path/to/project --all
+deepflow-analyzer /path/to/project --all
 ```
 
 ### AI Session Management:
@@ -174,8 +174,8 @@ The toolkit is architected for easy conversion to Model Context Protocol (MCP) s
 ## Installation
 
 ```bash
-# Install the AI Codebase Hygiene Toolkit
-pip install ai-codebase-hygiene-toolkit
+# Install Deepflow
+pip install deepflow
 
 # Or install in development mode
 pip install -e .

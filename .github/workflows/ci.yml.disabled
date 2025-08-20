@@ -1,4 +1,4 @@
-name: Dependency Toolkit CI
+name: Deepflow CI
 
 on:
   push:

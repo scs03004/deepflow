@@ -374,7 +374,7 @@ Authentication details not detected in code analysis.
 
 ---
 
-*Generated automatically by Dependency Toolkit*
+*Generated automatically by Deepflow*
 """
 
         template = Template(template_content)
@@ -585,7 +585,7 @@ Security features analysis not available from code inspection.
 
 ---
 
-*Generated automatically by Dependency Toolkit*
+*Generated automatically by Deepflow*
 """
 
         # Analyze components
@@ -875,7 +875,7 @@ Generated automatically for {self.project_metadata.name}.
 
 ---
 
-*Generated automatically by Dependency Toolkit*
+*Generated automatically by Deepflow*
 """
 
             with open(output_path, "w", encoding="utf-8") as f:
@@ -978,7 +978,7 @@ DEPENDENCY_MAP_TEMPLATE = """# {{ project_name }} Dependency Map
 
 ---
 
-*Generated automatically by Dependency Toolkit on {{ generated_date }}*
+*Generated automatically by Deepflow on {{ generated_date }}*
 """
 
 

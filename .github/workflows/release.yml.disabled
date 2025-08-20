@@ -100,8 +100,8 @@ jobs:
         mkdir -p release_examples
         
         # Generate examples on the toolkit itself
-        dependency-visualizer . --format html --output release_examples/dependency_toolkit_graph.html
-        dependency-analyzer . --all --output release_examples/dependency_toolkit_analysis.json
+        deepflow-visualizer . --format html --output release_examples/deepflow_graph.html
+        deepflow-analyzer . --all --output release_examples/deepflow_analysis.json
         
         # Create sample project for demo
         mkdir -p release_examples/sample_project
@@ -237,7 +237,7 @@ jobs:
     - name: Upload examples to release
       run: |
         gh release upload ${{ github.ref_name }} \
-          release_examples/dependency_toolkit_graph.html#dependency-toolkit-analysis.html
+          release_examples/deepflow_graph.html#deepflow-analysis.html
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

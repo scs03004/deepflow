@@ -1,6 +1,6 @@
-# 🔗 Integration Guide: Using Dependency Toolkit Across Projects
+# 🔗 Integration Guide: Using Deepflow Across Projects
 
-This guide shows how to integrate the Dependency Toolkit into your existing projects and establish it as a standard workflow.
+This guide shows how to integrate Deepflow into your existing projects and establish it as a standard workflow.
 
 ## 🎯 **Integration Strategies**
 
@@ -11,24 +11,24 @@ This guide shows how to integrate the Dependency Toolkit into your existing proj
 1. **Publish to GitHub** (or PyPI):
    ```bash
    # Create GitHub repository
-   git remote add origin https://github.com/your-username/dependency-toolkit.git
+   git remote add origin https://github.com/your-username/deepflow.git
    git push -u origin main
    ```
 
 2. **Install in target projects**:
    ```bash
    # In NPCGPT or any project
-   pip install git+https://github.com/your-username/dependency-toolkit.git
+   pip install git+https://github.com/your-username/deepflow.git
    
    # Or add to requirements-dev.txt
-   echo "dependency-toolkit @ git+https://github.com/your-username/dependency-toolkit.git" >> requirements-dev.txt
+   echo "deepflow @ git+https://github.com/your-username/deepflow.git" >> requirements-dev.txt
    ```
 
 3. **Use immediately**:
    ```bash
-   dependency-visualizer .
-   dependency-validator --install .
-   dependency-docs . --output docs/
+   deepflow-visualizer .
+   deepflow-validator --install .
+   deepflow-docs . --output docs/
    ```
 
 ### **Strategy 2: Git Submodule**
@@ -37,10 +37,10 @@ This guide shows how to integrate the Dependency Toolkit into your existing proj
 
 ```bash
 # In NPCGPT project
-git submodule add https://github.com/your-username/dependency-toolkit.git tools/dependency-toolkit
+git submodule add https://github.com/your-username/deepflow.git tools/deepflow
 
 # Use tools
-python tools/dependency-toolkit/tools/dependency_visualizer.py .
+python tools/deepflow/tools/dependency_visualizer.py .
 ```
 
 ### **Strategy 3: Shared Development Environment**
@@ -49,21 +49,21 @@ python tools/dependency-toolkit/tools/dependency_visualizer.py .
 
 ```bash
 # Install globally or in shared environment
-pip install dependency-toolkit
+pip install deepflow
 
 # Available across all projects
-cd any-project && dependency-visualizer .
+cd any-project && deepflow-visualizer .
 ```
 
 ## 🛠️ **NPCGPT Integration Example**
 
 Here's how to integrate with the NPCGPT project:
 
-### **Step 1: Install Dependency Toolkit**
+### **Step 1: Install Deepflow**
 
 ```bash
 cd NPCGPT
-pip install git+https://github.com/your-username/dependency-toolkit.git
+pip install git+https://github.com/your-username/deepflow.git
 ```
 
 ### **Step 2: Update Development Dependencies**
@@ -71,7 +71,7 @@ pip install git+https://github.com/your-username/dependency-toolkit.git
 Add to `requirements-dev.txt`:
 ```txt
 # Dependency management
-dependency-toolkit @ git+https://github.com/your-username/dependency-toolkit.git
+deepflow @ git+https://github.com/your-username/deepflow.git
 
 # Existing dev dependencies
 pytest>=7.0.0
@@ -83,7 +83,7 @@ black>=23.0.0
 
 ```bash
 # Generate comprehensive dependency analysis
-dependency-visualizer . --format all
+deepflow-visualizer . --format all
 
 # This creates:
 # - NPCGPT_dependency_graph.html (interactive visualization)
@@ -95,18 +95,18 @@ dependency-visualizer . --format all
 
 ```bash
 # Install git hooks for automatic validation
-dependency-validator --install .
+deepflow-validator --install .
 
 # This creates:
 # - .git/hooks/pre-commit (validation script)
-# - .dependency-validator.yml (configuration)
+# - .deepflow-validator.yml (configuration)
 ```
 
 ### **Step 5: Generate Documentation**
 
 ```bash
 # Generate project documentation
-dependency-docs . --output docs/
+deepflow-docs . --output docs/
 
 # This creates:
 # - docs/DEPENDENCY_MAP.md
@@ -119,7 +119,7 @@ dependency-docs . --output docs/
 
 ```bash
 # Generate GitHub Actions workflows
-dependency-ci --setup-github .
+deepflow-ci --setup-github .
 
 # This creates workflows in .github/workflows/:
 # - dependency-check.yml
@@ -135,19 +135,19 @@ dependency-ci --setup-github .
 1. **Before making changes**:
    ```bash
    # Check current dependency status
-   dependency-validator --validate .
+   deepflow-validator --validate .
    
    # Analyze impact of planned changes
-   dependency-validator --impact-analysis .
+   deepflow-validator --impact-analysis .
    ```
 
 2. **During development**:
    ```bash
    # Fix code quality issues
-   dependency-analyzer . --fix-imports --analyze-coupling
+   deepflow-analyzer . --fix-imports --analyze-coupling
    
    # Monitor real-time dependency health
-   dependency-monitor --start . --server
+   deepflow-monitor --start . --server
    # Opens dashboard at http://localhost:5000
    ```
 
@@ -157,16 +157,16 @@ dependency-ci --setup-github .
    git commit -m "Your changes"
    
    # Manual validation if needed
-   dependency-validator --check-files file1.py file2.py
+   deepflow-validator --check-files file1.py file2.py
    ```
 
 4. **After major changes**:
    ```bash
    # Update documentation
-   dependency-docs . --output docs/
+   deepflow-docs . --output docs/
    
    # Generate new dependency graph
-   dependency-visualizer . --format html
+   deepflow-visualizer . --format html
    ```
 
 ### **For Project Maintenance:**
@@ -174,19 +174,19 @@ dependency-ci --setup-github .
 1. **Weekly dependency review**:
    ```bash
    # Generate comprehensive analysis
-   dependency-analyzer . --all --output weekly_analysis.json
+   deepflow-analyzer . --all --output weekly_analysis.json
    
    # Check for technical debt
-   dependency-analyzer . --calculate-debt
+   deepflow-analyzer . --calculate-debt
    ```
 
 2. **Before releases**:
    ```bash
    # Full dependency validation
-   dependency-validator --validate .
+   deepflow-validator --validate .
    
    # Generate deployment safety report
-   dependency-ci --validate-changes .
+   deepflow-ci --validate-changes .
    ```
 
 ## 🌍 **Multi-Project Setup**
@@ -195,9 +195,9 @@ dependency-ci --setup-github .
 
 1. **Create organization standards**:
    ```bash
-   # Fork dependency-toolkit for your organization
-   git clone https://github.com/your-username/dependency-toolkit.git
-   cd dependency-toolkit
+   # Fork deepflow for your organization
+   git clone https://github.com/your-username/deepflow.git
+   cd deepflow
    
    # Customize for your standards
    # Edit templates/CHANGE_IMPACT_CHECKLIST.md
@@ -209,9 +209,9 @@ dependency-ci --setup-github .
    # Script to install in all projects
    for project in project1 project2 npcgpt; do
      cd $project
-     pip install git+https://github.com/your-org/dependency-toolkit.git
-     dependency-validator --install .
-     dependency-ci --setup-github .
+     pip install git+https://github.com/your-org/deepflow.git
+     deepflow-validator --install .
+     deepflow-ci --setup-github .
      cd ..
    done
    ```
@@ -219,7 +219,7 @@ dependency-ci --setup-github .
 3. **Centralized monitoring**:
    ```bash
    # Set up central monitoring dashboard
-   dependency-monitor --server --port 8080
+   deepflow-monitor --server --port 8080
    # Monitor multiple projects from one dashboard
    ```
 
@@ -227,7 +227,7 @@ dependency-ci --setup-github .
 
 ### **Project-Specific Configuration**
 
-Create `.dependency-toolkit.yml` in each project:
+Create `.deepflow.yml` in each project:
 
 ```yaml
 # NPCGPT-specific configuration
@@ -286,7 +286,7 @@ code_quality:
 ```bash
 # Start monitoring for NPCGPT
 cd NPCGPT
-dependency-monitor --start . --server --port 5000
+deepflow-monitor --start . --server --port 5000
 
 # View dashboard at http://localhost:5000
 # Features:
@@ -300,7 +300,7 @@ dependency-monitor --start . --server --port 5000
 
 ```bash
 # Monitor multiple projects
-dependency-monitor --server --port 8080 \
+deepflow-monitor --server --port 8080 \
   --projects "NPCGPT:./NPCGPT,Project2:./Project2"
 ```
 
@@ -356,11 +356,11 @@ This integration approach provides **scalable dependency management** that grows
 
 ```bash
 # Install and get started in any project
-pip install dependency-toolkit
-dependency-visualizer .                    # See your dependencies
-dependency-validator --install .           # Set up validation
-dependency-docs . --output docs/          # Generate docs
-dependency-monitor --start . --server     # Start monitoring
+pip install deepflow
+deepflow-visualizer .                    # See your dependencies
+deepflow-validator --install .           # Set up validation
+deepflow-docs . --output docs/          # Generate docs
+deepflow-monitor --start . --server     # Start monitoring
 ```
 
 The toolkit is designed to be **immediately useful** while providing **enterprise-scale** capabilities as your needs grow.
