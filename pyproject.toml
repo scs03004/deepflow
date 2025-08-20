@@ -60,8 +60,11 @@ docs = [
     "sphinx-rtd-theme>=1.0.0",
     "myst-parser>=0.18.0",
 ]
+mcp = [
+    "mcp>=1.2.0",
+]
 all = [
-    "deepflow[dev,docs]"
+    "deepflow[dev,docs,mcp]"
 ]
 
 [project.urls]
@@ -79,9 +82,10 @@ deepflow-ci = "tools.ci_cd_integrator:main"
 deepflow-monitor = "tools.monitoring_dashboard:main"
 deepflow-analyzer = "tools.code_analyzer:main"
 ai-session-tracker = "tools.ai_session_tracker:main"
+deepflow-mcp-server = "deepflow.mcp.server:main"
 
 [tool.setuptools]
-packages = ["tools", "templates"]
+packages = ["tools", "templates", "deepflow", "deepflow.mcp"]
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.html", "*.yml", "*.yaml"]

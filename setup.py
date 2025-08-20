@@ -42,6 +42,29 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest>=7.0.0",
+            "pytest-cov>=4.0.0", 
+            "black>=23.0.0",
+            "mypy>=1.0.0",
+            "flake8>=6.0.0",
+            "pre-commit>=3.0.0",
+        ],
+        "docs": [
+            "sphinx>=5.0.0",
+            "sphinx-rtd-theme>=1.0.0",
+            "myst-parser>=0.18.0",
+        ],
+        "mcp": [
+            "mcp>=1.2.0",
+        ],
+        "all": [
+            "pytest>=7.0.0", "pytest-cov>=4.0.0", "black>=23.0.0", "mypy>=1.0.0", 
+            "flake8>=6.0.0", "pre-commit>=3.0.0", "sphinx>=5.0.0", 
+            "sphinx-rtd-theme>=1.0.0", "myst-parser>=0.18.0", "mcp>=1.2.0"
+        ],
+    },
     entry_points={
         "console_scripts": [
             "deepflow-visualizer=tools.dependency_visualizer:main",
@@ -51,6 +74,7 @@ setup(
             "deepflow-monitor=tools.monitoring_dashboard:main",
             "deepflow-analyzer=tools.code_analyzer:main",
             "ai-session-tracker=tools.ai_session_tracker:main",
+            "deepflow-mcp-server=deepflow.mcp.server:main",
         ],
     },
     include_package_data=True,
