@@ -324,7 +324,7 @@ class TestMCPServerIntegration:
     @pytest.mark.asyncio 
     async def test_async_main_with_mcp_unavailable(self):
         """Test async_main function when MCP is unavailable."""
-        with patch('deepflow.mcp.server.MCP_AVAILABLE', False), \
+        with patch.object(mcp_server, 'MCP_AVAILABLE', False), \
              patch('sys.exit') as mock_exit, \
              patch('builtins.print') as mock_print:
             
