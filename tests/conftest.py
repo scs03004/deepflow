@@ -234,6 +234,20 @@ def mock_networkx():
         mock_graph.number_of_nodes.return_value = 2
         mock_graph.number_of_edges.return_value = 1
         
+        # CRITICAL FIX: Mock degree methods to return proper integers
+        mock_graph.in_degree.return_value = 3  # Return integer, not MagicMock
+        mock_graph.out_degree.return_value = 2  # Return integer, not MagicMock
+        
+        # Mock degree methods for specific nodes (more realistic)
+        def mock_in_degree(node):
+            return {"main.py": 1, "utils.py": 2}.get(node, 1)
+        
+        def mock_out_degree(node):
+            return {"main.py": 3, "utils.py": 1}.get(node, 2)
+            
+        mock_graph.in_degree.side_effect = mock_in_degree
+        mock_graph.out_degree.side_effect = mock_out_degree
+        
         yield mock_graph
 
 

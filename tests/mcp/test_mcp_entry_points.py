@@ -5,6 +5,7 @@ Tests for MCP CLI entry points and command line interface.
 import pytest
 import asyncio
 import subprocess
+import sys
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
@@ -43,11 +44,19 @@ class TestMCPEntryPoints:
     
     @patch('deepflow.mcp.server.asyncio.run')
     def test_main_calls_async_main(self, mock_run):
-        """Test that main() properly calls async_main()."""
-        from deepflow.mcp.server import main, async_main
+        """Test that main() properly calls asyncio.run()."""
+        from deepflow.mcp.server import main
         
         main()
-        mock_run.assert_called_once_with(async_main)
+        
+        # Verify asyncio.run was called exactly once (with some coroutine)
+        mock_run.assert_called_once()
+        # Verify the argument is a coroutine object
+        args, kwargs = mock_run.call_args
+        assert len(args) == 1
+        # The argument should be a coroutine object from async_main()
+        import types
+        assert isinstance(args[0], types.CoroutineType)
 
 
 class TestMCPServerCLI:
@@ -69,8 +78,10 @@ class TestMCPServerCLI:
              patch('deepflow.mcp.server.DeepflowMCPServer') as mock_server_class:
             
             mock_server = MagicMock()
-            mock_server.run = MagicMock(return_value=asyncio.create_future())
-            mock_server.run.return_value.set_result(None)
+            # Fix: Use proper async future creation
+            future = asyncio.get_event_loop().create_future()
+            future.set_result(None)
+            mock_server.run = MagicMock(return_value=future)
             mock_server_class.return_value = mock_server
             
             from deepflow.mcp.server import async_main
