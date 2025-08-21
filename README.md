@@ -38,6 +38,8 @@ The AI Codebase Hygiene Toolkit provides **specialized tools** for AI-assisted d
 7. **🔌 MCP Server Integration** - Model Context Protocol server for Claude Code and AI assistants
 8. **🧪 Comprehensive Testing Suite** - 230+ tests covering unit, integration, and MCP functionality
 
+> **🎉 NEW: First dependency analysis tool with native MCP integration for Claude Code!**
+
 ## 🚀 **Quick Start**
 
 ### Installation
@@ -60,25 +62,28 @@ pip install git+https://github.com/scs03004/deepflow.git
 
 ### 🔌 **MCP Integration with Claude Code**
 
-**NEW**: Deepflow now supports the Model Context Protocol (MCP) for seamless integration with Claude Code and other AI assistants.
+**🎉 BREAKTHROUGH**: Deepflow is the **first dependency analysis tool** with native Model Context Protocol (MCP) support for Claude Code and other AI assistants.
 
 ```bash
+# Install with MCP support
+pip install deepflow[mcp]
+
 # Start MCP server for Claude Code integration
 deepflow-mcp-server
 
-# Use in Claude Code
-# The server exposes 4 tools:
-# - analyze_dependencies: Project dependency analysis
-# - analyze_code_quality: Code quality and technical debt analysis  
-# - validate_commit: Pre-commit validation
-# - generate_documentation: Auto-generate project documentation
+# Configure Claude Code (see MCP_INTEGRATION_GUIDE.md for details)
+# Then use directly in conversations:
+"Analyze dependencies using the deepflow MCP server"
+"Check code quality with the analyze_code_quality tool"
 ```
 
-**MCP Tools Available:**
-- 🔍 **Dependency Analysis** - Generate interactive dependency graphs and risk assessments
-- 🎯 **Code Quality Analysis** - Detect unused imports, coupling issues, and technical debt
-- ✅ **Commit Validation** - Pre-commit hooks and change impact analysis
-- 📝 **Documentation Generation** - Auto-generate dependency maps and architecture docs
+**🛠️ MCP Tools Available:**
+- 🔍 **`analyze_dependencies`** - Project dependency analysis and visualization
+- 🎯 **`analyze_code_quality`** - Code quality, unused imports, and technical debt analysis  
+- ✅ **`validate_commit`** - Pre-commit validation and change impact analysis
+- 📝 **`generate_documentation`** - Auto-generate dependency maps and architecture docs
+
+> **📚 Complete Setup Guide**: See [`MCP_INTEGRATION_GUIDE.md`](./MCP_INTEGRATION_GUIDE.md) for step-by-step Claude Code configuration.
 
 ### Basic Usage
 ```bash
@@ -321,11 +326,13 @@ deepflow/
 
 ## 📚 **Documentation**
 
+- **[MCP Integration Guide](MCP_INTEGRATION_GUIDE.md)** - 🔌 **NEW**: Configure Claude Code MCP integration
 - **[Getting Started Guide](docs/getting-started.md)** - Installation and basic usage
 - **[Tool Reference](docs/tool-reference.md)** - Detailed documentation for each tool
 - **[Integration Guide](docs/integration.md)** - CI/CD and workflow integration
 - **[API Reference](docs/api-reference.md)** - Programmatic usage
 - **[Best Practices](docs/best-practices.md)** - Recommended workflows
+- **[Development Guide](CLAUDE.md)** - Complete development commands and testing
 
 ## 🤝 **Contributing**
 
