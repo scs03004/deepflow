@@ -35,19 +35,50 @@ The AI Codebase Hygiene Toolkit provides **specialized tools** for AI-assisted d
 4. **📏 Context Window Optimizer** - Keep files optimized for AI context windows
 5. **🌐 AI-Aware Dependency Visualization** - Mermaid graphs with AI development insights
 6. **📊 AI Code Quality Metrics** - Specialized analysis for AI-generated code patterns
+7. **🔌 MCP Server Integration** - Model Context Protocol server for Claude Code and AI assistants
+8. **🧪 Comprehensive Testing Suite** - 230+ tests covering unit, integration, and MCP functionality
 
 ## 🚀 **Quick Start**
 
 ### Installation
 ```bash
-# Install directly from GitHub
-pip install git+https://github.com/scs03004/deepflow.git
+# Install from PyPI (recommended)
+pip install deepflow
 
-# Or clone and install locally
-git clone https://github.com/scs03004/deepflow.git
-cd deepflow
-pip install -e .
+# With MCP (Model Context Protocol) support for Claude Code
+pip install deepflow[mcp]
+
+# With development dependencies
+pip install deepflow[dev]
+
+# All features (MCP + development tools)
+pip install deepflow[dev,mcp]
+
+# Or install directly from GitHub
+pip install git+https://github.com/scs03004/deepflow.git
 ```
+
+### 🔌 **MCP Integration with Claude Code**
+
+**NEW**: Deepflow now supports the Model Context Protocol (MCP) for seamless integration with Claude Code and other AI assistants.
+
+```bash
+# Start MCP server for Claude Code integration
+deepflow-mcp-server
+
+# Use in Claude Code
+# The server exposes 4 tools:
+# - analyze_dependencies: Project dependency analysis
+# - analyze_code_quality: Code quality and technical debt analysis  
+# - validate_commit: Pre-commit validation
+# - generate_documentation: Auto-generate project documentation
+```
+
+**MCP Tools Available:**
+- 🔍 **Dependency Analysis** - Generate interactive dependency graphs and risk assessments
+- 🎯 **Code Quality Analysis** - Detect unused imports, coupling issues, and technical debt
+- ✅ **Commit Validation** - Pre-commit hooks and change impact analysis
+- 📝 **Documentation Generation** - Auto-generate dependency maps and architecture docs
 
 ### Basic Usage
 ```bash
@@ -68,6 +99,46 @@ architecture-guardian /path/to/project --enforce-patterns
 
 # End AI session with impact summary
 ai-session-tracker end --generate-report
+```
+
+## 🧪 **Testing**
+
+Deepflow includes a comprehensive test suite with 230+ tests covering unit, integration, and MCP functionality.
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=deepflow --cov=tools --cov-report=html
+
+# Run specific test categories
+pytest tests/unit/           # Unit tests only
+pytest tests/integration/    # Integration tests only
+pytest tests/mcp/           # MCP protocol tests only
+
+# Run tests in parallel for faster execution
+pytest -n auto
+
+# Run with verbose output
+pytest -v
+```
+
+### Test Configuration
+- **Unit Tests**: 90+ tests covering core tool functionality
+- **Integration Tests**: 60+ tests for CLI commands and package imports
+- **MCP Tests**: 80+ tests for protocol compliance and server functionality
+- **Coverage**: Configured with realistic thresholds and exclusions
+- **Async Support**: Full async/await test support for MCP components
+
+### Continuous Integration
+```bash
+# Test multiple Python versions (if using tox)
+tox
+
+# Pre-commit validation
+pytest tests/integration/test_optional_dependencies.py -v
 ```
 
 ## 📊 **Example Output**
@@ -283,6 +354,18 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Pattern Consistency Engine**: New algorithms for detecting AI-generated inconsistencies
 - **Context Window Intelligence**: Smart analysis for AI-friendly code organization
 - **Architecture Drift Prevention**: Real-time monitoring of AI-introduced violations
+
+### 🔌 **NEW: MCP Integration**
+- **deepflow-mcp-server**: Model Context Protocol server for Claude Code integration
+- **4 MCP Tools**: analyze_dependencies, analyze_code_quality, validate_commit, generate_documentation
+- **Seamless AI Assistant Integration**: Works directly with Claude Code and other MCP clients
+- **Optional Dependency**: Install with `pip install deepflow[mcp]`
+
+### 🧪 **NEW: Comprehensive Testing Suite**
+- **230+ Tests**: Unit, integration, and MCP protocol tests
+- **High Coverage**: Covering core tools, CLI commands, and MCP functionality
+- **Async Testing**: Full async/await support for MCP components
+- **Parallel Execution**: Fast test runs with pytest-xdist
 
 ### 🛠️ New AI-Aware Tools
 - **ai-session-tracker**: Track and analyze AI development sessions

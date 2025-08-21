@@ -40,8 +40,27 @@ class TestDependencyAnalyzer:
         with pytest.raises(FileNotFoundError):
             dependency_visualizer.DependencyAnalyzer("/nonexistent/path")
     
-    def test_analyze_project_success(self, mock_project_structure):
+    @patch('tools.dependency_visualizer.nx')
+    def test_analyze_project_success(self, mock_nx, mock_project_structure):
         """Test successful project analysis."""
+        # Mock NetworkX DiGraph and its methods that return numeric values
+        mock_graph = MagicMock()
+        mock_nx.DiGraph.return_value = mock_graph
+        
+        # CRITICAL FIX: Mock degree methods to return integers, not MagicMocks
+        def mock_in_degree(node):
+            return {"main.py": 1, "utils.py": 2}.get(node, 1)
+        
+        def mock_out_degree(node):
+            return {"main.py": 3, "utils.py": 1}.get(node, 2)
+            
+        mock_graph.in_degree.side_effect = mock_in_degree
+        mock_graph.out_degree.side_effect = mock_out_degree
+        mock_graph.add_node = MagicMock()
+        mock_graph.add_edge = MagicMock()
+        mock_graph.nodes.return_value = ["main.py", "utils.py"]
+        mock_graph.edges.return_value = [("main.py", "utils.py")]
+        
         analyzer = dependency_visualizer.DependencyAnalyzer(str(mock_project_structure))
         result = analyzer.analyze_project()
         

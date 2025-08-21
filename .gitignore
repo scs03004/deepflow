@@ -146,6 +146,7 @@ local_config.yml
 # Claude Code guidance files (local only)
 CLAUDE.md
 .claude-agents/
+session-logs/
 
 # AI Session Tracker data (local only)
 .ai-sessions/
