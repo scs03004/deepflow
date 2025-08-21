@@ -56,8 +56,8 @@ def fetch_data(url: str) -> Dict:
     return response.json()
 """)
         
-        (project_path / "models" / "__init__.py").write_text("")
         (project_path / "models").mkdir(exist_ok=True)
+        (project_path / "models" / "__init__.py").write_text("")
         
         (project_path / "models" / "user.py").write_text("""
 from dataclasses import dataclass
