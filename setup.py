@@ -18,7 +18,7 @@ if requirements_path.exists():
 
 setup(
     name="deepflow",
-    version="2.0.0",
+    version="2.1.0",
     author="Deepflow Team",
     author_email="team@deepflow.dev",
     description="Keep AI-assisted codebases clean, consistent, and maintainable. Specialized tools for Claude Code, Cursor, GitHub Copilot users.",

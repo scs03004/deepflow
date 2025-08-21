@@ -1,0 +1,42 @@
+# MANIFEST.in - Include additional files in package distribution
+
+# Include documentation files
+include README.md
+include LICENSE
+include CHANGELOG.md
+include MCP_INTEGRATION_GUIDE.md
+include CLAUDE.md
+
+# Include template files
+recursive-include templates *.md
+
+# Include auto-generated documentation
+recursive-include docs *.md *.json
+
+# Include test configuration (but not test files themselves)
+include pytest.ini
+include pyproject.toml
+
+# Exclude development and build artifacts
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude htmlcov
+global-exclude *.egg-info
+global-exclude build
+global-exclude dist
+global-exclude venv
+global-exclude .venv
+
+# Exclude temporary analysis outputs
+exclude deepflow_*.json
+exclude deepflow_*.html
+exclude dependency_analysis_*.txt
+exclude *.mmd
+exclude .deepflow-validator.yml
+
+# Exclude session logs
+recursive-exclude session-logs *
