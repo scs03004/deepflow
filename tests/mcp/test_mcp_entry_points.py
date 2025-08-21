@@ -96,15 +96,17 @@ class TestMCPServerCLI:
         """Test async_main when MCP is unavailable."""
         with patch('deepflow.mcp.server.MCP_AVAILABLE', False), \
              patch('sys.exit') as mock_exit, \
-             patch('builtins.print') as mock_print:
+             patch('builtins.print') as mock_print, \
+             patch('deepflow.mcp.server.DeepflowMCPServer') as mock_server_class:
             
             from deepflow.mcp.server import async_main
             
             await async_main()
             
-            # Should print error and exit
+            # Should print error and exit (server should not be created)
             mock_print.assert_called_with("ERROR: MCP dependencies not found. Install with: pip install deepflow[mcp]")
             mock_exit.assert_called_with(1)
+            mock_server_class.assert_not_called()
     
     def test_server_handles_keyboard_interrupt(self):
         """Test that server handles KeyboardInterrupt gracefully."""
@@ -176,8 +178,12 @@ class TestEntryPointIntegration:
                 if module_name.startswith("tools."):
                     # Remove tools. prefix for direct import
                     module_name = module_name.replace("tools.", "")
-                
-                module = __import__(module_name)
+                    module = __import__(module_name)
+                elif module_name.startswith("deepflow."):
+                    # For deepflow modules, import the full path
+                    module = __import__(module_name, fromlist=[func_name])
+                else:
+                    module = __import__(module_name)
                 
                 # Should have the specified function
                 assert hasattr(module, func_name), f"{module_name} missing {func_name}"

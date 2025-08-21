@@ -52,11 +52,11 @@ PreCommitValidator = None
 #     PreCommitValidator = None
 
 try:
-    from monitoring_dashboard import MonitoringDashboard
+    from monitoring_dashboard import DependencyMonitor
     MONITOR_AVAILABLE = True
 except ImportError as e:
     warnings.warn(f"Monitoring dashboard not available: {e}")
-    MonitoringDashboard = None
+    DependencyMonitor = None
 
 try:
     from doc_generator import DocumentationGenerator
@@ -128,8 +128,8 @@ def require_tool(tool_name: str) -> Any:
     tool_map = {
         "dependency_visualizer": DependencyVisualizer,
         "code_analyzer": CodeAnalyzer,
-        "pre_commit_validator": PreCommitValidator,
-        "monitoring_dashboard": MonitoringDashboard,
+        "pre_commit_validator": DependencyValidator,
+        "monitoring_dashboard": DependencyMonitor,
         "doc_generator": DocumentationGenerator,
         "ci_cd_integrator": CICDIntegrator,
         "ai_session_tracker": AISessionTracker,
@@ -144,8 +144,8 @@ def require_tool(tool_name: str) -> Any:
 __all__ = [
     "DependencyVisualizer",
     "CodeAnalyzer", 
-    "PreCommitValidator",
-    "MonitoringDashboard",
+    "DependencyValidator",
+    "DependencyMonitor",
     "DocumentationGenerator",
     "CICDIntegrator",
     "AISessionTracker",

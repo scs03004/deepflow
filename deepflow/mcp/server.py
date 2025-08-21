@@ -58,8 +58,8 @@ try:
     
     from dependency_visualizer import DependencyVisualizer
     from code_analyzer import CodeAnalyzer
-    from pre_commit_validator import PreCommitValidator
-    from monitoring_dashboard import MonitoringDashboard 
+    from pre_commit_validator import DependencyValidator
+    from monitoring_dashboard import DependencyMonitor 
     from doc_generator import DocumentationGenerator
     
     TOOLS_AVAILABLE = True
@@ -251,7 +251,7 @@ class DeepflowMCPServer:
                         )]
                     )
                 
-                validator = PreCommitValidator(project_path)
+                validator = DependencyValidator(project_path)
                 validation_result = validator.validate_changes(
                     check_dependencies=check_dependencies,
                     check_patterns=check_patterns
@@ -445,14 +445,28 @@ async def async_main():
     if not MCP_AVAILABLE:
         print("ERROR: MCP dependencies not found. Install with: pip install deepflow[mcp]")
         sys.exit(1)
+        return  # This line won't be reached in normal execution, but helps in tests
     
-    server = DeepflowMCPServer()
-    await server.run()
+    try:
+        server = DeepflowMCPServer()
+        await server.run()
+    except KeyboardInterrupt:
+        logger.info("Shutting down MCP server gracefully...")
+    except Exception as e:
+        logger.error(f"MCP server error: {e}")
+        raise
 
 
 def main():
     """Sync entry point for the MCP server (called by setuptools)."""
-    asyncio.run(async_main())
+    try:
+        asyncio.run(async_main())
+    except KeyboardInterrupt:
+        # Handle gracefully without propagating the exception
+        print("\nMCP server stopped.")
+    except Exception as e:
+        print(f"Error running MCP server: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
