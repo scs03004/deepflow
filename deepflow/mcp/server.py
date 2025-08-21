@@ -43,8 +43,51 @@ try:
     MCP_AVAILABLE = True
 except ImportError:
     MCP_AVAILABLE = False
-    print("ERROR: MCP dependencies not found. Install with: pip install deepflow[mcp]")
-    sys.exit(1)
+    # Note: Don't exit here to allow module import for testing
+    # Exit will happen in main() or async_main() when actually trying to run server
+    
+    # Provide fallback definitions for testing when MCP is not available
+    class Tool:
+        def __init__(self, name, description, inputSchema):
+            self.name = name
+            self.description = description
+            self.inputSchema = inputSchema
+    
+    class TextContent:
+        def __init__(self, type, text):
+            self.type = type
+            self.text = text
+    
+    class CallToolResult:
+        def __init__(self, content):
+            self.content = content
+    
+    class Server:
+        def __init__(self, name):
+            self.name = name
+        def call_tool(self):
+            return lambda func: func
+        def run(self, *args, **kwargs):
+            pass
+        def create_initialization_options(self):
+            return {}
+    
+    # Create a dummy stdio module structure
+    class stdio:
+        @staticmethod
+        async def stdio_server():
+            # Return a context manager that yields dummy streams
+            class DummyContext:
+                async def __aenter__(self):
+                    return None, None
+                async def __aexit__(self, *args):
+                    pass
+            return DummyContext()
+    
+    # Create a dummy mcp module structure for reference
+    class mcp:
+        class server:
+            stdio = stdio()
 
 # Import deepflow tools - graceful fallbacks
 try:

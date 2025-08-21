@@ -321,8 +321,16 @@ class TestMCPIntegrationToggle:
         if project_root not in sys.path:
             sys.path.insert(0, project_root)
         
-        # Mock the MCP directory not existing
-        with patch('pathlib.Path.exists', return_value=False):
+        # Simulate MCP import failure by preventing the import
+        import builtins
+        original_import = builtins.__import__
+        
+        def mock_import(name, *args, **kwargs):
+            if name == 'deepflow.mcp' or (len(args) > 0 and args[0] and 'mcp' in name):
+                raise ImportError("Simulated MCP directory missing")
+            return original_import(name, *args, **kwargs)
+        
+        with patch('builtins.__import__', side_effect=mock_import):
             # Clear imports
             for module in list(sys.modules.keys()):
                 if module.startswith('deepflow'):
@@ -331,7 +339,7 @@ class TestMCPIntegrationToggle:
             # Should still be able to import main package
             import deepflow
             
-            # MCP_AVAILABLE should be False
+            # MCP_AVAILABLE should be False when mcp import fails
             assert deepflow.MCP_AVAILABLE is False
 
 
