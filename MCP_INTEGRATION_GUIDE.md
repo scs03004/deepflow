@@ -21,7 +21,18 @@ Locate your Claude Code configuration folder:
 - **Windows**: `%APPDATA%\.claude\` or `%USERPROFILE%\.claude\`
 - **Mac/Linux**: `~/.claude/`
 
-### Step 3: Configure MCP Server
+### Step 3: Configure MCP Server Using Claude Code CLI
+Use the Claude Code CLI to automatically configure the MCP server:
+
+```bash
+# Navigate to your deepflow project directory
+cd "C:\Users\Sebastian\PycharmProjects\npcgpt-dependency\dependency-toolkit"
+
+# Add the deepflow MCP server (use quotes around the full command)
+claude mcp add deepflow "python -m deepflow.mcp.server" --scope user
+```
+
+**Alternative Manual Configuration** (if CLI method doesn't work):
 Create or edit the MCP configuration file in your Claude Code config directory.
 
 **File**: `mcp_servers.json` (or check Claude Code docs for exact filename)
@@ -41,10 +52,24 @@ Create or edit the MCP configuration file in your Claude Code config directory.
 }
 ```
 
-**Note**: Adjust the `cwd` path to match your actual deepflow installation location.
+**Important Notes**:
+- Adjust the `cwd` path to match your actual deepflow installation location
+- When using `claude mcp add`, quote the full command as a single string: `"python -m deepflow.mcp.server"`
+- The `--scope user` option makes the server available across all projects
 
-### Step 4: Restart Claude Code
-Close and restart Claude Code to load the new MCP server configuration.
+### Step 4: Verify Configuration
+Check that the MCP server was configured correctly:
+
+```bash
+# List configured MCP servers
+claude mcp list
+
+# You should see output like:
+# deepflow: python -m deepflow.mcp.server - ✓ Connected
+```
+
+### Step 5: Restart Claude Code (if needed)
+If you used manual configuration, close and restart Claude Code to load the new MCP server configuration.
 
 ## 🛠️ Available MCP Tools
 
@@ -113,7 +138,17 @@ Once configured, you'll have access to these tools in Claude Code:
 ## 🧪 Testing the Integration
 
 ### Verify MCP Tools are Available
-Once configured, try these commands in Claude Code:
+Once configured, verify the connection and try these commands in Claude Code:
+
+```bash
+# First, verify the server is connected
+claude mcp list
+
+# You should see:
+# deepflow: python -m deepflow.mcp.server - ✓ Connected
+```
+
+Then try these commands in Claude Code:
 
 ```
 1. "What MCP tools are available?"
@@ -122,7 +157,8 @@ Once configured, try these commands in Claude Code:
 ```
 
 ### Expected Behavior
-- Claude Code should recognize the deepflow MCP server
+- `claude mcp list` should show deepflow server as "✓ Connected"
+- Claude Code should recognize the deepflow MCP server automatically
 - Tools should appear in the available tools list
 - You should get structured analysis results in JSON format
 
@@ -145,12 +181,18 @@ python -m deepflow.mcp.server
 - Verify Python can find the deepflow module from that directory
 
 **3. Claude Code Not Recognizing Server**
-- Check Claude Code documentation for correct MCP configuration file name
-- Verify JSON syntax is valid
+- Run `claude mcp list` to check if server is configured and connected
+- If using manual configuration: Check Claude Code documentation for correct MCP configuration file name
+- If using manual configuration: Verify JSON syntax is valid
 - Restart Claude Code after configuration changes
 - Check Claude Code logs for MCP-related errors
 
-**4. Tool Execution Failures**
+**4. Command Parsing Issues**
+- When using `claude mcp add`, always quote the full command: `"python -m deepflow.mcp.server"`
+- Do not split command arguments separately, use a single quoted string
+- If getting "unknown option" errors, check that you're quoting the command properly
+
+**5. Tool Execution Failures**
 ```bash
 # Test deepflow tools work independently
 deepflow-visualizer . --help
@@ -159,10 +201,12 @@ deepflow-analyzer . --help
 
 ### Debugging Steps
 1. **Test MCP server manually**: Run `python -m deepflow.mcp.server` to see if it starts
-2. **Check tool availability**: Verify CLI tools work: `deepflow-visualizer --help`
-3. **Validate configuration**: Ensure JSON syntax is correct in MCP config
-4. **Check logs**: Look for MCP-related errors in Claude Code logs
-5. **Verify paths**: Ensure all paths in configuration are absolute and correct
+2. **Check configuration**: Run `claude mcp list` to verify server is configured and connected
+3. **Check tool availability**: Verify CLI tools work: `deepflow-visualizer --help`
+4. **Validate configuration**: If using manual config, ensure JSON syntax is correct
+5. **Check logs**: Look for MCP-related errors in Claude Code logs
+6. **Verify paths**: Ensure all paths in configuration are absolute and correct
+7. **Test command syntax**: Make sure you're quoting the full command when using `claude mcp add`
 
 ## 🎯 Example Usage Session
 
