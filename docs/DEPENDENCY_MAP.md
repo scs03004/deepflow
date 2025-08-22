@@ -1,6 +1,6 @@
 # deepflow Dependency Map
 
-**Generated**: 2025-08-21
+**Generated**: 2025-08-22
 **Project Path**: C:\Users\Sebastian\PycharmProjects\npcgpt-dependency\dependency-toolkit
 **Language**: Python
 **Framework**: Not detected
@@ -12,7 +12,7 @@
 - **External Dependencies**: 49
 - **High Risk Files**: 4
 - **Circular Dependencies**: 0
-- **Lines of Code**: 12928
+- **Lines of Code**: 12945
 
 ## 🚨 High-Risk Files (Critical Components)
 
@@ -88,7 +88,7 @@
 ### deepflow.mcp.server
 - **File**: `deepflow\mcp\server.py`
 - **Risk Level**: HIGH
-- **LOC**: 516
+- **LOC**: 497
 - **Imports**: None
 - **Imported By**: tests.test_fallbacks_comprehensive, tests.mcp.test_mcp_entry_points, tests.mcp.test_mcp_fallbacks, tests.mcp.test_mcp_tools
 
@@ -288,7 +288,7 @@
 ### tools.doc_generator
 - **File**: `tools\doc_generator.py`
 - **Risk Level**: HIGH
-- **LOC**: 1056
+- **LOC**: 1092
 - **Imports**: None
 - **Imported By**: None
 
@@ -633,4 +633,4 @@
 
 ---
 
-*Generated automatically by [Deepflow](https://github.com/scs03004/deepflow) on 2025-08-21*
+*Generated automatically by [Deepflow](https://github.com/scs03004/deepflow) on 2025-08-22*

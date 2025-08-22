@@ -138,7 +138,7 @@ class DeepflowMCPServer:
         
         # Dependency visualization tools
         @self.server.call_tool()
-        async def analyze_dependencies(arguments: Dict[str, Any]) -> CallToolResult:
+        async def handle_analyze_dependencies(tool_name: str, arguments: dict):
             """Analyze project dependencies and create visualization."""
             try:
                 project_path = arguments.get("project_path", ".")
@@ -146,52 +146,42 @@ class DeepflowMCPServer:
                 ai_awareness = arguments.get("ai_awareness", True)
                 
                 if not TOOLS_AVAILABLE:
-                    return CallToolResult(
-                        content=[TextContent(
-                            type="text",
-                            text="Error: Deepflow tools not available. Please check installation."
-                        )]
-                    )
+                    return [TextContent(
+                        type="text",
+                        text="Error: Deepflow tools not available. Please check installation."
+                    )]
                 
                 visualizer = DependencyVisualizer(project_path, ai_awareness=ai_awareness)
                 dependency_graph = visualizer.analyze_project()
                 
                 if output_format == "html":
                     html_output = visualizer.generate_interactive_html(dependency_graph)
-                    return CallToolResult(
-                        content=[TextContent(
-                            type="text", 
-                            text=f"HTML visualization generated: {html_output}"
-                        )]
-                    )
+                    return [TextContent(
+                        type="text", 
+                        text=f"HTML visualization generated: {html_output}"
+                    )]
                 elif output_format == "json":
                     json_data = visualizer.export_to_json(dependency_graph)
-                    return CallToolResult(
-                        content=[TextContent(
+                    return [TextContent(
                             type="text",
                             text=json.dumps(json_data, indent=2)
                         )]
-                    )
                 else:
                     text_output = visualizer.generate_text_report(dependency_graph)
-                    return CallToolResult(
-                        content=[TextContent(
+                    return [TextContent(
                             type="text",
                             text=text_output
                         )]
-                    )
                     
             except Exception as e:
                 logger.error(f"Error in analyze_dependencies: {e}")
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=f"Error analyzing dependencies: {str(e)}"
                     )]
-                )
 
         @self.server.call_tool()
-        async def analyze_code_quality(arguments: Dict[str, Any]) -> CallToolResult:
+        async def handle_analyze_code_quality(tool_name: str, arguments: dict):
             """Analyze code quality and detect issues."""
             try:
                 project_path = arguments.get("project_path", ".")
@@ -199,12 +189,10 @@ class DeepflowMCPServer:
                 fix_imports = arguments.get("fix_imports", False)
                 
                 if not TOOLS_AVAILABLE:
-                    return CallToolResult(
-                        content=[TextContent(
-                            type="text",
-                            text="Error: Deepflow tools not available. Please check installation."
-                        )]
-                    )
+                    return [TextContent(
+                        type="text",
+                        text="Error: Deepflow tools not available. Please check installation."
+                    )]
                 
                 analyzer = CodeAnalyzer(project_path)
                 results = {}
@@ -273,24 +261,20 @@ class DeepflowMCPServer:
                         for analysis in ai_analysis
                     ]
                 
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=json.dumps(results, indent=2)
                     )]
-                )
                 
             except Exception as e:
                 logger.error(f"Error in analyze_code_quality: {e}")
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=f"Error analyzing code quality: {str(e)}"
                     )]
-                )
 
         @self.server.call_tool()
-        async def validate_commit(arguments: Dict[str, Any]) -> CallToolResult:
+        async def handle_validate_commit(tool_name: str, arguments: dict):
             """Validate code changes before commit."""
             try:
                 project_path = arguments.get("project_path", ".")
@@ -298,12 +282,10 @@ class DeepflowMCPServer:
                 check_patterns = arguments.get("check_patterns", True)
                 
                 if not TOOLS_AVAILABLE:
-                    return CallToolResult(
-                        content=[TextContent(
-                            type="text",
-                            text="Error: Deepflow tools not available. Please check installation."
-                        )]
-                    )
+                    return [TextContent(
+                        type="text",
+                        text="Error: Deepflow tools not available. Please check installation."
+                    )]
                 
                 validator = DependencyValidator(project_path)
                 validation_result = validator.validate_changes(
@@ -311,8 +293,7 @@ class DeepflowMCPServer:
                     check_patterns=check_patterns
                 )
                 
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=json.dumps({
                             "valid": validation_result.is_valid,
@@ -321,19 +302,16 @@ class DeepflowMCPServer:
                             "suggestions": validation_result.suggestions
                         }, indent=2)
                     )]
-                )
                 
             except Exception as e:
                 logger.error(f"Error in validate_commit: {e}")
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=f"Error validating commit: {str(e)}"
                     )]
-                )
 
         @self.server.call_tool()
-        async def generate_documentation(arguments: Dict[str, Any]) -> CallToolResult:
+        async def handle_generate_documentation(tool_name: str, arguments: dict):
             """Generate project documentation."""
             try:
                 project_path = arguments.get("project_path", ".")
@@ -341,12 +319,10 @@ class DeepflowMCPServer:
                 output_path = arguments.get("output_path", None)
                 
                 if not TOOLS_AVAILABLE:
-                    return CallToolResult(
-                        content=[TextContent(
-                            type="text",
-                            text="Error: Deepflow tools not available. Please check installation."
-                        )]
-                    )
+                    return [TextContent(
+                        type="text",
+                        text="Error: Deepflow tools not available. Please check installation."
+                    )]
                 
                 doc_generator = DocumentationGenerator(project_path)
                 
@@ -357,28 +333,22 @@ class DeepflowMCPServer:
                 elif doc_type == "api_docs":
                     output_file = doc_generator.generate_api_docs(output_path)
                 else:
-                    return CallToolResult(
-                        content=[TextContent(
+                    return [TextContent(
                             type="text",
                             text=f"Unknown documentation type: {doc_type}"
                         )]
-                    )
                 
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=f"Documentation generated: {output_file}"
                     )]
-                )
                 
             except Exception as e:
                 logger.error(f"Error in generate_documentation: {e}")
-                return CallToolResult(
-                    content=[TextContent(
+                return [TextContent(
                         type="text",
                         text=f"Error generating documentation: {str(e)}"
                     )]
-                )
 
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""

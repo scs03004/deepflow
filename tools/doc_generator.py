@@ -140,7 +140,7 @@ class DocumentationGenerator:
         generated_files["metrics"] = str(metrics_path)
         self._generate_metrics_dashboard(metrics_path)
 
-        self.console.print(f"[green]✅ Documentation generated in:[/green] {output_dir}")
+        self.console.print(f"[green]Documentation generated in:[/green] {output_dir}")
         return generated_files
 
     def _analyze_project(self):
@@ -269,8 +269,44 @@ class DocumentationGenerator:
 
         return None
 
-    def _generate_dependency_map(self, output_path: Path):
+    def generate_dependency_map(self, output_path: Path = None):
         """Generate comprehensive dependency map."""
+        if output_path is None:
+            output_path = self.project_path / "docs" / "DEPENDENCY_MAP.md"
+            output_path.parent.mkdir(exist_ok=True)
+        elif isinstance(output_path, str):
+            output_path = Path(output_path)
+            
+        self._analyze_project()
+        self._generate_dependency_map(output_path)
+        return str(output_path)
+
+    def generate_architecture_overview(self, output_path: Path = None):
+        """Generate architecture overview documentation."""
+        if output_path is None:
+            output_path = self.project_path / "docs" / "ARCHITECTURE.md"
+            output_path.parent.mkdir(exist_ok=True)
+        elif isinstance(output_path, str):
+            output_path = Path(output_path)
+            
+        self._analyze_project()
+        self._generate_architecture_overview(output_path)
+        return str(output_path)
+
+    def generate_api_docs(self, output_path: Path = None):
+        """Generate API documentation."""
+        if output_path is None:
+            output_path = self.project_path / "docs" / "API_DOCUMENTATION.md"
+            output_path.parent.mkdir(exist_ok=True)
+        elif isinstance(output_path, str):
+            output_path = Path(output_path)
+            
+        self._analyze_project()
+        self._generate_api_documentation(output_path)
+        return str(output_path)
+        
+    def _generate_dependency_map(self, output_path: Path):
+        """Generate comprehensive dependency map (internal method)."""
         template = self.jinja_env.get_template("dependency_map_template.md")
 
         # Prepare template data
@@ -296,7 +332,7 @@ class DocumentationGenerator:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(rendered)
 
-        self.console.print(f"[green]✅ Dependency map generated:[/green] {output_path}")
+        self.console.print(f"[green]Dependency map generated:[/green] {output_path}")
 
     def _generate_api_documentation(self, output_path: Path):
         """Generate API documentation."""
@@ -389,7 +425,7 @@ Authentication details not detected in code analysis.
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(rendered)
 
-        self.console.print(f"[green]✅ API documentation generated:[/green] {output_path}")
+        self.console.print(f"[green]API documentation generated:[/green] {output_path}")
 
     def _extract_api_endpoints(self) -> List[APIEndpoint]:
         """Extract API endpoints from code."""
@@ -615,7 +651,7 @@ Security features analysis not available from code inspection.
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(rendered)
 
-        self.console.print(f"[green]✅ Architecture overview generated:[/green] {output_path}")
+        self.console.print(f"[green]Architecture overview generated:[/green] {output_path}")
 
     def _analyze_components(self) -> Dict[str, List]:
         """Analyze project components."""
@@ -881,7 +917,7 @@ Generated automatically for {self.project_metadata.name}.
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(basic_checklist)
 
-        self.console.print(f"[green]✅ Change checklist generated:[/green] {output_path}")
+        self.console.print(f"[green]Change checklist generated:[/green] {output_path}")
 
     def _generate_metrics_dashboard(self, output_path: Path):
         """Generate project metrics in JSON format."""
@@ -915,7 +951,7 @@ Generated automatically for {self.project_metadata.name}.
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=2, default=str)
 
-        self.console.print(f"[green]✅ Metrics dashboard generated:[/green] {output_path}")
+        self.console.print(f"[green]Metrics dashboard generated:[/green] {output_path}")
 
 
 # Create Jinja2 template for dependency map
@@ -1020,7 +1056,7 @@ def main():
         # Generate documentation
         if args.type == "all":
             generated_files = generator.generate_all_documentation(args.output)
-            print(f"\n✅ Generated {len(generated_files)} documentation files:")
+            print(f"\nGenerated {len(generated_files)} documentation files:")
             for doc_type, file_path in generated_files.items():
                 print(f"  • {doc_type}: {file_path}")
         else:
