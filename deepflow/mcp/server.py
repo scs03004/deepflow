@@ -39,6 +39,7 @@ try:
         ListToolsRequest,
         CallToolRequest,
     )
+    # from mcp.server.models import ListToolsResult  # Not available in this MCP version
     import mcp.server.stdio
     MCP_AVAILABLE = True
 except ImportError:
@@ -61,6 +62,10 @@ except ImportError:
     class CallToolResult:
         def __init__(self, content):
             self.content = content
+    
+    class ListToolsResult:
+        def __init__(self, tools):
+            self.tools = tools
     
     class Server:
         def __init__(self, name):
@@ -124,6 +129,12 @@ class DeepflowMCPServer:
         
     def _setup_tools(self):
         """Set up MCP tool handlers."""
+        
+        # Register the list_tools handler
+        @self.server.list_tools()
+        async def handle_list_tools() -> list[Tool]:
+            """Handle list tools request."""
+            return self.get_tools()
         
         # Dependency visualization tools
         @self.server.call_tool()
@@ -486,7 +497,7 @@ class DeepflowMCPServer:
 async def async_main():
     """Async main entry point for the MCP server."""
     if not MCP_AVAILABLE:
-        print("ERROR: MCP dependencies not found. Install with: pip install deepflow[mcp]")
+        print("ERROR: MCP dependencies not found. Install with: pip install mcp")
         sys.exit(1)
         return  # This line won't be reached in normal execution, but helps in tests
     
