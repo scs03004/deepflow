@@ -103,10 +103,9 @@ try:
     if str(tools_dir) not in sys.path:
         sys.path.insert(0, str(tools_dir))
     
-    from dependency_visualizer import DependencyVisualizer
+    from dependency_visualizer import DependencyVisualizer, DependencyAnalyzer
     from code_analyzer import CodeAnalyzer
     from pre_commit_validator import DependencyValidator
- 
     from doc_generator import DocumentationGenerator
     
     TOOLS_AVAILABLE = True
@@ -167,23 +166,48 @@ class DeepflowMCPServer:
                     text="Error: Deepflow tools not available. Please check installation."
                 )]
             
-            visualizer = DependencyVisualizer(project_path, ai_awareness=ai_awareness)
-            dependency_graph = visualizer.analyze_project()
+            analyzer = DependencyAnalyzer(project_path, ai_awareness=ai_awareness)
+            dependency_graph = analyzer.analyze_project()
+            visualizer = DependencyVisualizer(dependency_graph)
             
             if output_format == "html":
-                html_output = visualizer.generate_interactive_html(dependency_graph)
+                # Generate HTML output to a temporary file and return the content
+                import tempfile
+                import os
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as tmp:
+                    output_path = tmp.name
+                visualizer.generate_mermaid_html(output_path, ai_awareness)
+                
+                # Read the generated file content
+                with open(output_path, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                
+                # Clean up temp file
+                os.unlink(output_path)
+                
                 return [TextContent(
                     type="text", 
-                    text=f"HTML visualization generated: {html_output}"
+                    text=f"HTML visualization generated with {len(html_content)} characters"
                 )]
             elif output_format == "json":
-                json_data = visualizer.export_to_json(dependency_graph)
+                # For JSON, we need to convert the graph to a JSON-serializable format
+                json_data = {
+                    "nodes": [
+                        {
+                            "name": name,
+                            "file_path": str(node.file_path),
+                            "imports": list(node.imports),
+                            "token_count": getattr(node, 'token_count', 0)
+                        }
+                        for name, node in dependency_graph.nodes.items()
+                    ]
+                }
                 return [TextContent(
                         type="text",
                         text=json.dumps(json_data, indent=2)
                     )]
             else:
-                text_output = visualizer.generate_text_report(dependency_graph)
+                text_output = visualizer.generate_text_tree()
                 return [TextContent(
                         type="text",
                         text=text_output
