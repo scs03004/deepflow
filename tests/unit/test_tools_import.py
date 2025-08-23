@@ -253,8 +253,7 @@ class TestRobustImportPatterns:
         # Simulate the pattern used in the codebase
         def safe_import():
             try:
-                import nonexistent_module
-                AVAILABLE = True
+                                AVAILABLE = True
             except ImportError:
                 AVAILABLE = False
             

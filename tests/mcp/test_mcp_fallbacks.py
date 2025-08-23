@@ -4,7 +4,7 @@ Tests for graceful MCP fallbacks when dependencies are missing.
 
 import pytest
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from pathlib import Path
 
 

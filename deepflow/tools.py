@@ -10,7 +10,7 @@ This module ensures tools can be imported even if some dependencies are missing.
 import sys
 import warnings
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 # Add tools directory to path for imports
 _tools_dir = Path(__file__).parent.parent / "tools"

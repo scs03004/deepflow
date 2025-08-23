@@ -163,6 +163,230 @@ def detect_ai_patterns(content: str) -> Tuple[bool, float]:
     return likely_ai, confidence
 
 
+class ImportAnalyzer:
+    """Helper class for import-related analysis."""
+    
+    def __init__(self, project_path: Path):
+        self.project_path = project_path
+    
+    def extract_imports(self, tree: ast.AST) -> List[Dict]:
+        """Extract detailed import information."""
+        imports = []
+        
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.extend(self._process_import_node(node))
+            elif isinstance(node, ast.ImportFrom):
+                imports.extend(self._process_from_import_node(node))
+        
+        return imports
+    
+    def _process_import_node(self, node: ast.Import) -> List[Dict]:
+        """Process a regular import node."""
+        return [
+            {
+                "type": "import",
+                "module": alias.name,
+                "name": alias.asname or alias.name.split(".")[-1],
+                "full_name": alias.name,
+                "line": node.lineno,
+            }
+            for alias in node.names
+        ]
+    
+    def _process_from_import_node(self, node: ast.ImportFrom) -> List[Dict]:
+        """Process a from...import node."""
+        module = node.module or ""
+        imports = []
+        
+        for alias in node.names:
+            if alias.name == "*":  # Skip star imports
+                continue
+            
+            imports.append({
+                "type": "from_import",
+                "module": module,
+                "name": alias.asname or alias.name,
+                "full_name": f"{module}.{alias.name}" if module else alias.name,
+                "line": node.lineno,
+            })
+        
+        return imports
+    
+    def count_usage(self, content: str, imp: Dict) -> int:
+        """Count how many times an import is used."""
+        import_name = imp["name"]
+        
+        # Different patterns for different import types
+        if imp["type"] == "import":
+            pattern = r'\b' + re.escape(import_name) + r'\.'
+        else:  # from_import
+            pattern = r'\b' + re.escape(import_name) + r'\b'
+        
+        # Exclude the import line itself
+        lines = content.splitlines()
+        search_content = "\n".join(
+            line for i, line in enumerate(lines, 1) if i != imp["line"]
+        )
+        
+        return len(re.findall(pattern, search_content))
+
+
+class ComplexityAnalyzer:
+    """Helper class for complexity analysis."""
+    
+    @staticmethod
+    def calculate_cyclomatic_complexity(tree: ast.AST) -> int:
+        """Calculate cyclomatic complexity."""
+        complexity = 1  # Base complexity
+        
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.If, ast.While, ast.For, ast.AsyncFor)):
+                complexity += 1
+            elif isinstance(node, ast.ExceptHandler):
+                complexity += 1
+            elif isinstance(node, (ast.With, ast.AsyncWith)):
+                complexity += 1
+            elif isinstance(node, (ast.BoolOp, ast.Compare)):
+                complexity += len(node.values) - 1 if hasattr(node, 'values') else 0
+        
+        return complexity
+    
+    @staticmethod
+    def calculate_cognitive_complexity(tree: ast.AST) -> int:
+        """Calculate cognitive complexity (simpler version)."""
+        class CognitiveVisitor(ast.NodeVisitor):
+            def __init__(self):
+                self.cognitive = 0
+                self.nesting = 0
+            
+            def visit_If(self, node):
+                self.cognitive += 1 + self.nesting
+                self.nesting += 1
+                self.generic_visit(node)
+                self.nesting -= 1
+            
+            def visit_For(self, node):
+                self.cognitive += 1 + self.nesting
+                self.nesting += 1
+                self.generic_visit(node)
+                self.nesting -= 1
+            
+            def visit_While(self, node):
+                self.cognitive += 1 + self.nesting
+                self.nesting += 1
+                self.generic_visit(node)
+                self.nesting -= 1
+        
+        visitor = CognitiveVisitor()
+        visitor.visit(tree)
+        return visitor.cognitive
+
+
+class TechnicalDebtCalculator:
+    """Helper class for calculating technical debt scores."""
+    
+    def __init__(self, complexity_analyzer: ComplexityAnalyzer):
+        self.complexity_analyzer = complexity_analyzer
+    
+    def calculate_debt_score(self, tree: ast.AST, content: str, file_path: str) -> TechnicalDebt:
+        """Calculate technical debt for a file."""
+        complexity_metrics = self._calculate_complexity_metrics(tree, content)
+        
+        # Calculate base debt score
+        base_score = (
+            complexity_metrics["cyclomatic_complexity"] * 0.5 +
+            complexity_metrics["cognitive_complexity"] * 0.3 +
+            complexity_metrics["coupling_factor"] * 0.2
+        )
+        
+        # Adjust for file size
+        lines = complexity_metrics["lines_of_code"]
+        if lines > 200:
+            base_score *= 1.5
+        elif lines > 500:
+            base_score *= 2.0
+        
+        # Determine priority and effort
+        if base_score > 15:
+            priority = "HIGH"
+            effort = "3-5 days"
+        elif base_score > 8:
+            priority = "MEDIUM"
+            effort = "1-2 days"
+        else:
+            priority = "LOW"
+            effort = "2-4 hours"
+        
+        # Collect debt indicators
+        indicators = self._identify_debt_indicators(tree, complexity_metrics)
+        
+        return TechnicalDebt(
+            file_path=file_path,
+            debt_score=base_score,
+            complexity_metrics=complexity_metrics,
+            debt_indicators=indicators,
+            refactoring_priority=priority,
+            estimated_effort=effort
+        )
+    
+    def _calculate_complexity_metrics(self, tree: ast.AST, content: str) -> Dict[str, float]:
+        """Calculate various complexity metrics."""
+        metrics = {
+            "lines_of_code": len(content.splitlines()),
+            "coupling_factor": 0,
+            "code_smells": 0,
+        }
+        
+        # Use helper class for complexity calculations
+        metrics["cyclomatic_complexity"] = self.complexity_analyzer.calculate_cyclomatic_complexity(tree)
+        metrics["cognitive_complexity"] = self.complexity_analyzer.calculate_cognitive_complexity(tree)
+        
+        # Coupling factor (number of imports)
+        import_count = sum(1 for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom)))
+        metrics["coupling_factor"] = import_count
+        
+        # Code smells detection
+        metrics["code_smells"] = self._count_code_smells(tree)
+        
+        return metrics
+    
+    def _count_code_smells(self, tree: ast.AST) -> int:
+        """Count various code smells."""
+        smells = 0
+        
+        for node in ast.walk(tree):
+            # Long parameter lists
+            if isinstance(node, ast.FunctionDef) and len(node.args.args) > 5:
+                smells += 1
+            
+            # Large classes (more than 10 methods)
+            elif isinstance(node, ast.ClassDef):
+                methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
+                if len(methods) > 10:
+                    smells += 1
+        
+        return smells
+    
+    def _identify_debt_indicators(self, tree: ast.AST, metrics: Dict[str, float]) -> List[str]:
+        """Identify specific technical debt indicators."""
+        indicators = []
+        
+        if metrics["cyclomatic_complexity"] > 10:
+            indicators.append("High cyclomatic complexity")
+        
+        if metrics["cognitive_complexity"] > 15:
+            indicators.append("High cognitive complexity")
+        
+        if metrics["lines_of_code"] > 300:
+            indicators.append("Large file size")
+        
+        if metrics["code_smells"] > 0:
+            indicators.append("Multiple code smells detected")
+        
+        return indicators
+
+
 class CodeAnalyzer:
     """Advanced code analysis engine."""
 
@@ -171,6 +395,11 @@ class CodeAnalyzer:
         self.console = Console()
         self.import_graph = nx.DiGraph()
         self.module_metrics = {}
+        
+        # Initialize helper classes
+        self.import_analyzer = ImportAnalyzer(self.project_path)
+        self.complexity_analyzer = ComplexityAnalyzer()
+        self.debt_calculator = TechnicalDebtCalculator(self.complexity_analyzer)
 
     def analyze_unused_imports(self, fix_mode: bool = False) -> List[ImportAnalysis]:
         """Analyze and optionally fix unused imports."""
@@ -201,12 +430,12 @@ class CodeAnalyzer:
 
             tree = ast.parse(content, filename=str(file_path))
 
-            # Extract imports
-            imports = self._extract_detailed_imports(tree)
+            # Extract imports using helper class
+            imports = self.import_analyzer.extract_imports(tree)
 
             # Check usage for each import
             for imp in imports:
-                usage_count = self._count_import_usage(content, imp)
+                usage_count = self.import_analyzer.count_usage(content, imp)
                 is_used = usage_count > 0
 
                 suggestions = []
@@ -232,69 +461,6 @@ class CodeAnalyzer:
 
         return results
 
-    def _extract_detailed_imports(self, tree: ast.AST) -> List[Dict]:
-        """Extract detailed import information."""
-        imports = []
-
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    imports.append(
-                        {
-                            "type": "import",
-                            "module": alias.name,
-                            "name": alias.asname or alias.name.split(".")[-1],
-                            "full_name": alias.name,
-                            "line": node.lineno,
-                        }
-                    )
-
-            elif isinstance(node, ast.ImportFrom):
-                module = node.module or ""
-                for alias in node.names:
-                    if alias.name == "*":
-                        # Skip star imports for now
-                        continue
-
-                    imports.append(
-                        {
-                            "type": "from_import",
-                            "module": module,
-                            "name": alias.asname or alias.name,
-                            "full_name": f"{module}.{alias.name}" if module else alias.name,
-                            "line": node.lineno,
-                        }
-                    )
-
-        return imports
-
-    def _count_import_usage(self, content: str, imp: Dict) -> int:
-        """Count how many times an import is used."""
-        import_name = imp["name"]
-
-        # Remove the import line itself
-        lines = content.split("\n")
-        code_without_imports = "\n".join(
-            line for i, line in enumerate(lines, 1) if i != imp["line"]
-        )
-
-        # Count occurrences
-        # This is a simplified approach - a full implementation would use AST
-        pattern = r"\b" + re.escape(import_name) + r"\b"
-        matches = re.findall(pattern, code_without_imports)
-
-        # Filter out matches in comments and strings
-        filtered_count = 0
-        for line in code_without_imports.split("\n"):
-            # Skip comments
-            if line.strip().startswith("#"):
-                continue
-
-            # Count matches in this line
-            line_matches = len(re.findall(pattern, line))
-            filtered_count += line_matches
-
-        return filtered_count
 
     def _fix_unused_imports(self, file_path: Path, analyses: List[ImportAnalysis]):
         """Fix unused imports in a file."""
@@ -743,48 +909,10 @@ class CodeAnalyzer:
                 content = f.read()
 
             tree = ast.parse(content, filename=str(file_path))
-
-            # Calculate various complexity metrics
-            metrics = self._calculate_complexity_metrics(tree, content)
-
-            # Calculate debt score
-            debt_score = (
-                metrics["cyclomatic_complexity"] * 0.3
-                + metrics["cognitive_complexity"] * 0.3
-                + metrics["coupling_factor"] * 0.2
-                + metrics["code_smells"] * 0.2
-            )
-
-            # Identify debt indicators
-            debt_indicators = []
-            if metrics["cyclomatic_complexity"] > 10:
-                debt_indicators.append("High cyclomatic complexity")
-            if metrics["cognitive_complexity"] > 15:
-                debt_indicators.append("High cognitive complexity")
-            if metrics["code_smells"] > 5:
-                debt_indicators.append("Multiple code smells detected")
-            if metrics["lines_of_code"] > 500:
-                debt_indicators.append("Large file size")
-
-            # Determine priority and effort
-            if debt_score > 15:
-                priority = "HIGH"
-                effort = "3-5 days"
-            elif debt_score > 8:
-                priority = "MEDIUM"
-                effort = "1-2 days"
-            else:
-                priority = "LOW"
-                effort = "2-4 hours"
-
-            return TechnicalDebt(
-                file_path=str(file_path.relative_to(self.project_path)),
-                debt_score=debt_score,
-                complexity_metrics=metrics,
-                debt_indicators=debt_indicators,
-                refactoring_priority=priority,
-                estimated_effort=effort,
-            )
+            
+            # Use helper class for debt calculation
+            relative_path = str(file_path.relative_to(self.project_path))
+            return self.debt_calculator.calculate_debt_score(tree, content, relative_path)
 
         except Exception as e:
             self.console.print(
@@ -792,69 +920,6 @@ class CodeAnalyzer:
             )
             return None
 
-    def _calculate_complexity_metrics(self, tree: ast.AST, content: str) -> Dict[str, float]:
-        """Calculate various complexity metrics."""
-        metrics = {
-            "lines_of_code": len(content.splitlines()),
-            "cyclomatic_complexity": 0,
-            "cognitive_complexity": 0,
-            "coupling_factor": 0,
-            "code_smells": 0,
-        }
-
-        # Cyclomatic complexity
-        complexity_nodes = (
-            ast.If,
-            ast.While,
-            ast.For,
-            ast.With,
-            ast.Try,
-            ast.ExceptHandler,
-            ast.Assert,
-            ast.comprehension,
-        )
-
-        for node in ast.walk(tree):
-            if isinstance(node, complexity_nodes):
-                metrics["cyclomatic_complexity"] += 1
-            elif isinstance(node, ast.BoolOp):
-                metrics["cyclomatic_complexity"] += len(node.values) - 1
-
-        # Cognitive complexity (simplified)
-        metrics["cognitive_complexity"] = metrics["cyclomatic_complexity"] * 1.2
-
-        # Coupling factor (number of imports)
-        import_count = 0
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                import_count += 1
-        metrics["coupling_factor"] = import_count
-
-        # Code smells (simplified detection)
-        smells = 0
-
-        # Long parameter lists
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                if len(node.args.args) > 5:
-                    smells += 1
-
-        # Long classes
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                method_count = sum(1 for item in node.body if isinstance(item, ast.FunctionDef))
-                if method_count > 20:
-                    smells += 1
-
-        # Magic numbers
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Num) and isinstance(node.n, (int, float)):
-                if node.n not in [0, 1, -1] and abs(node.n) > 10:
-                    smells += 0.5
-
-        metrics["code_smells"] = smells
-
-        return metrics
 
     def _should_skip_file(self, file_path: Path) -> bool:
         """Check if file should be skipped in analysis."""
@@ -1233,295 +1298,358 @@ class CodeAnalyzer:
         return results
 
 
-def main():
-    """Main CLI interface."""
-    parser = argparse.ArgumentParser(description="Smart code analysis for dependency optimization")
-    parser.add_argument("project_path", help="Path to the project to analyze")
-    parser.add_argument(
-        "--fix-imports", action="store_true", help="Automatically fix unused imports"
-    )
-    parser.add_argument("--analyze-coupling", action="store_true", help="Analyze module coupling")
-    parser.add_argument(
-        "--check-architecture", action="store_true", help="Check for architecture violations"
-    )
-    parser.add_argument("--calculate-debt", action="store_true", help="Calculate technical debt")
-    parser.add_argument("--output", help="Output file for results (JSON format)")
-    parser.add_argument("--all", action="store_true", help="Run all analyses")
+class CLIHandler:
+    """Handles command-line interface and result processing."""
     
-    # AI-specific analysis options
-    parser.add_argument("--ai-metrics", action="store_true", help="Enable AI-specific code quality metrics")
-    parser.add_argument("--pattern-consistency", action="store_true", help="Analyze pattern consistency across codebase")
-    parser.add_argument("--context-analysis", action="store_true", help="Analyze files for AI context window efficiency")
-
-    args = parser.parse_args()
-
-    # Initialize analyzer
-    analyzer = CodeAnalyzer(args.project_path)
-    console = Console()
-
-    results = {}
-
-    try:
+    def __init__(self):
+        self.console = Console()
+    
+    def create_parser(self):
+        """Create and configure argument parser."""
+        parser = argparse.ArgumentParser(description="Smart code analysis for dependency optimization")
+        parser.add_argument("project_path", help="Path to the project to analyze")
+        parser.add_argument(
+            "--fix-imports", action="store_true", help="Automatically fix unused imports"
+        )
+        parser.add_argument("--analyze-coupling", action="store_true", help="Analyze module coupling")
+        parser.add_argument(
+            "--check-architecture", action="store_true", help="Check for architecture violations"
+        )
+        parser.add_argument("--calculate-debt", action="store_true", help="Calculate technical debt")
+        parser.add_argument("--output", help="Output file for results (JSON format)")
+        parser.add_argument("--all", action="store_true", help="Run all analyses")
+        
+        # AI-specific analysis options
+        parser.add_argument("--ai-metrics", action="store_true", help="Enable AI-specific code quality metrics")
+        parser.add_argument("--pattern-consistency", action="store_true", help="Analyze pattern consistency across codebase")
+        parser.add_argument("--context-analysis", action="store_true", help="Analyze files for AI context window efficiency")
+        
+        return parser
+    
+    def run_analysis(self, args):
+        """Run the complete analysis based on arguments."""
+        analyzer = CodeAnalyzer(args.project_path)
+        results = {}
+        
+        # Run traditional analyses
         if (
             args.all
             or args.fix_imports
             or not any([args.analyze_coupling, args.check_architecture, args.calculate_debt])
         ):
-            # Analyze unused imports
-            import_results = analyzer.analyze_unused_imports(fix_mode=args.fix_imports)
-            results["imports"] = [asdict(r) for r in import_results]
-
-            # Display results
-            unused_count = sum(1 for r in import_results if not r.is_used)
-            console.print(
-                f"\n[bold]Import Analysis:[/bold] Found {unused_count} unused imports out of {len(import_results)} total"
-            )
-
-            if unused_count > 0:
-                table = Table(title="Unused Imports")
-                table.add_column("File")
-                table.add_column("Import")
-                table.add_column("Line")
-
-                for result in import_results:
-                    if not result.is_used:
-                        table.add_row(result.file_path, result.import_name, str(result.line_number))
-
-                console.print(table)
-
+            import_results = self._run_import_analysis(analyzer, args)
+            results.update(import_results)
+        
         if args.all or args.analyze_coupling:
-            # Analyze coupling
-            coupling_results = analyzer.analyze_coupling()
-            results["coupling"] = [asdict(r) for r in coupling_results]
-
-            console.print(
-                f"\n[bold]Coupling Analysis:[/bold] Found {len(coupling_results)} significant couplings"
-            )
-
-            if coupling_results:
-                high_coupling = [r for r in coupling_results if r.coupling_strength > 0.5]
-                if high_coupling:
-                    table = Table(title="High Coupling Detected")
-                    table.add_column("Module A")
-                    table.add_column("Module B")
-                    table.add_column("Strength")
-                    table.add_column("Type")
-                    table.add_column("Suggestion")
-
-                    for result in high_coupling[:10]:  # Top 10
-                        table.add_row(
-                            result.module_a,
-                            result.module_b,
-                            f"{result.coupling_strength:.2f}",
-                            result.coupling_type,
-                            result.refactoring_opportunity,
-                        )
-
-                    console.print(table)
-
+            coupling_results = self._run_coupling_analysis(analyzer)
+            results.update(coupling_results)
+        
         if args.all or args.check_architecture:
-            # Check architecture violations
-            violations = analyzer.detect_architecture_violations()
-            results["violations"] = [asdict(v) for v in violations]
-
-            console.print(
-                f"\n[bold]Architecture Analysis:[/bold] Found {len(violations)} violations"
-            )
-
-            if violations:
-                high_severity = [v for v in violations if v.severity == "HIGH"]
-                if high_severity:
-                    table = Table(title="High Severity Violations")
-                    table.add_column("File")
-                    table.add_column("Type")
-                    table.add_column("Description")
-                    table.add_column("Pattern")
-
-                    for violation in high_severity:
-                        table.add_row(
-                            violation.file_path,
-                            violation.violation_type,
-                            violation.description,
-                            violation.pattern_violated,
-                        )
-
-                    console.print(table)
-
+            arch_results = self._run_architecture_analysis(analyzer)
+            results.update(arch_results)
+        
         if args.all or args.calculate_debt:
-            # Calculate technical debt
-            debt_results = analyzer.calculate_technical_debt()
-            results["debt"] = [asdict(d) for d in debt_results]
-
-            console.print(
-                f"\n[bold]Technical Debt Analysis:[/bold] Analyzed {len(debt_results)} files"
-            )
-
-            if debt_results:
-                high_debt = sorted(
-                    [d for d in debt_results if d.refactoring_priority == "HIGH"],
-                    key=lambda x: x.debt_score,
-                    reverse=True,
-                )
-
-                if high_debt:
-                    table = Table(title="High Priority Technical Debt")
-                    table.add_column("File")
-                    table.add_column("Debt Score")
-                    table.add_column("Indicators")
-                    table.add_column("Effort")
-
-                    for debt in high_debt[:10]:  # Top 10
-                        table.add_row(
-                            debt.file_path,
-                            f"{debt.debt_score:.1f}",
-                            ", ".join(debt.debt_indicators),
-                            debt.estimated_effort,
-                        )
-
-                    console.print(table)
-
-        # AI-specific analyses
-        if args.all or args.ai_metrics:
-            # Analyze AI code metrics
-            ai_metrics = analyzer.analyze_ai_code_metrics()
-            results["ai_metrics"] = [asdict(m) for m in ai_metrics]
-            
-            ai_likely_count = sum(1 for m in ai_metrics if m.likely_ai_generated)
-            critical_context_count = sum(1 for m in ai_metrics if m.context_window_health == "CRITICAL")
-            
-            console.print(f"\n[bold]AI Code Analysis:[/bold] {ai_likely_count} likely AI-generated files out of {len(ai_metrics)} total")
-            console.print(f"[bold]Context Window Health:[/bold] {critical_context_count} files need attention for AI context efficiency")
-            
-            if critical_context_count > 0:
-                table = Table(title="Files Requiring AI Context Optimization")
-                table.add_column("File")
-                table.add_column("Tokens")
-                table.add_column("Health")
-                table.add_column("AI Generated")
-                table.add_column("Suggestions")
-                
-                critical_files = [m for m in ai_metrics if m.context_window_health == "CRITICAL"]
-                for metric in critical_files[:10]:  # Top 10
-                    suggestions = "; ".join(metric.ai_optimization_suggestions[:2])  # First 2 suggestions
-                    try:
-                        full_path = analyzer.project_path / metric.file_path
-                        if full_path.exists():
-                            with open(full_path, 'r', encoding='utf-8') as f:
-                                token_count = estimate_tokens(f.read())
-                        else:
-                            token_count = "N/A"
-                    except:
-                        token_count = "N/A"
-                    
-                    table.add_row(
-                        metric.file_path,
-                        str(token_count),
-                        metric.context_window_health,
-                        "Yes" if metric.likely_ai_generated else "No",
-                        suggestions
-                    )
-                
-                console.print(table)
-
-        if args.all or args.pattern_consistency:
-            # Analyze pattern consistency
-            pattern_results = analyzer.analyze_pattern_consistency()
-            results["pattern_consistency"] = [asdict(p) for p in pattern_results]
-            
-            console.print(f"\n[bold]Pattern Consistency Analysis:[/bold]")
-            
-            pattern_table = Table(title="Pattern Consistency Scores")
-            pattern_table.add_column("Pattern Type")
-            pattern_table.add_column("Consistency Score")
-            pattern_table.add_column("Total Instances")
-            pattern_table.add_column("Violations")
-            pattern_table.add_column("Recommended Standard")
-            
-            for pattern in pattern_results:
-                score_color = "green" if pattern.consistency_score > 0.8 else "yellow" if pattern.consistency_score > 0.6 else "red"
-                pattern_table.add_row(
-                    pattern.pattern_type.replace('_', ' ').title(),
-                    f"[{score_color}]{pattern.consistency_score:.2f}[/{score_color}]",
-                    str(pattern.total_instances),
-                    str(len(pattern.violations)),
-                    pattern.recommended_standard[:30] + "..." if len(pattern.recommended_standard) > 30 else pattern.recommended_standard
-                )
-            
-            console.print(pattern_table)
-
-        if args.all or args.context_analysis:
-            # Analyze AI context windows
-            context_results = analyzer.analyze_ai_context_windows()
-            results["context_analysis"] = [asdict(c) for c in context_results]
-            
-            critical_files = [c for c in context_results if c.context_health == "CRITICAL"]
-            warning_files = [c for c in context_results if c.context_health == "WARNING"]
-            good_files = [c for c in context_results if c.context_health == "GOOD"]
-            
-            console.print(f"\n[bold]AI Context Window Analysis:[/bold]")
-            console.print(f"   [green]Good ({len(good_files)} files):[/green] Under 2K tokens")
-            console.print(f"   [yellow]Warning ({len(warning_files)} files):[/yellow] 2K-4K tokens")
-            console.print(f"   [red]Critical ({len(critical_files)} files):[/red] Over 4K tokens")
-            
-            if critical_files:
-                context_table = Table(title="Files Exceeding AI Context Limits")
-                context_table.add_column("File")
-                context_table.add_column("Tokens")
-                context_table.add_column("AI Friendliness")
-                context_table.add_column("Suggestions")
-                
-                for context in critical_files[:10]:  # Top 10
-                    suggestions = "; ".join(context.refactoring_suggestions[:2])
-                    context_table.add_row(
-                        context.file_path,
-                        f"{context.token_count:,}",
-                        f"{context.ai_friendliness_score:.2f}",
-                        suggestions
-                    )
-                
-                console.print(context_table)
-
-        # Save results if requested
-        if args.output:
-            with open(args.output, "w") as f:
-                json.dump(results, f, indent=2, default=str)
-            console.print(f"\n[green]✅ Results saved to:[/green] {args.output}")
-
-        # Summary
-        traditional_issues = sum(
-            [
-                sum(1 for r in results.get("imports", []) if not r["is_used"]),
-                len(results.get("coupling", [])),
-                len(results.get("violations", [])),
-                sum(
-                    1
-                    for d in results.get("debt", [])
-                    if d["refactoring_priority"] in ["HIGH", "MEDIUM"]
-                ),
-            ]
+            debt_results = self._run_debt_analysis(analyzer)
+            results.update(debt_results)
+        
+        # Run AI-specific analyses  
+        ai_issues = 0
+        if args.all or args.ai_metrics or args.pattern_consistency or args.context_analysis:
+            ai_results, ai_issues = self._run_ai_analyses(analyzer, args)
+            results.update(ai_results)
+        
+        # Save results and display summary
+        self._save_results(results, args.output)
+        self._display_summary(results, ai_issues)
+        
+        return results
+    
+    def _run_import_analysis(self, analyzer, args):
+        """Run import analysis and return results."""
+        import_results = analyzer.analyze_unused_imports(fix_mode=args.fix_imports)
+        results = {"imports": [asdict(r) for r in import_results]}
+        
+        # Display results
+        unused_count = sum(1 for r in import_results if not r.is_used)
+        self.console.print(
+            f"\n[bold]Import Analysis:[/bold] Found {unused_count} unused imports out of {len(import_results)} total"
         )
         
-        # AI-specific issues
+        if unused_count > 0:
+            self._display_import_table(import_results)
+        
+        return results
+    
+    def _display_import_table(self, import_results):
+        """Display unused imports in a table."""
+        table = Table(title="Unused Imports")
+        table.add_column("File")
+        table.add_column("Import")
+        table.add_column("Line")
+        
+        for result in import_results:
+            if not result.is_used:
+                table.add_row(
+                    str(Path(result.file_path).name),
+                    result.import_name,
+                    str(result.line_number)
+                )
+        
+        self.console.print(table)
+    
+    def _run_coupling_analysis(self, analyzer):
+        """Run coupling analysis and return results."""
+        coupling_results = analyzer.analyze_coupling()
+        results = {"coupling": [asdict(c) for c in coupling_results]}
+        
+        # Display results  
+        self.console.print(f"\n[bold]Coupling Analysis:[/bold] Found {len(coupling_results)} coupling relationships")
+        
+        if coupling_results:
+            table = Table(title="Module Coupling")
+            table.add_column("Module A")
+            table.add_column("Module B")
+            table.add_column("Strength")
+            table.add_column("Type")
+            
+            for coupling in coupling_results[:10]:  # Show top 10
+                table.add_row(
+                    coupling.module_a,
+                    coupling.module_b,
+                    f"{coupling.coupling_strength:.2f}",
+                    coupling.coupling_type
+                )
+            
+            self.console.print(table)
+        
+        return results
+    
+    def _run_architecture_analysis(self, analyzer):
+        """Run architecture analysis and return results."""
+        arch_results = analyzer.check_architecture_violations()
+        results = {"architecture": [asdict(v) for v in arch_results]}
+        
+        # Display results
+        high_severity = [v for v in arch_results if v.severity == "HIGH"]
+        self.console.print(f"\n[bold]Architecture Analysis:[/bold] Found {len(arch_results)} violations ({len(high_severity)} high priority)")
+        
+        if arch_results:
+            table = Table(title="Architecture Violations")
+            table.add_column("File")
+            table.add_column("Type")
+            table.add_column("Severity")
+            table.add_column("Description")
+            
+            for violation in arch_results[:10]:  # Show top 10
+                table.add_row(
+                    str(Path(violation.file_path).name),
+                    violation.violation_type,
+                    violation.severity,
+                    violation.description[:60] + "..." if len(violation.description) > 60 else violation.description
+                )
+            
+            self.console.print(table)
+        
+        return results
+    
+    def _run_debt_analysis(self, analyzer):
+        """Run technical debt analysis and return results."""
+        debt_results = analyzer.calculate_technical_debt()
+        results = {"debt": [asdict(d) for d in debt_results]}
+        
+        # Display results
+        self.console.print(f"\n[bold]Technical Debt Analysis:[/bold] Analyzed {len(debt_results)} files")
+        
+        if debt_results:
+            # Sort by debt score
+            debt_results.sort(key=lambda x: x.debt_score, reverse=True)
+            
+            table = Table(title="Technical Debt")
+            table.add_column("File")
+            table.add_column("Score")
+            table.add_column("Priority")
+            table.add_column("Effort")
+            
+            for debt in debt_results[:15]:  # Show top 15
+                table.add_row(
+                    str(Path(debt.file_path).name),
+                    f"{debt.debt_score:.1f}",
+                    debt.refactoring_priority,
+                    debt.estimated_effort
+                )
+            
+            self.console.print(table)
+        
+        return results
+    
+    def _run_ai_analyses(self, analyzer, args):
+        """Run AI-specific analyses and return results."""
+        results = {}
         ai_issues = 0
-        if "ai_metrics" in results:
-            ai_issues += sum(1 for m in results["ai_metrics"] if m["context_window_health"] == "CRITICAL")
-        if "pattern_consistency" in results:
-            ai_issues += sum(1 for p in results["pattern_consistency"] if p["consistency_score"] < 0.7)
-        if "context_analysis" in results:
-            ai_issues += sum(1 for c in results["context_analysis"] if c["context_health"] == "CRITICAL")
-
-        total_issues = traditional_issues + ai_issues
-
-        console.print(f"\n[bold]Summary:[/bold] Found {total_issues} total issues requiring attention")
+        
+        if args.pattern_consistency or args.all:
+            pattern_results, pattern_issues = self._run_pattern_analysis(analyzer)
+            results["patterns"] = pattern_results
+            ai_issues += pattern_issues
+        
+        if args.context_analysis or args.all:
+            context_results, context_issues = self._run_context_analysis(analyzer)
+            results["ai_context"] = context_results
+            ai_issues += context_issues
+        
+        if args.ai_metrics or args.all:
+            metrics_results, metrics_issues = self._run_ai_metrics_analysis(analyzer)
+            results["ai_metrics"] = metrics_results
+            ai_issues += metrics_issues
+        
+        return results, ai_issues
+    
+    def _run_pattern_analysis(self, analyzer):
+        """Run pattern consistency analysis."""
+        pattern_results = analyzer.analyze_pattern_consistency()
+        results = [asdict(p) for p in pattern_results]
+        
+        self.console.print(f"\n[bold]Pattern Analysis:[/bold] Analyzed {len(pattern_results)} patterns")
+        
+        inconsistent_patterns = [p for p in pattern_results if p.consistency_score < 0.8]
+        if inconsistent_patterns:
+            self._display_pattern_table(inconsistent_patterns)
+        
+        return results, len(inconsistent_patterns)
+    
+    def _display_pattern_table(self, inconsistent_patterns):
+        """Display pattern inconsistencies table."""
+        table = Table(title="Pattern Inconsistencies")
+        table.add_column("Pattern Type")
+        table.add_column("Consistency Score")
+        table.add_column("Files Affected")
+        table.add_column("Primary Variant")
+        
+        for pattern in inconsistent_patterns[:10]:  # Show top 10
+            table.add_row(
+                pattern.pattern_type,
+                f"{pattern.consistency_score:.2f}",
+                str(len(pattern.file_examples)),
+                pattern.primary_variant[:50] + "..." if len(pattern.primary_variant) > 50 else pattern.primary_variant
+            )
+        
+        self.console.print(table)
+    
+    def _run_context_analysis(self, analyzer):
+        """Run AI context window analysis."""
+        context_results = analyzer.analyze_ai_context_windows()
+        results = [asdict(c) for c in context_results]
+        
+        self.console.print(f"\n[bold]AI Context Analysis:[/bold] Analyzed {len(context_results)} files")
+        
+        problematic_files = [f for f in context_results if f.context_health in ["WARNING", "CRITICAL"]]
+        if problematic_files:
+            self._display_context_table(problematic_files)
+        
+        return results, len(problematic_files)
+    
+    def _display_context_table(self, problematic_files):
+        """Display context window issues table."""
+        table = Table(title="Context Window Issues")
+        table.add_column("File")
+        table.add_column("Token Count")
+        table.add_column("Health")
+        table.add_column("AI Friendliness")
+        
+        for file_analysis in problematic_files[:10]:  # Show top 10
+            table.add_row(
+                str(Path(file_analysis.file_path).name),
+                f"{file_analysis.token_count:,}",
+                file_analysis.context_health,
+                f"{file_analysis.ai_friendliness_score:.2f}"
+            )
+        
+        self.console.print(table)
+    
+    def _run_ai_metrics_analysis(self, analyzer):
+        """Run AI code metrics analysis."""
+        ai_metrics = analyzer.analyze_ai_code_metrics()
+        results = [asdict(m) for m in ai_metrics]
+        
+        self.console.print(f"\n[bold]AI Code Metrics:[/bold] Analyzed {len(ai_metrics)} files")
+        
+        low_readability = [m for m in ai_metrics if m.ai_readability_score < 0.7]
+        if low_readability:
+            self._display_ai_metrics_table(low_readability)
+        
+        return results, len(low_readability)
+    
+    def _display_ai_metrics_table(self, low_readability):
+        """Display AI readability issues table."""
+        table = Table(title="AI Readability Issues")
+        table.add_column("File")
+        table.add_column("Readability")
+        table.add_column("Maintainability")
+        table.add_column("Context Efficiency")
+        
+        for metrics in low_readability[:10]:  # Show top 10
+            table.add_row(
+                str(Path(metrics.file_path).name),
+                f"{metrics.ai_readability_score:.2f}",
+                f"{metrics.ai_maintainability_score:.2f}",
+                f"{metrics.context_efficiency_score:.2f}"
+            )
+        
+        self.console.print(table)
+    
+    def _save_results(self, results, output_file):
+        """Save results to JSON file."""
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as f:
+                json.dump(results, f, indent=2)
+            self.console.print(f"\n[green]Results saved to {output_file}[/green]")
+    
+    def _display_summary(self, results, ai_issues=0):
+        """Display analysis summary."""
+        total_issues = 0
+        traditional_issues = 0
+        
+        # Count issues from different analyses
+        if "imports" in results:
+            unused_imports = sum(1 for r in results["imports"] if not r["is_used"])
+            total_issues += unused_imports
+            traditional_issues += unused_imports
+        
+        if "coupling" in results:
+            high_coupling = len([c for c in results["coupling"] if c["coupling_strength"] > 0.7])
+            total_issues += high_coupling
+            traditional_issues += high_coupling
+        
+        if "architecture" in results:
+            arch_violations = len([v for v in results["architecture"] if v["severity"] in ["HIGH", "MEDIUM"]])
+            total_issues += arch_violations
+            traditional_issues += arch_violations
+        
+        if "debt" in results:
+            high_debt = len([d for d in results["debt"] if d["refactoring_priority"] in ["HIGH", "MEDIUM"]])
+            total_issues += high_debt
+            traditional_issues += high_debt
+        
+        total_issues += ai_issues
+        
+        self.console.print(f"\n[bold]Summary:[/bold] Found {total_issues} total issues requiring attention")
         if ai_issues > 0:
-            console.print(f"  Traditional issues: {traditional_issues}")
-            console.print(f"  AI-specific issues: {ai_issues}")
-            console.print(f"\n[blue]Tip:[/blue] Use --ai-metrics to focus on AI development hygiene")
+            self.console.print(f"  Traditional issues: {traditional_issues}")
+            self.console.print(f"  AI-specific issues: {ai_issues}")
+            self.console.print(f"\n[blue]Tip:[/blue] Use --ai-metrics to focus on AI development hygiene")
 
+
+def main():
+    """Main CLI interface."""
+    cli_handler = CLIHandler()
+    parser = cli_handler.create_parser()
+    args = parser.parse_args()
+    
+    try:
+        cli_handler.run_analysis(args)
     except Exception as e:
-        console.print(f"[red]Error during analysis: {e}[/red]")
+        cli_handler.console.print(f"[red]Error during analysis: {e}[/red]")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

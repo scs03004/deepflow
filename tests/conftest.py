@@ -5,9 +5,8 @@ Pytest configuration and shared fixtures for deepflow tests.
 import os
 import sys
 import tempfile
-import shutil
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List
 from unittest.mock import MagicMock, patch
 import pytest
 

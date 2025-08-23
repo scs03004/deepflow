@@ -7,7 +7,6 @@ import sys
 import subprocess
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-import tempfile
 import importlib
 
 
@@ -344,7 +343,6 @@ class TestGracefulFallbacksComprehensive:
     def test_concurrent_access_safety(self):
         """Test that fallback mechanisms are safe for concurrent access."""
         import threading
-        import time
         
         project_root = Path(__file__).parent.parent
         if str(project_root) not in sys.path:

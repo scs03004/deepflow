@@ -26,8 +26,7 @@ Requirements:
 # Graceful imports for MCP dependencies
 try:
     import mcp
-    from mcp.server import Server
-    from mcp.types import Tool, TextContent
+    from mcp.types import Tool
     
     MCP_AVAILABLE = True
     __all__ = ["server", "MCP_AVAILABLE"]

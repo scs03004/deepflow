@@ -5,7 +5,6 @@ MCP tool exposure and functionality tests.
 import pytest
 import json
 from unittest.mock import patch, MagicMock
-from pathlib import Path
 
 
 class TestMCPToolExposure:

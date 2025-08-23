@@ -25,7 +25,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import List
 import logging
 
 # Graceful MCP imports
@@ -97,7 +97,6 @@ except ImportError:
 # Import deepflow tools - graceful fallbacks
 try:
     import sys
-    import os
     
     # Add tools directory to path for imports
     tools_dir = Path(__file__).parent.parent.parent / "tools"
@@ -107,7 +106,7 @@ try:
     from dependency_visualizer import DependencyVisualizer
     from code_analyzer import CodeAnalyzer
     from pre_commit_validator import DependencyValidator
-    from monitoring_dashboard import DependencyMonitor 
+ 
     from doc_generator import DocumentationGenerator
     
     TOOLS_AVAILABLE = True
@@ -136,219 +135,233 @@ class DeepflowMCPServer:
             """Handle list tools request."""
             return self.get_tools()
         
-        # Dependency visualization tools
+        # Single call_tool handler that routes to the appropriate function
         @self.server.call_tool()
-        async def handle_analyze_dependencies(tool_name: str, arguments: dict):
-            """Analyze project dependencies and create visualization."""
-            try:
-                project_path = arguments.get("project_path", ".")
-                output_format = arguments.get("format", "text")
-                ai_awareness = arguments.get("ai_awareness", True)
-                
-                if not TOOLS_AVAILABLE:
-                    return [TextContent(
-                        type="text",
-                        text="Error: Deepflow tools not available. Please check installation."
-                    )]
-                
-                visualizer = DependencyVisualizer(project_path, ai_awareness=ai_awareness)
-                dependency_graph = visualizer.analyze_project()
-                
-                if output_format == "html":
-                    html_output = visualizer.generate_interactive_html(dependency_graph)
-                    return [TextContent(
-                        type="text", 
-                        text=f"HTML visualization generated: {html_output}"
-                    )]
-                elif output_format == "json":
-                    json_data = visualizer.export_to_json(dependency_graph)
-                    return [TextContent(
-                            type="text",
-                            text=json.dumps(json_data, indent=2)
-                        )]
-                else:
-                    text_output = visualizer.generate_text_report(dependency_graph)
-                    return [TextContent(
-                            type="text",
-                            text=text_output
-                        )]
-                    
-            except Exception as e:
-                logger.error(f"Error in analyze_dependencies: {e}")
+        async def handle_call_tool(tool_name: str, arguments: dict):
+            """Route tool calls to appropriate handlers."""
+            
+            if tool_name == "analyze_dependencies":
+                return await self._handle_analyze_dependencies(arguments)
+            elif tool_name == "analyze_code_quality":
+                return await self._handle_analyze_code_quality(arguments)
+            elif tool_name == "validate_commit":
+                return await self._handle_validate_commit(arguments)
+            elif tool_name == "generate_documentation":
+                return await self._handle_generate_documentation(arguments)
+            else:
                 return [TextContent(
-                        type="text",
-                        text=f"Error analyzing dependencies: {str(e)}"
-                    )]
+                    type="text",
+                    text=f"Unknown tool: {tool_name}"
+                )]
 
-        @self.server.call_tool()
-        async def handle_analyze_code_quality(tool_name: str, arguments: dict):
-            """Analyze code quality and detect issues."""
-            try:
-                project_path = arguments.get("project_path", ".")
-                analysis_type = arguments.get("analysis_type", "all")
-                fix_imports = arguments.get("fix_imports", False)
-                
-                if not TOOLS_AVAILABLE:
-                    return [TextContent(
-                        type="text",
-                        text="Error: Deepflow tools not available. Please check installation."
-                    )]
-                
-                analyzer = CodeAnalyzer(project_path)
-                results = {}
-                
-                if analysis_type in ["all", "imports"]:
-                    import_analysis = analyzer.analyze_unused_imports(fix_mode=fix_imports)
-                    results["unused_imports"] = [
-                        {
-                            "file": analysis.file_path,
-                            "import": analysis.import_name,
-                            "used": analysis.is_used,
-                            "suggestions": analysis.suggestions
-                        }
-                        for analysis in import_analysis
-                    ]
-                
-                if analysis_type in ["all", "coupling"]:
-                    coupling_analysis = analyzer.analyze_coupling()
-                    results["coupling_metrics"] = [
-                        {
-                            "module_a": metric.module_a,
-                            "module_b": metric.module_b,
-                            "strength": metric.coupling_strength,
-                            "type": metric.coupling_type,
-                            "refactoring_opportunity": metric.refactoring_opportunity
-                        }
-                        for metric in coupling_analysis
-                    ]
-                
-                if analysis_type in ["all", "architecture"]:
-                    arch_violations = analyzer.detect_architecture_violations()
-                    results["architecture_violations"] = [
-                        {
-                            "file": violation.file_path,
-                            "type": violation.violation_type,
-                            "severity": violation.severity,
-                            "description": violation.description,
-                            "suggestion": violation.suggestion
-                        }
-                        for violation in arch_violations
-                    ]
-                
-                if analysis_type in ["all", "debt"]:
-                    tech_debt = analyzer.calculate_technical_debt()
-                    results["technical_debt"] = [
-                        {
-                            "file": debt.file_path,
-                            "score": debt.debt_score,
-                            "priority": debt.refactoring_priority,
-                            "effort": debt.estimated_effort,
-                            "indicators": debt.debt_indicators
-                        }
-                        for debt in tech_debt
-                    ]
-                
-                if analysis_type in ["all", "ai_context"]:
-                    ai_analysis = analyzer.analyze_ai_context_windows()
-                    results["ai_context_analysis"] = [
-                        {
-                            "file": analysis.file_path,
-                            "token_count": analysis.token_count,
-                            "health": analysis.context_health,
-                            "split_points": analysis.estimated_split_points,
-                            "ai_score": analysis.ai_friendliness_score
-                        }
-                        for analysis in ai_analysis
-                    ]
-                
+    async def _handle_analyze_dependencies(self, arguments: dict):
+        """Analyze project dependencies and create visualization."""
+        try:
+            project_path = arguments.get("project_path", ".")
+            output_format = arguments.get("format", "text")
+            ai_awareness = arguments.get("ai_awareness", True)
+            
+            if not TOOLS_AVAILABLE:
+                return [TextContent(
+                    type="text",
+                    text="Error: Deepflow tools not available. Please check installation."
+                )]
+            
+            visualizer = DependencyVisualizer(project_path, ai_awareness=ai_awareness)
+            dependency_graph = visualizer.analyze_project()
+            
+            if output_format == "html":
+                html_output = visualizer.generate_interactive_html(dependency_graph)
+                return [TextContent(
+                    type="text", 
+                    text=f"HTML visualization generated: {html_output}"
+                )]
+            elif output_format == "json":
+                json_data = visualizer.export_to_json(dependency_graph)
                 return [TextContent(
                         type="text",
-                        text=json.dumps(results, indent=2)
+                        text=json.dumps(json_data, indent=2)
                     )]
-                
-            except Exception as e:
-                logger.error(f"Error in analyze_code_quality: {e}")
+            else:
+                text_output = visualizer.generate_text_report(dependency_graph)
                 return [TextContent(
                         type="text",
-                        text=f"Error analyzing code quality: {str(e)}"
+                        text=text_output
                     )]
+                
+        except Exception as e:
+            logger.error(f"Error in analyze_dependencies: {e}")
+            return [TextContent(
+                    type="text",
+                    text=f"Error analyzing dependencies: {str(e)}"
+                )]
 
-        @self.server.call_tool()
-        async def handle_validate_commit(tool_name: str, arguments: dict):
-            """Validate code changes before commit."""
-            try:
-                project_path = arguments.get("project_path", ".")
-                check_dependencies = arguments.get("check_dependencies", True)
-                check_patterns = arguments.get("check_patterns", True)
-                
-                if not TOOLS_AVAILABLE:
-                    return [TextContent(
-                        type="text",
-                        text="Error: Deepflow tools not available. Please check installation."
-                    )]
-                
-                validator = DependencyValidator(project_path)
-                validation_result = validator.validate_changes(
-                    check_dependencies=check_dependencies,
-                    check_patterns=check_patterns
-                )
-                
+    async def _handle_analyze_code_quality(self, arguments: dict):
+        """Analyze code quality and detect issues."""
+        try:
+            project_path = arguments.get("project_path", ".")
+            analysis_type = arguments.get("analysis_type", "all")
+            fix_imports = arguments.get("fix_imports", False)
+            
+            if not TOOLS_AVAILABLE:
                 return [TextContent(
-                        type="text",
-                        text=json.dumps({
-                            "valid": validation_result.is_valid,
-                            "errors": validation_result.errors,
-                            "warnings": validation_result.warnings,
-                            "suggestions": validation_result.suggestions
-                        }, indent=2)
-                    )]
-                
-            except Exception as e:
-                logger.error(f"Error in validate_commit: {e}")
-                return [TextContent(
-                        type="text",
-                        text=f"Error validating commit: {str(e)}"
-                    )]
+                    type="text",
+                    text="Error: Deepflow tools not available. Please check installation."
+                )]
+            
+            analyzer = CodeAnalyzer(project_path)
+            results = {}
+            
+            if analysis_type in ["all", "imports"]:
+                import_analysis = analyzer.analyze_unused_imports(fix_mode=fix_imports)
+                results["unused_imports"] = [
+                    {
+                        "file": analysis.file_path,
+                        "import": analysis.import_name,
+                        "used": analysis.is_used,
+                        "suggestions": analysis.suggestions
+                    }
+                    for analysis in import_analysis
+                ]
+            
+            if analysis_type in ["all", "coupling"]:
+                coupling_analysis = analyzer.analyze_coupling()
+                results["coupling_metrics"] = [
+                    {
+                        "module_a": metric.module_a,
+                        "module_b": metric.module_b,
+                        "strength": metric.coupling_strength,
+                        "type": metric.coupling_type,
+                        "refactoring_opportunity": metric.refactoring_opportunity
+                    }
+                    for metric in coupling_analysis
+                ]
+            
+            if analysis_type in ["all", "architecture"]:
+                arch_violations = analyzer.detect_architecture_violations()
+                results["architecture_violations"] = [
+                    {
+                        "file": violation.file_path,
+                        "type": violation.violation_type,
+                        "severity": violation.severity,
+                        "description": violation.description,
+                        "suggestion": violation.suggestion
+                    }
+                    for violation in arch_violations
+                ]
+            
+            if analysis_type in ["all", "debt"]:
+                tech_debt = analyzer.calculate_technical_debt()
+                results["technical_debt"] = [
+                    {
+                        "file": debt.file_path,
+                        "score": debt.debt_score,
+                        "priority": debt.refactoring_priority,
+                        "effort": debt.estimated_effort,
+                        "indicators": debt.debt_indicators
+                    }
+                    for debt in tech_debt
+                ]
+            
+            if analysis_type in ["all", "ai_context"]:
+                ai_analysis = analyzer.analyze_ai_context_windows()
+                results["ai_context_analysis"] = [
+                    {
+                        "file": analysis.file_path,
+                        "token_count": analysis.token_count,
+                        "health": analysis.context_health,
+                        "split_points": analysis.estimated_split_points,
+                        "ai_score": analysis.ai_friendliness_score
+                    }
+                    for analysis in ai_analysis
+                ]
+            
+            return [TextContent(
+                    type="text",
+                    text=json.dumps(results, indent=2)
+                )]
+            
+        except Exception as e:
+            logger.error(f"Error in analyze_code_quality: {e}")
+            return [TextContent(
+                    type="text",
+                    text=f"Error analyzing code quality: {str(e)}"
+                )]
 
-        @self.server.call_tool()
-        async def handle_generate_documentation(tool_name: str, arguments: dict):
-            """Generate project documentation."""
-            try:
-                project_path = arguments.get("project_path", ".")
-                doc_type = arguments.get("doc_type", "dependency_map")
-                output_path = arguments.get("output_path", None)
-                
-                if not TOOLS_AVAILABLE:
-                    return [TextContent(
-                        type="text",
-                        text="Error: Deepflow tools not available. Please check installation."
-                    )]
-                
-                doc_generator = DocumentationGenerator(project_path)
-                
-                if doc_type == "dependency_map":
-                    output_file = doc_generator.generate_dependency_map(output_path)
-                elif doc_type == "architecture_overview":
-                    output_file = doc_generator.generate_architecture_overview(output_path)
-                elif doc_type == "api_docs":
-                    output_file = doc_generator.generate_api_docs(output_path)
-                else:
-                    return [TextContent(
-                            type="text",
-                            text=f"Unknown documentation type: {doc_type}"
-                        )]
-                
+    async def _handle_validate_commit(self, arguments: dict):
+        """Validate code changes before commit."""
+        try:
+            project_path = arguments.get("project_path", ".")
+            check_dependencies = arguments.get("check_dependencies", True)
+            check_patterns = arguments.get("check_patterns", True)
+            
+            if not TOOLS_AVAILABLE:
+                return [TextContent(
+                    type="text",
+                    text="Error: Deepflow tools not available. Please check installation."
+                )]
+            
+            validator = DependencyValidator(project_path)
+            validation_result = validator.validate_changes(
+                check_dependencies=check_dependencies,
+                check_patterns=check_patterns
+            )
+            
+            return [TextContent(
+                    type="text",
+                    text=json.dumps({
+                        "valid": validation_result.is_valid,
+                        "errors": validation_result.errors,
+                        "warnings": validation_result.warnings,
+                        "suggestions": validation_result.suggestions
+                    }, indent=2)
+                )]
+            
+        except Exception as e:
+            logger.error(f"Error in validate_commit: {e}")
+            return [TextContent(
+                    type="text",
+                    text=f"Error validating commit: {str(e)}"
+                )]
+
+    async def _handle_generate_documentation(self, arguments: dict):
+        """Generate project documentation."""
+        try:
+            project_path = arguments.get("project_path", ".")
+            doc_type = arguments.get("doc_type", "dependency_map")
+            output_path = arguments.get("output_path", None)
+            
+            if not TOOLS_AVAILABLE:
+                return [TextContent(
+                    type="text",
+                    text="Error: Deepflow tools not available. Please check installation."
+                )]
+            
+            doc_generator = DocumentationGenerator(project_path)
+            
+            if doc_type == "dependency_map":
+                output_file = doc_generator.generate_dependency_map(output_path)
+            elif doc_type == "architecture_overview":
+                output_file = doc_generator.generate_architecture_overview(output_path)
+            elif doc_type == "api_docs":
+                output_file = doc_generator.generate_api_docs(output_path)
+            else:
                 return [TextContent(
                         type="text",
-                        text=f"Documentation generated: {output_file}"
+                        text=f"Unknown documentation type: {doc_type}"
                     )]
-                
-            except Exception as e:
-                logger.error(f"Error in generate_documentation: {e}")
-                return [TextContent(
-                        type="text",
-                        text=f"Error generating documentation: {str(e)}"
-                    )]
+            
+            return [TextContent(
+                    type="text",
+                    text=f"Documentation generated: {output_file}"
+                )]
+            
+        except Exception as e:
+            logger.error(f"Error in generate_documentation: {e}")
+            return [TextContent(
+                    type="text",
+                    text=f"Error generating documentation: {str(e)}"
+                )]
 
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""

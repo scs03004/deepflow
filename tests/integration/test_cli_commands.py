@@ -3,7 +3,6 @@ Integration tests for CLI commands and entry points.
 """
 
 import pytest
-import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock

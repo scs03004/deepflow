@@ -3,7 +3,6 @@ Unit tests for dependency_visualizer.py
 """
 
 import pytest
-import tempfile
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open

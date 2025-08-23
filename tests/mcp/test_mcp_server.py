@@ -4,7 +4,6 @@ MCP server functionality tests.
 
 import pytest
 import asyncio
-import json
 from unittest.mock import patch, MagicMock, AsyncMock
 from pathlib import Path
 
