@@ -290,36 +290,40 @@ class TechnicalDebtCalculator:
         self.complexity_analyzer = complexity_analyzer
     
     def calculate_debt_score(self, tree: ast.AST, content: str, file_path: str) -> TechnicalDebt:
-        """Calculate technical debt for a file."""
+        """Calculate meaningful technical debt for a file."""
         complexity_metrics = self._calculate_complexity_metrics(tree, content)
         
-        # Calculate base debt score
+        # Calculate base debt score based on actual problems
         base_score = (
-            complexity_metrics["cyclomatic_complexity"] * 0.5 +
-            complexity_metrics["cognitive_complexity"] * 0.3 +
-            complexity_metrics["coupling_factor"] * 0.2
+            complexity_metrics["code_smells"] * 3.0 +  # Real problems weight heavily
+            max(0, complexity_metrics["cyclomatic_complexity"] - 5) * 0.5 +  # Only penalize high complexity
+            max(0, complexity_metrics["cognitive_complexity"] - 10) * 0.3  # Only penalize very high cognitive load
         )
         
-        # Adjust for file size
-        lines = complexity_metrics["lines_of_code"]
-        if lines > 200:
-            base_score *= 1.5
-        elif lines > 500:
-            base_score *= 2.0
-        
-        # Determine priority and effort
-        if base_score > 15:
-            priority = "HIGH"
-            effort = "3-5 days"
-        elif base_score > 8:
-            priority = "MEDIUM"
-            effort = "1-2 days"
-        else:
-            priority = "LOW"
-            effort = "2-4 hours"
-        
-        # Collect debt indicators
+        # Add specific issue scores
         indicators = self._identify_debt_indicators(tree, complexity_metrics)
+        performance_penalty = len([i for i in indicators if 'performance' in i.lower() or 'sync database' in i.lower() or 'n+1' in i.lower()]) * 5
+        security_penalty = len([i for i in indicators if 'security' in i.lower() or 'injection' in i.lower() or 'secret' in i.lower()]) * 10
+        architecture_penalty = len([i for i in indicators if 'architecture' in i.lower() or 'concerns' in i.lower()]) * 3
+        
+        base_score += performance_penalty + security_penalty + architecture_penalty
+        
+        # Determine priority based on issue types, not score
+        has_security_issues = any('security' in i.lower() or 'injection' in i.lower() or 'secret' in i.lower() for i in indicators)
+        has_performance_issues = any('performance' in i.lower() or 'sync database' in i.lower() or 'n+1' in i.lower() for i in indicators)
+        
+        if has_security_issues:
+            priority = "HIGH"
+            effort = "1-2 days"
+        elif has_performance_issues or base_score > 15:
+            priority = "MEDIUM"
+            effort = "4-8 hours"
+        elif base_score > 5:
+            priority = "LOW"
+            effort = "1-2 hours"
+        else:
+            priority = "NONE"
+            effort = "No action needed"
         
         return TechnicalDebt(
             file_path=file_path,
@@ -351,38 +355,211 @@ class TechnicalDebtCalculator:
         
         return metrics
     
+    def _detect_performance_issues(self, tree: ast.AST) -> List[str]:
+        """Detect actual performance problems."""
+        issues = []
+        
+        for node in ast.walk(tree):
+            # Sync database calls in async functions
+            if isinstance(node, ast.AsyncFunctionDef):
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute):
+                        if any(db_method in str(child.func.attr) for db_method in ['execute', 'query', 'commit']):
+                            # Check if it's not awaited
+                            parent = getattr(child, 'parent', None)
+                            if not isinstance(parent, ast.Await):
+                                issues.append("Sync database call in async function")
+            
+            # N+1 query patterns (loops with queries)
+            elif isinstance(node, (ast.For, ast.While)):
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute):
+                        if any(query_method in str(child.func.attr) for query_method in ['query', 'filter', 'get']):
+                            issues.append("Potential N+1 query pattern in loop")
+        
+        return issues
+    
+    def _detect_security_issues(self, tree: ast.AST) -> List[str]:
+        """Detect security vulnerabilities."""
+        issues = []
+        
+        for node in ast.walk(tree):
+            # SQL injection via string concatenation
+            if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Mod)):
+                if isinstance(node.left, ast.Str) and any(sql in node.left.s.upper() for sql in ['SELECT', 'INSERT', 'UPDATE', 'DELETE']):
+                    issues.append("Potential SQL injection via string concatenation")
+            
+            # Missing authentication on endpoints
+            elif isinstance(node, ast.FunctionDef):
+                decorators = [d.id if hasattr(d, 'id') else str(d) for d in node.decorator_list]
+                if any(route in decorators for route in ['route', 'get', 'post', 'put', 'delete']):
+                    if not any(auth in decorators for auth in ['login_required', 'requires_auth', 'authenticated']):
+                        # Check if function name suggests it handles sensitive data
+                        if any(sensitive in node.name.lower() for sensitive in ['admin', 'delete', 'update', 'create', 'private']):
+                            issues.append(f"Endpoint '{node.name}' may need authentication")
+            
+            # Secrets in code
+            elif isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        if any(secret_word in target.id.lower() for secret_word in ['password', 'token', 'key', 'secret']):
+                            if isinstance(node.value, ast.Str):
+                                issues.append(f"Hardcoded secret in variable '{target.id}'")
+        
+        return issues
+    
+    def _detect_architecture_smells(self, tree: ast.AST) -> List[str]:
+        """Detect architecture violations."""
+        issues = []
+        
+        # Database models with business logic
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                methods = [n.name for n in node.body if isinstance(n, ast.FunctionDef)]
+                
+                has_db_methods = any(db_method in methods for db_method in ['save', 'delete', 'query'])
+                has_business_logic = any(biz_method in methods for biz_method in ['calculate', 'validate', 'process', 'transform'])
+                
+                if has_db_methods and has_business_logic:
+                    issues.append(f"Class '{node.name}' mixes database and business concerns")
+        
+        return issues
+    
+    def _count_function_responsibilities(self, node: ast.FunctionDef) -> int:
+        """Count distinct responsibilities in a function."""
+        responsibilities = set()
+        
+        for child in ast.walk(node):
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute):
+                method = child.func.attr
+                if any(validation in method.lower() for validation in ['validate', 'check', 'verify']):
+                    responsibilities.add('validation')
+                elif any(data in method.lower() for data in ['save', 'load', 'store', 'fetch']):
+                    responsibilities.add('data_access')
+                elif any(calc in method.lower() for calc in ['calculate', 'compute', 'process']):
+                    responsibilities.add('computation')
+                elif any(format_word in method.lower() for format_word in ['format', 'render', 'display']):
+                    responsibilities.add('presentation')
+        
+        return len(responsibilities)
+    
+    def _analyze_class_jobs(self, node: ast.ClassDef) -> set:
+        """Analyze what jobs a class is doing."""
+        jobs = set()
+        methods = [n.name for n in node.body if isinstance(n, ast.FunctionDef)]
+        
+        if any(data_method in methods for data_method in ['save', 'load', 'query', 'delete']):
+            jobs.add('data_persistence')
+        if any(validation_method in methods for validation_method in ['validate', 'check', 'verify']):
+            jobs.add('validation')
+        if any(calculation_method in methods for calculation_method in ['calculate', 'compute', 'process']):
+            jobs.add('business_logic')
+        if any(ui_method in methods for ui_method in ['render', 'display', 'format']):
+            jobs.add('presentation')
+        if any(network_method in methods for network_method in ['send', 'receive', 'request', 'post']):
+            jobs.add('networking')
+        
+        return jobs
+    
+    def _detect_error_handling_issues(self, tree: ast.AST) -> List[str]:
+        """Detect poor error handling patterns."""
+        issues = []
+        
+        for node in ast.walk(tree):
+            # Bare except clauses (catch all exceptions)
+            if isinstance(node, ast.ExceptHandler):
+                if node.type is None:
+                    issues.append("Bare except clause - catching all exceptions")
+                elif hasattr(node.type, 'id') and node.type.id == 'Exception':
+                    issues.append("Catching generic Exception - too broad")
+            
+            # Empty except blocks (swallowing exceptions)
+            elif isinstance(node, ast.Try):
+                for handler in node.handlers:
+                    if len(handler.body) == 1 and isinstance(handler.body[0], ast.Pass):
+                        issues.append("Empty except block - silently swallowing exceptions")
+        
+        return issues
+    
+    def _find_circular_dependencies(self) -> List[List[str]]:
+        """Find circular dependencies in the import graph."""
+        try:
+            cycles = list(nx.simple_cycles(self.import_graph))
+            return [cycle for cycle in cycles if len(cycle) > 1]  # Ignore self-loops
+        except Exception:
+            return []
+    
+    def _find_tight_coupling(self) -> List[CouplingMetric]:
+        """Find modules with excessive shared dependencies."""
+        coupling_metrics = []
+        
+        nodes = list(self.import_graph.nodes())
+        for i, module_a in enumerate(nodes):
+            for module_b in nodes[i+1:]:
+                deps_a = set(self.import_graph.successors(module_a))
+                deps_b = set(self.import_graph.successors(module_b))
+                shared_deps = deps_a.intersection(deps_b)
+                
+                # Only flag if there are many shared dependencies (indicates tight coupling)
+                if len(shared_deps) >= 5:
+                    coupling_metrics.append(
+                        CouplingMetric(
+                            module_a=module_a,
+                            module_b=module_b,
+                            coupling_strength=len(shared_deps) / 10.0,  # Normalize
+                            coupling_type="tight_coupling",
+                            shared_dependencies=list(shared_deps),
+                            refactoring_opportunity=f"Consider extracting {len(shared_deps)} shared dependencies to common module",
+                        )
+                    )
+        
+        return coupling_metrics
+    
     def _count_code_smells(self, tree: ast.AST) -> int:
-        """Count various code smells."""
+        """Count meaningful code smells."""
         smells = 0
         
         for node in ast.walk(tree):
-            # Long parameter lists
-            if isinstance(node, ast.FunctionDef) and len(node.args.args) > 5:
-                smells += 1
+            # Functions with too many responsibilities
+            if isinstance(node, ast.FunctionDef):
+                responsibilities = self._count_function_responsibilities(node)
+                if responsibilities > 3:
+                    smells += 1
             
-            # Large classes (more than 10 methods)
+            # Classes doing multiple jobs (god classes)
             elif isinstance(node, ast.ClassDef):
-                methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
-                if len(methods) > 10:
+                job_types = self._analyze_class_jobs(node)
+                if len(job_types) > 2:
                     smells += 1
         
         return smells
     
     def _identify_debt_indicators(self, tree: ast.AST, metrics: Dict[str, float]) -> List[str]:
-        """Identify specific technical debt indicators."""
+        """Identify meaningful technical debt indicators."""
         indicators = []
         
-        if metrics["cyclomatic_complexity"] > 10:
-            indicators.append("High cyclomatic complexity")
+        # Function-level complexity (not file-level)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                func_complexity = self.complexity_analyzer.calculate_cyclomatic_complexity(node)
+                if func_complexity > 10:
+                    indicators.append(f"Function '{node.name}' has high complexity ({func_complexity})")
         
-        if metrics["cognitive_complexity"] > 15:
-            indicators.append("High cognitive complexity")
+        # Performance problems
+        performance_issues = self._detect_performance_issues(tree)
+        indicators.extend(performance_issues)
         
-        if metrics["lines_of_code"] > 300:
-            indicators.append("Large file size")
+        # Security vulnerabilities
+        security_issues = self._detect_security_issues(tree)
+        indicators.extend(security_issues)
         
-        if metrics["code_smells"] > 0:
-            indicators.append("Multiple code smells detected")
+        # Business logic scattered across layers
+        architecture_issues = self._detect_architecture_smells(tree)
+        indicators.extend(architecture_issues)
+        
+        # Error handling issues
+        error_issues = self._detect_error_handling_issues(tree)
+        indicators.extend(error_issues)
         
         return indicators
 
@@ -492,30 +669,35 @@ class CodeAnalyzer:
             self.console.print(f"[red]Error fixing imports in {file_path}: {e}[/red]")
 
     def analyze_coupling(self) -> List[CouplingMetric]:
-        """Analyze coupling between modules."""
+        """Analyze meaningful coupling issues between modules."""
         self.console.print("[bold blue]Analyzing module coupling...[/bold blue]")
 
         # Build dependency graph
         self._build_dependency_graph()
 
-        # Calculate coupling metrics
+        # Find actual coupling problems
         coupling_metrics = []
 
-        for module_a in self.import_graph.nodes():
-            for module_b in self.import_graph.nodes():
-                if module_a != module_b:
-                    coupling = self._calculate_coupling(module_a, module_b)
-                    if coupling["strength"] > 0.1:  # Only significant couplings
-                        coupling_metrics.append(
-                            CouplingMetric(
-                                module_a=module_a,
-                                module_b=module_b,
-                                coupling_strength=coupling["strength"],
-                                coupling_type=coupling["type"],
-                                shared_dependencies=coupling["shared_deps"],
-                                refactoring_opportunity=coupling["refactor_suggestion"],
-                            )
-                        )
+        # Check for circular dependencies (major issue)
+        circular_deps = self._find_circular_dependencies()
+        for cycle in circular_deps:
+            for i in range(len(cycle)):
+                module_a = cycle[i]
+                module_b = cycle[(i + 1) % len(cycle)]
+                coupling_metrics.append(
+                    CouplingMetric(
+                        module_a=module_a,
+                        module_b=module_b,
+                        coupling_strength=1.0,  # Maximum strength for circular deps
+                        coupling_type="circular",
+                        shared_dependencies=[],
+                        refactoring_opportunity="CRITICAL: Break circular dependency - consider dependency inversion or interface extraction",
+                    )
+                )
+
+        # Check for tight coupling (many shared dependencies)
+        tight_coupling = self._find_tight_coupling()
+        coupling_metrics.extend(tight_coupling)
 
         return coupling_metrics
 
