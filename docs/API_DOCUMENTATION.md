@@ -1,7 +1,7 @@
 # API Documentation
 
 **Project**: deepflow
-**Generated**: 2025-08-21
+**Generated**: 2025-08-23
 **Framework**: Unknown
 
 ## Overview
@@ -30,25 +30,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- parametrize
+
+- method
+
+- asarray
+
+- copy
+
 - shares_memory
 
-- parametrize
+- assert_series_equal
 
 - raises
 
 - array
 
-- copy
-
-- method
-
-- Series
-
 - get_array
 
-- asarray
-
-- assert_series_equal
+- Series
 
 
 
@@ -73,25 +73,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- raises
-
 - assert_frame_equal
-
-- array
-
-- DataFrame
-
-- copy
 
 - method
 
-- get_array
-
 - asarray
+
+- copy
+
+- shares_memory
+
+- raises
+
+- array
+
+- get_array
 
 
 
@@ -114,17 +114,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- assert_produces_warning
 
 - parametrize
 
-- ravel
+- shares_memory
 
-- Series
+- ravel
 
 - get_array
 
-- assert_produces_warning
+- Series
 
 
 
@@ -149,21 +149,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- importorskip
-
-- DataFrame
-
 - copy
 
-- get_array
+- importorskip
+
+- shares_memory
 
 - astype
+
+- get_array
 
 
 
@@ -186,23 +186,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
+- copy
+
 - importorskip
 
-- DataFrame
+- shares_memory
 
-- copy
+- astype
 
 - get_array
 
 - _has_no_reference
-
-- astype
 
 
 
@@ -227,19 +227,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
 - copy
 
-- get_array
+- shares_memory
 
 - astype
+
+- get_array
 
 
 
@@ -264,19 +264,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
 - copy
 
-- get_array
+- shares_memory
 
 - astype
+
+- get_array
 
 
 
@@ -303,17 +303,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
-- copy
+- raises_chained_assignment_error
 
 - assert_cow_warning
 
-- raises_chained_assignment_error
+- copy
+
+- getattr
 
 
 
@@ -338,17 +338,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- array
-
 - DataFrame
-
-- slice
 
 - warns
 
+- parametrize
+
 - len
+
+- slice
+
+- array
 
 
 
@@ -371,19 +371,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- filterwarnings
+- DataFrame
 
 - parametrize
 
-- option_context
-
-- array
-
-- DataFrame
-
 - raises_chained_assignment_error
 
+- filterwarnings
+
+- option_context
+
 - slice
+
+- array
 
 
 
@@ -408,17 +408,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
 - parametrize
 
 - assert_cow_warning
 
-- Series
+- shares_memory
+
+- has_reference
 
 - get_array
 
-- has_reference
+- Series
 
 
 
@@ -447,25 +447,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- assert_produces_warning
 
 - parametrize
 
-- shares_memory
-
-- array
-
 - copy
 
-- Series
-
-- get_array
-
-- assert_produces_warning
+- shares_memory
 
 - assert_series_equal
 
 - RangeIndex
+
+- getattr
+
+- get_array
+
+- array
+
+- Series
 
 
 
@@ -488,15 +488,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- parametrize
+
 - shares_memory
 
-- parametrize
+- get_array
 
 - array
 
 - Series
-
-- get_array
 
 
 
@@ -519,33 +519,33 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- Timestamp
+
 - assert_index_equal
 
 - parametrize
 
-- shares_memory
+- Period
 
-- PeriodIndex
+- TimedeltaIndex
 
 - Index
 
 - Timedelta
 
-- Period
-
 - copy
 
-- TimedeltaIndex
+- shares_memory
 
-- Series
+- DatetimeIndex
+
+- PeriodIndex
 
 - get_array
 
+- Series
+
 - _has_no_reference
-
-- Timestamp
-
-- DatetimeIndex
 
 
 
@@ -572,25 +572,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- filterwarnings
+- assert_produces_warning
 
 - parametrize
 
-- shares_memory
+- filterwarnings
 
 - copy
 
-- Series
-
-- get_array
-
-- assert_produces_warning
-
-- _has_no_reference
+- shares_memory
 
 - assert_series_equal
 
 - RangeIndex
+
+- get_array
+
+- Series
+
+- _has_no_reference
 
 
 
@@ -617,21 +617,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
 
 - get_array
-
-- assert_produces_warning
 
 
 
@@ -662,23 +662,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
 
-- Series
+- assert_series_equal
 
 - get_array
 
-- assert_series_equal
+- Series
 
 
 
@@ -699,15 +699,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
-- Series
+- shares_memory
 
 - get_array
+
+- Series
 
 
 
@@ -736,23 +736,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
-- parametrize
+- cons
 
 - DataFrame
 
-- assert_equal
+- parametrize
+
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
+
+- assert_equal
 
 - get_array
 
 - _has_no_reference
-
-- cons
 
 
 
@@ -775,17 +775,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- cons
+
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- shares_memory
 
 - get_array
 
 - _has_no_reference
-
-- cons
 
 
 
@@ -806,15 +806,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
-- Series
+- shares_memory
 
 - get_array
+
+- Series
 
 
 
@@ -839,15 +839,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- array
-
-- DataFrame
+- shares_memory
 
 - get_array
+
+- array
 
 
 
@@ -870,15 +870,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
-- concat
+- shares_memory
 
 - get_array
+
+- concat
 
 
 
@@ -901,23 +901,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- merge
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- merge
+
+- func
 
 - copy
 
-- Series
+- shares_memory
 
 - get_array
 
-- func
+- Series
 
 
 
@@ -942,23 +942,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- merge
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- merge
+
+- func
 
 - copy
 
-- Series
+- shares_memory
 
 - get_array
 
-- func
+- Series
 
 - _has_no_reference
 
@@ -983,13 +983,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- merge
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- merge
+
+- shares_memory
 
 - get_array
 
@@ -1014,21 +1014,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- Index
-
 - assert_frame_equal
 
-- DataFrame
+- Index
 
 - copy
 
-- get_array
+- shares_memory
 
 - join
+
+- get_array
 
 
 
@@ -1057,27 +1057,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
+- _verify_integrity
+
 - assert_frame_equal
-
-- option_context
-
-- array
-
-- DataFrame
-
-- copy
 
 - assert_cow_warning
 
+- copy
+
+- shares_memory
+
+- option_context
+
 - get_array
 
-- _verify_integrity
-
-- assert_produces_warning
+- array
 
 
 
@@ -1110,23 +1110,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- assert_frame_equal
-
-- array
-
 - DataFrame
 
-- copy
-
-- assert_cow_warning
+- parametrize
 
 - range
 
+- assert_frame_equal
+
 - isinstance
 
+- assert_cow_warning
+
+- copy
+
 - slice
+
+- array
 
 
 
@@ -1159,23 +1159,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- assert_frame_equal
-
-- array
-
 - DataFrame
 
-- copy
-
-- assert_cow_warning
+- parametrize
 
 - range
 
+- assert_frame_equal
+
 - isinstance
 
+- assert_cow_warning
+
+- copy
+
 - slice
+
+- array
 
 
 
@@ -1204,31 +1204,31 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- skip
-
-- parametrize
-
-- assert_frame_equal
-
-- indexer_si
-
-- array
-
 - DataFrame
-
-- option_context
-
-- copy
-
-- range
-
-- assert_cow_warning
-
-- isinstance
 
 - assert_produces_warning
 
+- parametrize
+
+- indexer_si
+
+- assert_frame_equal
+
+- skip
+
+- range
+
+- isinstance
+
+- assert_cow_warning
+
+- copy
+
+- option_context
+
 - slice
+
+- array
 
 
 
@@ -1257,25 +1257,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- assert_frame_equal
-
-- option_context
-
-- array
-
 - DataFrame
 
-- copy
+- assert_produces_warning
+
+- parametrize
+
+- _verify_integrity
+
+- assert_frame_equal
 
 - range
 
 - assert_cow_warning
 
-- _verify_integrity
+- copy
 
-- assert_produces_warning
+- option_context
+
+- array
 
 
 
@@ -1302,29 +1302,29 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- all
-
-- assert_frame_equal
-
-- option_context
-
-- array
-
 - DataFrame
-
-- copy
-
-- range
-
-- _verify_integrity
 
 - assert_produces_warning
 
-- _has_no_reference
+- parametrize
+
+- _verify_integrity
+
+- assert_frame_equal
+
+- all
+
+- range
+
+- copy
+
+- option_context
 
 - astype
+
+- array
+
+- _has_no_reference
 
 
 
@@ -1351,25 +1351,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- assert_frame_equal
-
-- option_context
-
-- array
-
 - DataFrame
 
-- copy
+- parametrize
+
+- _verify_integrity
+
+- assert_frame_equal
 
 - range
 
 - assert_cow_warning
 
-- _verify_integrity
+- copy
+
+- option_context
 
 - slice
+
+- array
 
 
 
@@ -1402,21 +1402,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- endswith
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- array
+- method
 
-- DataFrame
-
-- copy
+- endswith
 
 - assert_cow_warning
 
-- method
+- copy
+
+- array
 
 
 
@@ -1443,23 +1443,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
 - parametrize
 
 - assert_frame_equal
 
-- array
-
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
-
-- Series
+- _clear_item_cache
 
 - assert_series_equal
 
-- _clear_item_cache
+- array
+
+- Series
 
 
 
@@ -1488,15 +1488,15 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
-- copy
+- method
 
 - assert_cow_warning
 
-- method
-
-- Series
+- copy
 
 - assert_series_equal
+
+- Series
 
 
 
@@ -1523,17 +1523,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
-- copy
+- method
 
 - assert_cow_warning
 
-- method
+- copy
 
 
 
@@ -1562,15 +1562,15 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
-- copy
+- method
 
 - assert_cow_warning
 
-- method
-
-- Series
+- copy
 
 - assert_series_equal
+
+- Series
 
 
 
@@ -1599,25 +1599,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
+- assert_produces_warning
 
-- slice
+- parametrize
 
 - indexer_si
 
-- array
-
-- copy
+- isinstance
 
 - assert_cow_warning
 
-- Series
-
-- isinstance
-
-- assert_produces_warning
+- copy
 
 - assert_series_equal
+
+- slice
+
+- array
+
+- Series
 
 
 
@@ -1648,23 +1648,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
+- assert_produces_warning
+
 - parametrize
 
 - assert_frame_equal
 
-- option_context
-
-- DataFrame
-
-- copy
+- method
 
 - assert_cow_warning
 
-- method
-
-- assert_produces_warning
+- copy
 
 - assert_series_equal
+
+- option_context
 
 
 
@@ -1695,25 +1695,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
 
-- get_array
-
-- assert_produces_warning
+- indexer_func
 
 - slice
 
-- indexer_func
+- get_array
 
 
 
@@ -1740,27 +1740,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- array
-
-- DataFrame
+- copy
 
 - iset
 
+- shares_memory
+
+- astype
+
 - enumerate
-
-- copy
-
-- Series
 
 - get_array
 
-- astype
+- array
+
+- Series
 
 
 
@@ -1783,21 +1783,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- interpolate
 
 - copy
 
+- shares_memory
+
 - get_array
-
-- assert_produces_warning
-
-- interpolate
 
 
 
@@ -1820,17 +1820,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
-- shares_memory
-
 - assert_frame_equal
 
-- DataFrame
-
 - copy
+
+- shares_memory
+
+- getattr
 
 - get_array
 
@@ -1857,19 +1857,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
+
+- Timestamp
 
 - parametrize
 
 - shares_memory
 
-- DataFrame
+- getattr
 
 - get_array
 
 - _has_no_reference
-
-- Timestamp
 
 
 
@@ -1892,19 +1892,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- Timestamp
 
 - parametrize
 
-- DataFrame
+- interpolate
+
+- shares_memory
 
 - get_array
 
 - _has_no_reference
-
-- Timestamp
-
-- interpolate
 
 
 
@@ -1929,25 +1929,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- Timestamp
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- interpolate
+
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
 
 - get_array
 
 - _has_no_reference
-
-- Timestamp
-
-- interpolate
 
 
 
@@ -1974,19 +1974,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
-- shares_memory
-
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
+
+- getattr
 
 - get_array
 
@@ -2013,17 +2013,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
-- DataFrame
-
 - fillna
 
-- get_array
+- shares_memory
 
-- assert_produces_warning
+- get_array
 
 - _has_no_reference
 
@@ -2048,21 +2048,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- option_context
-
-- DataFrame
+- raises_chained_assignment_error
 
 - copy
 
-- assert_produces_warning
+- option_context
 
-- raises_chained_assignment_error
+- getattr
 
 
 
@@ -2091,53 +2091,53 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- set_axis
-
-- DataFrame
-
-- reindex_like
-
-- align
-
-- infer_objects
-
-- shares_memory
-
-- to_timestamp
-
-- assert_produces_warning
-
-- set_flags
-
-- truncate
-
-- reindex
-
-- swapaxes
-
-- date_range
+- rename_axis
 
 - get_array
 
-- startswith
+- truncate
 
-- tz_convert
+- date_range
 
-- parametrize
-
-- period_range
-
-- tz_localize
-
-- to_period
-
-- method
-
-- rename_axis
+- assert_produces_warning
 
 - rename
 
+- reindex_like
+
+- set_axis
+
+- startswith
+
 - astype
+
+- tz_convert
+
+- align
+
+- DataFrame
+
+- parametrize
+
+- reindex
+
+- method
+
+- set_flags
+
+- shares_memory
+
+- swapaxes
+
+- infer_objects
+
+- tz_localize
+
+- to_timestamp
+
+- to_period
+
+- period_range
 
 
 
@@ -2164,55 +2164,55 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- set_axis
-
-- reindex_like
-
-- align
-
-- infer_objects
-
-- shares_memory
-
-- Series
-
-- to_timestamp
-
-- assert_produces_warning
-
-- set_flags
-
-- truncate
-
-- reindex
-
-- from_arrays
-
-- swapaxes
-
-- swaplevel
-
-- date_range
+- rename_axis
 
 - get_array
 
-- tz_convert
+- truncate
 
-- parametrize
+- date_range
 
-- period_range
-
-- tz_localize
-
-- to_period
-
-- method
-
-- rename_axis
+- assert_produces_warning
 
 - rename
 
+- reindex_like
+
+- set_axis
+
 - astype
+
+- tz_convert
+
+- align
+
+- Series
+
+- from_arrays
+
+- parametrize
+
+- reindex
+
+- method
+
+- set_flags
+
+- shares_memory
+
+- swapaxes
+
+- infer_objects
+
+- tz_localize
+
+- to_timestamp
+
+- swaplevel
+
+- to_period
+
+- period_range
 
 
 
@@ -2237,13 +2237,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
-- parametrize
-
 - DataFrame
 
 - transpose
+
+- parametrize
+
+- shares_memory
 
 - get_array
 
@@ -2268,25 +2268,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
 - parametrize
+
+- reset_index
 
 - Index
 
 - copy
 
-- Series
-
-- get_array
-
-- _has_no_reference
-
-- reset_index
+- shares_memory
 
 - assert_series_equal
 
 - RangeIndex
+
+- get_array
+
+- Series
+
+- _has_no_reference
 
 
 
@@ -2309,25 +2309,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- view
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- reindex
+
+- index
 
 - copy
+
+- shares_memory
 
 - list
 
 - get_array
-
-- view
-
-- index
-
-- reindex
 
 
 
@@ -2350,19 +2350,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- filter
 
 - copy
 
-- get_array
+- shares_memory
 
-- filter
+- get_array
 
 
 
@@ -2385,23 +2385,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
-- align
+- func
 
 - copy
 
-- get_array
-
-- func
+- shares_memory
 
 - slice
+
+- get_array
+
+- align
 
 
 
@@ -2424,21 +2424,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
-- swapaxes
-
 - assert_frame_equal
-
-- DataFrame
 
 - copy
 
+- shares_memory
+
 - get_array
 
-- assert_produces_warning
+- swapaxes
 
 
 
@@ -2467,23 +2467,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- assert_frame_equal
-
 - DataFrame
 
-- copy
+- parametrize
 
-- assert_cow_warning
+- reset_index
+
+- assert_frame_equal
 
 - method
 
 - rename
 
-- select_dtypes
+- assert_cow_warning
 
-- reset_index
+- copy
+
+- select_dtypes
 
 
 
@@ -2506,25 +2506,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- Index
-
-- DataFrame
-
 - Period
 
-- assert_equal
+- Index
 
 - copy
 
-- Series
+- shares_memory
+
+- to_timestamp
+
+- assert_equal
 
 - get_array
 
-- to_timestamp
+- Series
 
 
 
@@ -2547,25 +2547,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- Timestamp
 
 - parametrize
 
 - Index
 
-- DataFrame
+- copy
 
-- to_period
+- shares_memory
 
 - assert_equal
 
-- copy
-
-- Series
+- to_period
 
 - get_array
 
-- Timestamp
+- Series
 
 
 
@@ -2590,17 +2590,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- copy
+
+- shares_memory
 
 - dropna
-
-- copy
 
 - get_array
 
@@ -2625,17 +2625,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
 - parametrize
-
-- dropna
 
 - copy
 
-- Series
+- shares_memory
 
 - assert_series_equal
+
+- dropna
+
+- Series
 
 
 
@@ -2660,27 +2660,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- tail
+- _verify_integrity
 
 - assert_frame_equal
-
-- DataFrame
-
-- copy
-
-- assert_cow_warning
 
 - method
 
 - head
 
+- assert_cow_warning
+
+- copy
+
+- shares_memory
+
 - get_array
 
-- _verify_integrity
+- tail
 
 
 
@@ -2703,21 +2703,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- truncate
 
 - parametrize
 
-- assert_frame_equal
+- _verify_integrity
 
-- DataFrame
+- assert_frame_equal
 
 - copy
 
+- shares_memory
+
 - get_array
-
-- _verify_integrity
-
-- truncate
 
 
 
@@ -2740,21 +2740,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
-- shares_memory
+- _verify_integrity
 
 - assert_frame_equal
 
-- DataFrame
-
 - copy
 
-- get_array
+- shares_memory
 
-- _verify_integrity
+- getattr
+
+- get_array
 
 
 
@@ -2777,15 +2777,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- copy
+
+- shares_memory
 
 - assert_equal
-
-- copy
 
 - take
 
@@ -2812,19 +2812,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- date_range
 
 - parametrize
 
-- between_time
-
-- DataFrame
-
-- assert_equal
-
 - copy
 
-- date_range
+- shares_memory
+
+- between_time
+
+- assert_equal
 
 - Series
 
@@ -2851,21 +2851,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
-- assert_equal
-
 - copy
 
-- Series
+- shares_memory
 
 - get_array
 
+- assert_equal
+
 - sort_values
+
+- Series
 
 
 
@@ -2892,23 +2892,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
-- parametrize
+- sort_values
 
 - DataFrame
 
-- assert_equal
-
-- copy
+- parametrize
 
 - assert_cow_warning
 
-- Series
+- copy
+
+- shares_memory
+
+- assert_equal
 
 - get_array
 
-- sort_values
+- Series
 
 
 
@@ -2933,17 +2933,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- round
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- round
 
 - copy
+
+- shares_memory
 
 - get_array
 
@@ -2968,21 +2968,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- copy
 
-- assert_equal
+- shares_memory
 
 - swaplevel
 
-- copy
+- from_tuples
+
+- assert_equal
 
 - Series
-
-- from_tuples
 
 
 
@@ -3005,19 +3005,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- Index
+- rename_axis
 
-- DataFrame
+- Index
 
 - copy
 
-- rename_axis
+- shares_memory
 
 - get_array
 
@@ -3044,19 +3044,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- date_range
 
 - parametrize
 
-- shares_memory
-
 - copy
 
-- Series
-
-- date_range
+- shares_memory
 
 - assert_series_equal
+
+- getattr
+
+- Series
 
 
 
@@ -3081,17 +3081,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
-- assert_cow_warning
+- shares_memory
 
 - get_array
 
@@ -3118,11 +3118,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - DataFrame
 
+- get_array
+
 - parametrize
 
 - shares_memory
-
-- get_array
 
 
 
@@ -3147,11 +3147,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - DataFrame
 
+- get_array
+
 - parametrize
 
 - shares_memory
-
-- get_array
 
 
 
@@ -3180,23 +3180,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_cow_warning
 
 - copy
 
+- shares_memory
+
 - list
 
-- assert_cow_warning
-
 - get_array
-
-- assert_produces_warning
 
 - _has_no_reference
 
@@ -3223,23 +3223,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
 - parametrize
 
 - where
 
+- func
+
 - copy
 
-- Series
+- shares_memory
 
-- get_array
+- assert_series_equal
 
 - mask
 
-- func
+- get_array
 
-- assert_series_equal
+- Series
 
 
 
@@ -3264,23 +3264,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
 - parametrize
 
 - where
 
+- func
+
 - copy
 
-- Series
+- shares_memory
 
-- get_array
+- assert_series_equal
 
 - mask
 
-- func
+- get_array
 
-- assert_series_equal
+- Series
 
 
 
@@ -3307,23 +3307,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
 - where
+
+- func
 
 - copy
 
-- get_array
+- shares_memory
 
 - mask
 
-- func
+- get_array
 
 
 
@@ -3346,21 +3346,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- option_context
-
-- DataFrame
+- raises_chained_assignment_error
 
 - copy
 
-- assert_produces_warning
+- option_context
 
-- raises_chained_assignment_error
+- getattr
 
 
 
@@ -3383,27 +3383,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- isetitem
-
 - assert_frame_equal
 
-- array
-
-- DataFrame
+- isetitem
 
 - copy
 
-- Series
+- shares_memory
+
+- assert_series_equal
 
 - get_array
 
-- _has_no_reference
+- array
 
-- assert_series_equal
+- Series
+
+- _has_no_reference
 
 
 
@@ -3428,25 +3428,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- option_context
-
-- DataFrame
+- isinstance
 
 - copy
 
-- get_array
+- shares_memory
 
-- isinstance
+- option_context
 
 - get
 
-- assert_produces_warning
+- get_array
 
 
 
@@ -3477,27 +3477,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
-- parametrize
-
-- assert_frame_equal
-
-- option_context
-
-- array
-
 - DataFrame
-
-- copy
-
-- assert_cow_warning
-
-- get_array
 
 - assert_produces_warning
 
+- parametrize
+
 - xs
+
+- assert_frame_equal
+
+- assert_cow_warning
+
+- copy
+
+- shares_memory
+
+- option_context
+
+- get_array
+
+- array
 
 - _has_no_reference
 
@@ -3530,33 +3530,33 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
-
-- parametrize
-
-- from_product
-
-- assert_frame_equal
-
-- option_context
-
 - DataFrame
-
-- arange
 
 - transpose
 
-- reshape
+- assert_produces_warning
+
+- parametrize
+
+- xs
+
+- assert_frame_equal
+
+- from_product
+
+- arange
 
 - copy
 
+- shares_memory
+
+- option_context
+
 - list
 
+- reshape
+
 - get_array
-
-- assert_produces_warning
-
-- xs
 
 
 
@@ -3581,17 +3581,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- shares_memory
+- DataFrame
+
+- transpose
 
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
-
-- transpose
-
 - copy
+
+- shares_memory
 
 - get_array
 
@@ -3616,9 +3616,7 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
@@ -3626,9 +3624,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - assert_frame_equal
 
-- DataFrame
-
 - copy
+
+- shares_memory
+
+- replace
 
 - get_array
 
@@ -3653,13 +3653,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- shares_memory
+
+- replace
 
 - get_array
 
@@ -3688,15 +3688,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
-
 - assert_cow_warning
+
+- shares_memory
+
+- replace
 
 - get_array
 
@@ -3723,13 +3723,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- shares_memory
+
+- replace
 
 - get_array
 
@@ -3758,23 +3758,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
+- DataFrame
 
-- shares_memory
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- Categorical
-
-- DataFrame
-
 - copy
 
-- get_array
+- shares_memory
 
-- assert_produces_warning
+- Categorical
+
+- replace
+
+- get_array
 
 - _has_no_reference
 
@@ -3799,21 +3799,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
+- DataFrame
 
-- shares_memory
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
+- shares_memory
+
 - Categorical
 
-- DataFrame
+- replace
 
 - get_array
-
-- assert_produces_warning
 
 - _has_no_reference
 
@@ -3838,23 +3838,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
+- DataFrame
 
-- shares_memory
+- assert_produces_warning
 
 - parametrize
 
 - assert_frame_equal
 
-- Categorical
-
-- DataFrame
-
 - copy
 
-- get_array
+- shares_memory
 
-- assert_produces_warning
+- Categorical
+
+- replace
+
+- get_array
 
 - _has_no_reference
 
@@ -3881,21 +3881,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
-- shares_memory
-
 - assert_frame_equal
 
-- DataFrame
-
-- copy
+- method
 
 - assert_cow_warning
 
-- method
+- copy
+
+- shares_memory
+
+- getattr
 
 - get_array
 
@@ -3922,13 +3922,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- replace
-
-- shares_memory
+- DataFrame
 
 - parametrize
 
-- DataFrame
+- shares_memory
+
+- replace
 
 - get_array
 
@@ -3982,15 +3982,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
 - parametrize
 
-- DataFrame
+- set_flags
 
 - assert_cow_warning
 
 - may_share_memory
-
-- set_flags
 
 
 
@@ -4011,11 +4011,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- assert_produces_warning
 
 - parametrize
 
-- assert_produces_warning
+- getattr
 
 
 
@@ -4038,11 +4038,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
 - parametrize
 
 - resample
+
+- raises
 
 
 
@@ -4063,7 +4063,7 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- date_range
 
 - parametrize
 
@@ -4071,13 +4071,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - arange
 
-- date_range
-
-- Series
+- getattr
 
 - len
 
 - mean
+
+- Series
 
 
 
@@ -4098,31 +4098,31 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
+- date_range
+
 - parametrize
+
+- reset_index
 
 - resample
 
 - assert_frame_equal
 
-- datetime
+- random
 
 - groupby
 
-- DataFrame
+- Grouper
 
-- random
-
-- default_rng
+- datetime
 
 - transform
 
 - list
 
-- date_range
-
-- reset_index
-
-- Grouper
+- default_rng
 
 
 
@@ -4151,13 +4151,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - apply
 
-- groupby
-
 - func
 
-- assert_series_equal
+- groupby
 
 - Grouper
+
+- assert_series_equal
 
 
 
@@ -4184,17 +4184,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- assert_produces_warning
+
 - parametrize
 
 - assert_frame_equal
 
 - aggregate
 
-- concat
-
-- assert_produces_warning
-
 - NamedAgg
+
+- concat
 
 
 
@@ -4223,11 +4223,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
-- aggregate
-
 - concat
 
 - assert_frame_equal
+
+- aggregate
 
 
 
@@ -4250,11 +4250,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
+- aggregate
 
 - parametrize
 
-- aggregate
+- raises
 
 
 
@@ -4277,23 +4277,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
+- assert_produces_warning
 
-- apply
+- parametrize
 
 - assert_frame_equal
 
-- concat
+- NamedAgg
+
+- apply
 
 - std
 
-- assert_produces_warning
-
-- NamedAgg
+- agg
 
 - sum
 
-- agg
+- concat
 
 
 
@@ -4316,13 +4316,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- NamedAgg
+- agg
 
-- raises
+- NamedAgg
 
 - parametrize
 
-- agg
+- raises
 
 
 
@@ -4359,11 +4359,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - assert_frame_equal
 
-- concat
+- agg
 
 - from_tuples
 
-- agg
+- concat
 
 
 
@@ -4386,11 +4386,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
+- agg
 
 - parametrize
 
-- agg
+- raises
 
 
 
@@ -4411,27 +4411,27 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
-- parametrize
-
-- resample
-
-- datetime
-
 - DataFrame
-
-- random
-
-- default_rng
-
-- list
 
 - date_range
 
 - assert_produces_warning
 
+- parametrize
+
+- resample
+
+- random
+
+- datetime
+
 - agg
+
+- raises
+
+- list
+
+- default_rng
 
 
 
@@ -4452,23 +4452,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- resample
-
-- assert_frame_equal
-
 - DataFrame
-
-- aggregate
-
-- list
-
-- range
 
 - date_range
 
+- parametrize
+
+- range
+
+- assert_frame_equal
+
+- aggregate
+
+- resample
+
 - MultiIndex
+
+- list
 
 
 
@@ -4507,17 +4507,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- date_range
+
 - parametrize
 
 - resample
 
-- date_range
-
-- Series
-
 - assert_series_equal
 
 - sum
+
+- Series
 
 
 
@@ -4544,25 +4544,25 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
+
+- date_range
 
 - parametrize
 
 - resample
 
-- raises
-
 - assert_frame_equal
-
-- DataFrame
-
-- escape
-
-- date_range
 
 - isinstance
 
+- escape
+
 - func
+
+- getattr
+
+- raises
 
 
 
@@ -4589,23 +4589,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- date_range
 
 - parametrize
 
 - resample
 
-- raises
-
 - escape
-
-- date_range
-
-- Series
 
 - func
 
 - assert_series_equal
+
+- getattr
+
+- raises
+
+- Series
 
 
 
@@ -4628,21 +4628,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- date_range
+
+- assert_produces_warning
 
 - parametrize
 
 - resample
 
-- raises
-
-- date_range
-
-- Series
-
 - func
 
-- assert_produces_warning
+- getattr
+
+- raises
+
+- Series
 
 
 
@@ -4663,13 +4663,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- converter
+- assert_produces_warning
 
 - parametrize
 
-- Series
+- converter
 
-- assert_produces_warning
+- Series
 
 
 
@@ -4690,39 +4690,39 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- dir
+- date_range
 
 - parametrize
 
-- unique
+- dir
 
-- isidentifier
-
-- Index
-
-- period_range
-
-- arange
-
-- str
-
-- enumerate
+- range
 
 - timedelta_range
 
-- list
-
-- Series
-
-- date_range
+- str
 
 - isinstance
 
-- range
+- Index
+
+- unique
+
+- arange
+
+- isidentifier
+
+- enumerate
 
 - from_tuples
 
 - zip
+
+- list
+
+- period_range
+
+- Series
 
 
 
@@ -4743,13 +4743,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
 - parametrize
 
 - Series
 
 - hash
+
+- raises
 
 
 
@@ -4793,9 +4793,9 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- range
-
 - parametrize
+
+- range
 
 - Series
 
@@ -4820,11 +4820,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- parametrize
+
 - getattr
 
 - raises
-
-- parametrize
 
 
 
@@ -4849,21 +4849,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- parametrize
 
 - filterwarnings
 
-- parametrize
-
-- raises
-
 - method
-
-- Series
 
 - isinstance
 
 - assert_series_equal
+
+- getattr
+
+- raises
+
+- Series
 
 
 
@@ -4888,13 +4888,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
 - parametrize
 
 - isinstance
 
 - hasattr
+
+- raises
 
 - box
 
@@ -4927,23 +4927,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
-
 - parametrize
-
-- raises
-
-- repr
-
-- option_context
 
 - method
 
-- xfail
+- applymarker
+
+- option_context
+
+- getattr
+
+- raises
 
 - get
 
-- applymarker
+- repr
+
+- xfail
 
 - box
 
@@ -4966,17 +4966,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
+- DataFrame
+
+- assert_produces_warning
 
 - parametrize
 
 - rolling
 
-- DataFrame
-
-- assert_produces_warning
-
 - agg
+
+- raises
 
 
 
@@ -5001,7 +5001,7 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- getattr
+- DataFrame
 
 - parametrize
 
@@ -5009,13 +5009,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - groupby
 
-- DataFrame
-
-- from_tuples
-
 - agg
 
 - f
+
+- getattr
+
+- from_tuples
 
 
 
@@ -5040,13 +5040,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
-- asarray
-
 - date_range
 
 - view
+
+- parametrize
+
+- asarray
 
 - assert_numpy_array_equal
 
@@ -5073,19 +5073,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
 - parametrize
 
-- DataFrame
+- isinstance
+
+- hasattr
+
+- len
 
 - concat
 
 - Series
-
-- isinstance
-
-- len
-
-- hasattr
 
 
 
@@ -5108,19 +5108,19 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- DataFrame
+
 - parametrize
 
 - assert_frame_equal
 
-- DataFrame
+- assert_series_equal
 
 - concat
 
 - take
 
 - Series
-
-- assert_series_equal
 
 
 
@@ -5145,23 +5145,23 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- filterwarnings
+- DataFrame
 
 - parametrize
 
-- stack
-
 - all
 
-- DataFrame
-
-- assert_equal
+- filterwarnings
 
 - isinstance
 
-- from_tuples
+- stack
 
 - astype
+
+- from_tuples
+
+- assert_equal
 
 
 
@@ -5186,41 +5186,41 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
+- DataFrame
 
 - permutations
 
-- droplevel
+- parametrize
+
+- range
+
+- unstack
 
 - all
 
 - assert_frame_equal
 
-- from_product
-
-- DataFrame
-
-- from_iterable
-
-- list
-
-- range
-
-- Series
+- type
 
 - isinstance
 
-- to_frame
+- from_product
 
-- type
-
-- unstack
-
-- from_tuples
+- from_iterable
 
 - astype
 
+- droplevel
+
+- from_tuples
+
 - len
+
+- list
+
+- to_frame
+
+- Series
 
 
 
@@ -5243,21 +5243,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- assert_index_equal
-
-- parametrize
-
-- copy
+- cons
 
 - date_range
 
-- Series
+- Timestamp
 
-- cons
+- parametrize
+
+- assert_index_equal
+
+- copy
 
 - DatetimeIndex
 
-- Timestamp
+- Series
 
 
 
@@ -5282,33 +5282,33 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- _getitem_slice
-
-- assert_index_equal
-
-- parametrize
-
-- slice
-
-- delete
+- view
 
 - index_view
 
-- _shallow_copy
+- parametrize
 
-- copy
+- assert_index_equal
 
-- take
-
-- view
+- repeat
 
 - rename
 
 - func
 
+- delete
+
+- copy
+
+- _getitem_slice
+
 - astype
 
-- repeat
+- slice
+
+- _shallow_copy
+
+- take
 
 
 
@@ -5331,21 +5331,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- assert_index_equal
+- cons
 
 - parametrize
 
-- PeriodIndex
-
-- period_range
+- assert_index_equal
 
 - Period
 
 - copy
 
-- Series
+- PeriodIndex
 
-- cons
+- period_range
+
+- Series
 
 
 
@@ -5368,21 +5368,21 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- assert_index_equal
+- cons
 
 - parametrize
 
-- Timedelta
-
-- copy
+- assert_index_equal
 
 - timedelta_range
 
 - TimedeltaIndex
 
-- Series
+- Timedelta
 
-- cons
+- copy
+
+- Series
 
 
 
@@ -5403,11 +5403,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
+- rename_categories
 
 - parametrize
 
-- rename_categories
+- raises
 
 - Categorical
 
@@ -5430,11 +5430,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
+- reorder_categories
 
 - parametrize
 
-- reorder_categories
+- raises
 
 - Categorical
 
@@ -5463,11 +5463,11 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- set_categories
+- assert_categorical_equal
 
 - parametrize
 
-- assert_categorical_equal
+- set_categories
 
 - Categorical
 
@@ -5490,15 +5490,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
 - parametrize
 
-- Categorical
+- remove_categories
 
 - escape
 
-- remove_categories
+- Categorical
+
+- raises
 
 
 
@@ -5529,11 +5529,11 @@ This document provides comprehensive API documentation for deepflow.
 
 - Index
 
-- asanyarray
-
 - recode_for_categories
 
 - assert_numpy_array_equal
+
+- asanyarray
 
 
 
@@ -5554,13 +5554,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- skipif
+- check_output
 
-- dir
+- skipif
 
 - parametrize
 
-- check_output
+- dir
 
 
 
@@ -5580,13 +5580,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - filterwarnings
 
-- getattr
+- ismodule
 
 - __import__
 
-- ismodule
-
 - startswith
+
+- getattr
 
 
 
@@ -5607,9 +5607,9 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- array
-
 - rational
+
+- array
 
 - parametrize
 
@@ -5634,15 +5634,15 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
+- dtype
+
 - parametrize
 
 - can_cast
 
-- array
-
-- dtype
-
 - astype
+
+- array
 
 
 
@@ -5663,13 +5663,13 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- dtype
-
-- parametrize
-
 - array
 
 - astype
+
+- dtype
+
+- parametrize
 
 
 
@@ -5690,9 +5690,9 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- array
-
 - assert_warns
+
+- array
 
 - parametrize
 
@@ -5719,13 +5719,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
-- array
-
-- zeros
+- scalar_type
 
 - astype
 
-- scalar_type
+- array
+
+- zeros
 
 
 
@@ -5748,13 +5748,13 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
-- isnan
+- astype
 
 - array
 
-- zeros
+- isnan
 
-- astype
+- zeros
 
 
 
@@ -5775,9 +5775,9 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- parametrize
-
 - isinstance
+
+- parametrize
 
 - dtypes
 
@@ -5825,17 +5825,17 @@ This document provides comprehensive API documentation for deepflow.
 
 - parametrize
 
+- is_directed
+
 - loads
 
-- dumps
+- deepcopy
 
 - path_graph
 
 - graph
 
-- is_directed
-
-- deepcopy
+- dumps
 
 
 
@@ -5887,17 +5887,17 @@ This document provides comprehensive API documentation for deepflow.
 
 **Dependencies**:
 
-- raises
-
 - parametrize
 
 - escape
 
 - check_shape
 
-- zeros
-
 - len
+
+- raises
+
+- zeros
 
 
 

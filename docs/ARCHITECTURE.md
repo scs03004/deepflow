@@ -1,7 +1,7 @@
 # Architecture Overview
 
 **Project**: deepflow
-**Generated**: 2025-08-21
+**Generated**: 2025-08-23
 **Language**: Python
 **Framework**: Not detected
 
@@ -98,8 +98,8 @@ Security features analysis not available from code inspection.
 ## Performance Considerations
 
 - **Total Files**: 20386
-- **Total Lines of Code**: 3191625
-- **External Dependencies**: 49
+- **Total Lines of Code**: 3191519
+- **External Dependencies**: 45
 - **Circular Dependencies**: 0
 
 ## Deployment Architecture

@@ -301,19 +301,78 @@ class DeepflowMCPServer:
                     text="Error: Deepflow tools not available. Please check installation."
                 )]
             
-            validator = DependencyValidator(project_path)
-            validation_result = validator.validate_changes(
-                check_dependencies=check_dependencies,
-                check_patterns=check_patterns
-            )
-            
-            return [TextContent(
+            # Get changed files from git status
+            import subprocess
+            try:
+                result = subprocess.run(['git', 'status', '--porcelain'], 
+                                      capture_output=True, text=True, cwd=project_path)
+                changed_files = []
+                for line in result.stdout.strip().split('\n'):
+                    if line and line.endswith('.py'):
+                        # Extract filename from git status format (skip first 3 chars for status)
+                        filename = line[3:].strip()  # Skip status flags like " M " or "?? "
+                        changed_files.append(filename)
+                
+                if not changed_files:
+                    return [TextContent(
+                        type="text",
+                        text=json.dumps({
+                            "valid": True,
+                            "message": "No Python files changed",
+                            "changed_files": []
+                        }, indent=2)
+                    )]
+                
+                validator = DependencyValidator(project_path)
+                
+                results = {}
+                
+                if check_dependencies:
+                    # Validate imports in changed files
+                    import_results = validator.validate_imports(changed_files)
+                    results["import_validation"] = [
+                        {
+                            "file": r.file_path,
+                            "issues": r.issues,
+                            "warnings": r.warnings,
+                            "risk_level": r.risk_level,
+                            "requires_testing": r.requires_testing,
+                            "affected_components": r.affected_components,
+                            "valid": len(r.issues) == 0  # Derive validity from issues
+                        }
+                        for r in import_results
+                    ]
+                
+                if check_patterns:
+                    # Analyze change impact
+                    impact = validator.analyze_change_impact(changed_files)
+                    results["change_impact"] = {
+                        "risk_assessment": impact.risk_assessment,
+                        "affected_modules": list(impact.affected_modules),
+                        "required_tests": impact.required_tests,
+                        "documentation_updates": impact.documentation_updates,
+                        "deployment_impact": impact.deployment_impact
+                    }
+                
+                # Determine overall validation status
+                all_valid = True
+                if "import_validation" in results:
+                    all_valid = all(len(r["issues"]) == 0 for r in results["import_validation"])
+                
+                results["valid"] = all_valid
+                results["changed_files"] = changed_files
+                
+                return [TextContent(
+                        type="text",
+                        text=json.dumps(results, indent=2)
+                    )]
+                
+            except subprocess.CalledProcessError:
+                return [TextContent(
                     type="text",
                     text=json.dumps({
-                        "valid": validation_result.is_valid,
-                        "errors": validation_result.errors,
-                        "warnings": validation_result.warnings,
-                        "suggestions": validation_result.suggestions
+                        "valid": False,
+                        "error": "Not a git repository or git not available"
                     }, indent=2)
                 )]
             
