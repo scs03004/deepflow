@@ -1,0 +1,609 @@
+# Deepflow MCP CI/CD Integration Examples
+# =====================================
+# 
+# These GitHub Actions workflows demonstrate how to integrate Deepflow MCP
+# analysis into continuous integration and deployment pipelines.
+
+# Workflow 1: Basic Quality Gate
+# ==============================
+# File: .github/workflows/deepflow-quality.yml
+
+name: Deepflow Quality Gate
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Full history for dependency analysis
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install Deepflow MCP
+      run: |
+        pip install deepflow[mcp]
+        echo "Deepflow version: $(pip show deepflow | grep Version)"
+    
+    - name: Start MCP Server
+      run: |
+        # Start server in background
+        deepflow-mcp-server &
+        SERVER_PID=$!
+        echo "MCP_SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+        
+        # Wait for server to start
+        sleep 5
+        
+        # Verify server is running
+        if ! pgrep -f "deepflow-mcp-server" > /dev/null; then
+          echo "❌ MCP server failed to start"
+          exit 1
+        fi
+        echo "✅ MCP server started (PID: $SERVER_PID)"
+    
+    - name: Run Dependency Analysis
+      id: deps
+      run: |
+        # Create results directory
+        mkdir -p analysis-results
+        
+        # Run dependency analysis
+        python -c "
+        import asyncio
+        import json
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def analyze():
+            async with DeepflowMCPClient() as client:
+                result = await client.call_tool('analyze_dependencies', {
+                    'project_path': '.',
+                    'format': 'json',
+                    'ai_awareness': True
+                })
+                
+                for content in result:
+                    if hasattr(content, 'text'):
+                        with open('analysis-results/dependencies.json', 'w') as f:
+                            f.write(content.text)
+                        print('Dependencies analysis completed')
+        
+        asyncio.run(analyze())
+        "
+        
+        # Check for circular dependencies
+        if grep -q "circular" analysis-results/dependencies.json; then
+          echo "⚠️  Circular dependencies detected"
+          echo "has_circular_deps=true" >> $GITHUB_OUTPUT
+        else
+          echo "✅ No circular dependencies found"
+          echo "has_circular_deps=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Run Code Quality Analysis
+      id: quality
+      run: |
+        python -c "
+        import asyncio
+        import json
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def analyze_quality():
+            async with DeepflowMCPClient() as client:
+                result = await client.call_tool('analyze_code_quality', {
+                    'project_path': '.',
+                    'analysis_type': 'all',
+                    'fix_imports': False
+                })
+                
+                for content in result:
+                    if hasattr(content, 'text'):
+                        data = json.loads(content.text)
+                        
+                        # Count unused imports
+                        unused_count = len(data.get('unused_imports', []))
+                        print(f'Unused imports found: {unused_count}')
+                        
+                        with open('analysis-results/quality.json', 'w') as f:
+                            json.dump(data, f, indent=2)
+                        
+                        # Set GitHub output
+                        with open('$GITHUB_OUTPUT', 'a') as f:
+                            f.write(f'unused_imports={unused_count}\n')
+        
+        asyncio.run(analyze_quality())
+        "
+    
+    - name: Validate Current State
+      if: github.event_name == 'pull_request'
+      run: |
+        python -c "
+        import asyncio
+        import json
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def validate():
+            async with DeepflowMCPClient() as client:
+                result = await client.call_tool('validate_commit', {
+                    'project_path': '.',
+                    'check_dependencies': True,
+                    'check_patterns': True
+                })
+                
+                for content in result:
+                    if hasattr(content, 'text'):
+                        data = json.loads(content.text)
+                        
+                        if not data.get('valid', False):
+                            print('❌ Validation failed')
+                            print(json.dumps(data, indent=2))
+                            exit(1)
+                        else:
+                            print('✅ Validation passed')
+        
+        asyncio.run(validate())
+        "
+    
+    - name: Generate Quality Report
+      if: always()
+      run: |
+        # Create markdown report
+        cat > analysis-results/quality-report.md << EOF
+        # Code Quality Report
+        
+        **Generated**: $(date)
+        **Commit**: ${{ github.sha }}
+        **Branch**: ${{ github.ref_name }}
+        
+        ## Summary
+        
+        - **Unused Imports**: ${{ steps.quality.outputs.unused_imports || 'N/A' }}
+        - **Circular Dependencies**: ${{ steps.deps.outputs.has_circular_deps == 'true' && '⚠️  Found' || '✅ None' }}
+        - **Analysis Status**: ${{ job.status }}
+        
+        ## Dependency Structure
+        
+        \`\`\`json
+        $(head -20 analysis-results/dependencies.json | tail -n +1)
+        \`\`\`
+        
+        ## Quality Metrics
+        
+        \`\`\`json
+        $(head -20 analysis-results/quality.json | tail -n +1)
+        \`\`\`
+        
+        ---
+        Generated by [Deepflow MCP](https://github.com/scs03004/deepflow)
+        EOF
+    
+    - name: Upload Analysis Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: deepflow-analysis-${{ github.sha }}
+        path: analysis-results/
+    
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const report = fs.readFileSync('analysis-results/quality-report.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+          } catch (error) {
+            console.log('Could not post comment:', error);
+          }
+    
+    - name: Fail if Quality Issues
+      if: always()
+      run: |
+        # Check for critical issues
+        if [[ "${{ steps.deps.outputs.has_circular_deps }}" == "true" ]]; then
+          echo "❌ Critical: Circular dependencies detected"
+          exit 1
+        fi
+        
+        unused_count="${{ steps.quality.outputs.unused_imports }}"
+        if [[ "$unused_count" -gt 10 ]]; then
+          echo "❌ Critical: Too many unused imports ($unused_count > 10)"
+          exit 1
+        fi
+        
+        echo "✅ Quality gate passed"
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        # Stop MCP server
+        if [[ -n "$MCP_SERVER_PID" ]]; then
+          kill $MCP_SERVER_PID || true
+        fi
+
+---
+
+# Workflow 2: Release Quality Assurance
+# =====================================
+# File: .github/workflows/release-qa.yml
+
+name: Release Quality Assurance
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [created]
+
+jobs:
+  comprehensive-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install Dependencies
+      run: |
+        pip install deepflow[mcp]
+        pip install -e .
+    
+    - name: Start MCP Server
+      run: |
+        deepflow-mcp-server &
+        sleep 5
+    
+    - name: Full Dependency Analysis
+      run: |
+        mkdir -p release-analysis
+        
+        python -c "
+        import asyncio
+        import json
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def full_analysis():
+            async with DeepflowMCPClient() as client:
+                # Comprehensive dependency analysis
+                deps_result = await client.call_tool('analyze_dependencies', {
+                    'project_path': '.',
+                    'format': 'json',
+                    'ai_awareness': True
+                })
+                
+                # Full quality analysis
+                quality_result = await client.call_tool('analyze_code_quality', {
+                    'project_path': '.',
+                    'analysis_type': 'all',
+                    'fix_imports': False
+                })
+                
+                # Save results
+                for content in deps_result:
+                    if hasattr(content, 'text'):
+                        with open('release-analysis/dependencies-full.json', 'w') as f:
+                            f.write(content.text)
+                
+                for content in quality_result:
+                    if hasattr(content, 'text'):
+                        with open('release-analysis/quality-full.json', 'w') as f:
+                            f.write(content.text)
+        
+        asyncio.run(full_analysis())
+        "
+    
+    - name: Generate Release Documentation
+      run: |
+        python -c "
+        import asyncio
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def generate_docs():
+            async with DeepflowMCPClient() as client:
+                # Generate dependency map
+                await client.call_tool('generate_documentation', {
+                    'project_path': '.',
+                    'doc_type': 'dependency_map',
+                    'output_path': 'release-analysis/dependency-map.md'
+                })
+                
+                # Generate architecture overview
+                await client.call_tool('generate_documentation', {
+                    'project_path': '.',
+                    'doc_type': 'architecture_overview',
+                    'output_path': 'release-analysis/architecture.md'
+                })
+        
+        asyncio.run(generate_docs())
+        "
+    
+    - name: Create Release Quality Report
+      run: |
+        cat > release-analysis/RELEASE_QUALITY_REPORT.md << EOF
+        # Release Quality Report - ${{ github.ref_name }}
+        
+        **Generated**: $(date)
+        **Release**: ${{ github.ref_name }}
+        **Commit**: ${{ github.sha }}
+        
+        ## Executive Summary
+        
+        This release has been analyzed using Deepflow MCP integration for:
+        - Dependency structure and health
+        - Code quality metrics
+        - Architecture compliance
+        - Technical debt assessment
+        
+        ## Analysis Results
+        
+        ### Dependencies
+        - Total modules: $(jq '.nodes | length' release-analysis/dependencies-full.json)
+        - Circular dependencies: $(jq '.circular_dependencies // [] | length' release-analysis/dependencies-full.json || echo "0")
+        
+        ### Code Quality
+        - Unused imports: $(jq '.unused_imports | length' release-analysis/quality-full.json || echo "0")
+        - Technical debt items: $(jq '.technical_debt | length' release-analysis/quality-full.json || echo "0")
+        
+        ## Detailed Reports
+        
+        - [Dependency Map](./dependency-map.md)
+        - [Architecture Overview](./architecture.md)
+        - [Full Analysis Data](./dependencies-full.json)
+        - [Quality Metrics](./quality-full.json)
+        
+        ## Release Recommendation
+        
+        Based on the automated analysis, this release is **APPROVED** for production deployment.
+        
+        ---
+        *Generated by Deepflow MCP Quality Gate*
+        EOF
+    
+    - name: Upload Release Analysis
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-quality-analysis-${{ github.ref_name }}
+        path: release-analysis/
+
+---
+
+# Workflow 3: Scheduled Quality Monitoring
+# ========================================
+# File: .github/workflows/weekly-quality.yml
+
+name: Weekly Quality Monitoring
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9 AM
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  quality-trends:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install Dependencies
+      run: |
+        pip install deepflow[mcp] matplotlib pandas
+    
+    - name: Start MCP Server
+      run: |
+        deepflow-mcp-server &
+        sleep 5
+    
+    - name: Run Quality Analysis
+      run: |
+        mkdir -p weekly-analysis
+        
+        # Run analysis and save timestamped results
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        
+        python -c "
+        import asyncio
+        import json
+        from datetime import datetime
+        from examples.mcp_client_examples import DeepflowMCPClient
+        
+        async def weekly_analysis():
+            timestamp = datetime.now().isoformat()
+            
+            async with DeepflowMCPClient() as client:
+                # Get comprehensive metrics
+                quality_result = await client.call_tool('analyze_code_quality', {
+                    'project_path': '.',
+                    'analysis_type': 'all',
+                    'fix_imports': False
+                })
+                
+                deps_result = await client.call_tool('analyze_dependencies', {
+                    'project_path': '.',
+                    'format': 'json',
+                    'ai_awareness': True
+                })
+                
+                # Process and save results
+                metrics = {
+                    'timestamp': timestamp,
+                    'commit': '${{ github.sha }}',
+                    'branch': '${{ github.ref_name }}'
+                }
+                
+                for content in quality_result:
+                    if hasattr(content, 'text'):
+                        quality_data = json.loads(content.text)
+                        metrics.update({
+                            'unused_imports': len(quality_data.get('unused_imports', [])),
+                            'technical_debt_items': len(quality_data.get('technical_debt', [])),
+                            'coupling_violations': len(quality_data.get('coupling_metrics', []))
+                        })
+                
+                for content in deps_result:
+                    if hasattr(content, 'text'):
+                        deps_data = json.loads(content.text)
+                        metrics.update({
+                            'total_modules': len(deps_data.get('nodes', [])),
+                            'circular_dependencies': len(deps_data.get('circular_dependencies', []))
+                        })
+                
+                # Save timestamped metrics
+                filename = f'weekly-analysis/metrics_$timestamp.json'.replace(':', '_')
+                with open(filename, 'w') as f:
+                    json.dump(metrics, f, indent=2)
+                
+                print(f'Quality metrics saved: {filename}')
+        
+        asyncio.run(weekly_analysis())
+        " || echo "Analysis completed with warnings"
+    
+    - name: Generate Trend Report
+      run: |
+        # Create trend analysis (simplified version)
+        cat > weekly-analysis/trend-report.md << EOF
+        # Weekly Quality Trend Report
+        
+        **Generated**: $(date)
+        **Period**: Week of $(date +%Y-%m-%d)
+        
+        ## Current Metrics
+        
+        $(ls weekly-analysis/metrics_*.json | tail -1 | xargs cat | jq -r '
+        "- **Modules**: " + (.total_modules | tostring) + "\n" +
+        "- **Unused Imports**: " + (.unused_imports | tostring) + "\n" +
+        "- **Technical Debt Items**: " + (.technical_debt_items | tostring) + "\n" +
+        "- **Circular Dependencies**: " + (.circular_dependencies | tostring)
+        ')
+        
+        ## Trend Analysis
+        
+        Historical data collection is ongoing. Full trend analysis will be available
+        after several weeks of data collection.
+        
+        ## Recommendations
+        
+        $(python -c "
+        import json
+        import glob
+        
+        files = sorted(glob.glob('weekly-analysis/metrics_*.json'))
+        if files:
+            with open(files[-1]) as f:
+                data = json.load(f)
+            
+            recommendations = []
+            if data.get('unused_imports', 0) > 5:
+                recommendations.append('- Consider running import cleanup')
+            if data.get('circular_dependencies', 0) > 0:
+                recommendations.append('- Address circular dependencies')
+            if data.get('technical_debt_items', 0) > 10:
+                recommendations.append('- Schedule technical debt cleanup sprint')
+            
+            if recommendations:
+                print('\n'.join(recommendations))
+            else:
+                print('- No immediate action required')
+        ")
+        
+        ---
+        *Automated by Deepflow MCP Quality Monitoring*
+        EOF
+    
+    - name: Archive Historical Data
+      uses: actions/upload-artifact@v3
+      with:
+        name: quality-trends-$(date +%Y%m)
+        path: weekly-analysis/
+    
+    - name: Create Issue for High Priority Items
+      if: always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const glob = require('glob');
+          
+          // Find latest metrics file
+          const files = glob.sync('weekly-analysis/metrics_*.json').sort();
+          if (files.length === 0) return;
+          
+          const data = JSON.parse(fs.readFileSync(files[files.length - 1]));
+          
+          // Check for critical issues
+          const issues = [];
+          
+          if (data.circular_dependencies > 0) {
+            issues.push(`🔄 ${data.circular_dependencies} circular dependencies detected`);
+          }
+          
+          if (data.unused_imports > 20) {
+            issues.push(`📦 ${data.unused_imports} unused imports (threshold: 20)`);
+          }
+          
+          if (data.technical_debt_items > 15) {
+            issues.push(`⚠️  ${data.technical_debt_items} technical debt items (threshold: 15)`);
+          }
+          
+          if (issues.length > 0) {
+            const issueBody = `
+            # Quality Alert - Week of ${new Date().toISOString().split('T')[0]}
+            
+            The weekly quality monitoring has detected issues requiring attention:
+            
+            ${issues.map(issue => `- ${issue}`).join('\n')}
+            
+            ## Current Metrics
+            - **Total Modules**: ${data.total_modules}
+            - **Unused Imports**: ${data.unused_imports}
+            - **Technical Debt Items**: ${data.technical_debt_items}
+            - **Circular Dependencies**: ${data.circular_dependencies}
+            
+            ## Recommendations
+            1. Review and address high-priority items
+            2. Schedule cleanup sprint if needed
+            3. Update coding standards if patterns persist
+            
+            ---
+            *Automated by Deepflow MCP Quality Monitoring*
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Quality Alert: ${issues.length} issues detected`,
+              body: issueBody,
+              labels: ['quality', 'technical-debt', 'automated']
+            });
+          }

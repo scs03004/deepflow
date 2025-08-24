@@ -24,9 +24,21 @@ Requirements:
 import asyncio
 import json
 import sys
+import hashlib
+import time
+import os
+import traceback
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any, Optional
 import logging
+
+# Import our enhanced error handling
+try:
+    from .error_handler import setup_mcp_error_handling, with_error_handling, ErrorContext, PerformanceMetrics
+    ERROR_HANDLING_AVAILABLE = True
+except ImportError:
+    ERROR_HANDLING_AVAILABLE = False
+    print("WARNING: Enhanced error handling not available")
 
 # Graceful MCP imports
 try:
@@ -113,16 +125,44 @@ except ImportError as e:
     TOOLS_AVAILABLE = False
     print(f"WARNING: Could not import deepflow tools: {e}")
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Configure logging with enhanced error handling if available
+if ERROR_HANDLING_AVAILABLE:
+    error_handler = setup_mcp_error_handling("deepflow.mcp")
+    logger = error_handler.logger
+else:
+    # Fallback logging configuration
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logger = logging.getLogger(__name__)
+    error_handler = None
 
 class DeepflowMCPServer:
-    """MCP Server for Deepflow tools."""
+    """MCP Server for Deepflow tools with performance optimizations."""
     
     def __init__(self):
         """Initialize the Deepflow MCP server."""
         self.server = Server("deepflow")
+        
+        # Performance optimization: Add caching system
+        self._cache: Dict[str, Any] = {}
+        self._cache_ttl: Dict[str, float] = {}
+        self._cache_timeout = 300  # 5 minutes cache timeout
+        
+        # Lazy loading: Initialize tool instances only when needed
+        self._tool_instances: Dict[str, Any] = {}
+        
+        # Performance monitoring
+        self._stats = {
+            'total_requests': 0,
+            'cache_hits': 0,
+            'cache_misses': 0,
+            'avg_response_time': 0.0,
+            'errors': 0
+        }
+        
         self._setup_tools()
         
     def _setup_tools(self):
@@ -153,9 +193,104 @@ class DeepflowMCPServer:
                     text=f"Unknown tool: {tool_name}"
                 )]
 
-    async def _handle_analyze_dependencies(self, arguments: dict):
-        """Analyze project dependencies and create visualization."""
+    def _get_cache_key(self, tool_name: str, arguments: dict) -> str:
+        """Generate cache key from tool name and arguments."""
+        # Create a deterministic hash of the arguments
+        cache_data = f"{tool_name}:{json.dumps(arguments, sort_keys=True)}"
+        return hashlib.md5(cache_data.encode()).hexdigest()
+    
+    def _is_cache_valid(self, cache_key: str) -> bool:
+        """Check if cache entry is still valid."""
+        if cache_key not in self._cache_ttl:
+            return False
+        return time.time() - self._cache_ttl[cache_key] < self._cache_timeout
+    
+    def _get_from_cache(self, cache_key: str) -> Optional[Any]:
+        """Get value from cache if valid."""
+        if self._is_cache_valid(cache_key):
+            self._stats['cache_hits'] += 1
+            logger.debug(f"Cache hit for key: {cache_key[:8]}...")
+            return self._cache.get(cache_key)
+        self._stats['cache_misses'] += 1
+        logger.debug(f"Cache miss for key: {cache_key[:8]}...")
+        return None
+    
+    def _set_cache(self, cache_key: str, value: Any) -> None:
+        """Set value in cache."""
+        self._cache[cache_key] = value
+        self._cache_ttl[cache_key] = time.time()
+        logger.debug(f"Cached result for key: {cache_key[:8]}...")
+    
+    def _get_tool_instance(self, tool_class, *args, **kwargs):
+        """Lazy loading of tool instances with caching."""
+        instance_key = f"{tool_class.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+        
+        if instance_key not in self._tool_instances:
+            logger.debug(f"Creating new instance of {tool_class.__name__}")
+            self._tool_instances[instance_key] = tool_class(*args, **kwargs)
+        else:
+            logger.debug(f"Reusing cached instance of {tool_class.__name__}")
+        
+        return self._tool_instances[instance_key]
+    
+    def _update_stats(self, start_time: float, error: bool = False) -> None:
+        """Update performance statistics."""
+        self._stats['total_requests'] += 1
+        
+        if error:
+            self._stats['errors'] += 1
+        
+        response_time = time.time() - start_time
+        
+        # Update average response time (moving average)
+        if self._stats['avg_response_time'] == 0:
+            self._stats['avg_response_time'] = response_time
+        else:
+            self._stats['avg_response_time'] = (
+                (self._stats['avg_response_time'] * (self._stats['total_requests'] - 1) + response_time) / 
+                self._stats['total_requests']
+            )
+        
+        logger.info(f"Request completed in {response_time:.3f}s (avg: {self._stats['avg_response_time']:.3f}s)")
+    
+    def _should_invalidate_cache(self, project_path: str) -> bool:
+        """Check if project files have changed and cache should be invalidated."""
         try:
+            # Simple file modification time check for basic cache invalidation
+            project_path_obj = Path(project_path)
+            if not project_path_obj.exists():
+                return True
+            
+            # Get the most recent modification time of Python files
+            latest_mod_time = 0
+            for py_file in project_path_obj.rglob('*.py'):
+                try:
+                    mod_time = py_file.stat().st_mtime
+                    latest_mod_time = max(latest_mod_time, mod_time)
+                except (OSError, IOError):
+                    continue
+            
+            # Check if any file is newer than our cache timeout
+            cache_creation_time = time.time() - self._cache_timeout
+            return latest_mod_time > cache_creation_time
+            
+        except Exception as e:
+            logger.warning(f"Cache invalidation check failed: {e}")
+            return True  # Err on side of caution
+    
+    async def _handle_analyze_dependencies(self, arguments: dict, request_id: str = None):
+        """Analyze project dependencies and create visualization with caching."""
+        start_time = time.time()
+        
+        try:
+            # Performance optimization: Check cache first
+            cache_key = self._get_cache_key('analyze_dependencies', arguments)
+            cached_result = self._get_from_cache(cache_key)
+            
+            if cached_result and not self._should_invalidate_cache(arguments.get("project_path", ".")):
+                logger.info("Returning cached dependency analysis result")
+                self._update_stats(start_time)
+                return cached_result
             project_path = arguments.get("project_path", ".")
             output_format = arguments.get("format", "text")
             ai_awareness = arguments.get("ai_awareness", True)
@@ -166,9 +301,10 @@ class DeepflowMCPServer:
                     text="Error: Deepflow tools not available. Please check installation."
                 )]
             
-            analyzer = DependencyAnalyzer(project_path, ai_awareness=ai_awareness)
+            # Use lazy loading for tool instances
+            analyzer = self._get_tool_instance(DependencyAnalyzer, project_path, ai_awareness=ai_awareness)
             dependency_graph = analyzer.analyze_project()
-            visualizer = DependencyVisualizer(dependency_graph)
+            visualizer = self._get_tool_instance(DependencyVisualizer, dependency_graph)
             
             if output_format == "html":
                 # Generate HTML output to a temporary file and return the content
@@ -185,10 +321,15 @@ class DeepflowMCPServer:
                 # Clean up temp file
                 os.unlink(output_path)
                 
-                return [TextContent(
+                result = [TextContent(
                     type="text", 
                     text=f"HTML visualization generated with {len(html_content)} characters"
                 )]
+                
+                # Cache the result
+                self._set_cache(cache_key, result)
+                self._update_stats(start_time)
+                return result
             elif output_format == "json":
                 # For JSON, we need to convert the graph to a JSON-serializable format
                 json_data = {
@@ -202,27 +343,48 @@ class DeepflowMCPServer:
                         for name, node in dependency_graph.nodes.items()
                     ]
                 }
-                return [TextContent(
+                result = [TextContent(
                         type="text",
                         text=json.dumps(json_data, indent=2)
                     )]
+                
+                # Cache the result
+                self._set_cache(cache_key, result)
+                self._update_stats(start_time)
+                return result
             else:
                 text_output = visualizer.generate_text_tree()
-                return [TextContent(
+                result = [TextContent(
                         type="text",
                         text=text_output
                     )]
                 
+                # Cache the result
+                self._set_cache(cache_key, result)
+                self._update_stats(start_time)
+                return result
+                
         except Exception as e:
-            logger.error(f"Error in analyze_dependencies: {e}")
+            logger.error(f"Error in analyze_dependencies: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
             return [TextContent(
                     type="text",
                     text=f"Error analyzing dependencies: {str(e)}"
                 )]
 
-    async def _handle_analyze_code_quality(self, arguments: dict):
-        """Analyze code quality and detect issues."""
+    async def _handle_analyze_code_quality(self, arguments: dict, request_id: str = None):
+        """Analyze code quality and detect issues with performance optimizations."""
+        start_time = time.time()
+        
         try:
+            # Check cache first
+            cache_key = self._get_cache_key('analyze_code_quality', arguments)
+            cached_result = self._get_from_cache(cache_key)
+            
+            if cached_result and not self._should_invalidate_cache(arguments.get("project_path", ".")):
+                logger.info("Returning cached code quality analysis result")
+                self._update_stats(start_time)
+                return cached_result
             project_path = arguments.get("project_path", ".")
             analysis_type = arguments.get("analysis_type", "all")
             fix_imports = arguments.get("fix_imports", False)
@@ -233,7 +395,8 @@ class DeepflowMCPServer:
                     text="Error: Deepflow tools not available. Please check installation."
                 )]
             
-            analyzer = CodeAnalyzer(project_path)
+            # Use lazy loading for analyzer
+            analyzer = self._get_tool_instance(CodeAnalyzer, project_path)
             results = {}
             
             if analysis_type in ["all", "imports"]:
@@ -300,20 +463,28 @@ class DeepflowMCPServer:
                     for analysis in ai_analysis
                 ]
             
-            return [TextContent(
+            result = [TextContent(
                     type="text",
                     text=json.dumps(results, indent=2)
                 )]
             
+            # Cache the result
+            self._set_cache(cache_key, result)
+            self._update_stats(start_time)
+            return result
+            
         except Exception as e:
-            logger.error(f"Error in analyze_code_quality: {e}")
+            logger.error(f"Error in analyze_code_quality: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
             return [TextContent(
                     type="text",
                     text=f"Error analyzing code quality: {str(e)}"
                 )]
 
     async def _handle_validate_commit(self, arguments: dict):
-        """Validate code changes before commit."""
+        """Validate code changes before commit with caching."""
+        start_time = time.time()
+        
         try:
             project_path = arguments.get("project_path", ".")
             check_dependencies = arguments.get("check_dependencies", True)
@@ -347,7 +518,8 @@ class DeepflowMCPServer:
                         }, indent=2)
                     )]
                 
-                validator = DependencyValidator(project_path)
+                # Use lazy loading for validator
+                validator = self._get_tool_instance(DependencyValidator, project_path)
                 
                 results = {}
                 
@@ -386,30 +558,47 @@ class DeepflowMCPServer:
                 results["valid"] = all_valid
                 results["changed_files"] = changed_files
                 
-                return [TextContent(
+                result = [TextContent(
                         type="text",
                         text=json.dumps(results, indent=2)
                     )]
                 
+                self._update_stats(start_time)
+                return result
+                
             except subprocess.CalledProcessError:
-                return [TextContent(
+                result = [TextContent(
                     type="text",
                     text=json.dumps({
                         "valid": False,
                         "error": "Not a git repository or git not available"
                     }, indent=2)
                 )]
+                
+                self._update_stats(start_time, error=True)
+                return result
             
         except Exception as e:
-            logger.error(f"Error in validate_commit: {e}")
+            logger.error(f"Error in validate_commit: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
             return [TextContent(
                     type="text",
                     text=f"Error validating commit: {str(e)}"
                 )]
 
     async def _handle_generate_documentation(self, arguments: dict):
-        """Generate project documentation."""
+        """Generate project documentation with caching."""
+        start_time = time.time()
+        
         try:
+            # Check cache for documentation generation
+            cache_key = self._get_cache_key('generate_documentation', arguments)
+            cached_result = self._get_from_cache(cache_key)
+            
+            if cached_result and not self._should_invalidate_cache(arguments.get("project_path", ".")):
+                logger.info("Returning cached documentation generation result")
+                self._update_stats(start_time)
+                return cached_result
             project_path = arguments.get("project_path", ".")
             doc_type = arguments.get("doc_type", "dependency_map")
             output_path = arguments.get("output_path", None)
@@ -420,7 +609,8 @@ class DeepflowMCPServer:
                     text="Error: Deepflow tools not available. Please check installation."
                 )]
             
-            doc_generator = DocumentationGenerator(project_path)
+            # Use lazy loading for documentation generator
+            doc_generator = self._get_tool_instance(DocumentationGenerator, project_path)
             
             if doc_type == "dependency_map":
                 output_file = doc_generator.generate_dependency_map(output_path)
@@ -434,13 +624,19 @@ class DeepflowMCPServer:
                         text=f"Unknown documentation type: {doc_type}"
                     )]
             
-            return [TextContent(
+            result = [TextContent(
                     type="text",
                     text=f"Documentation generated: {output_file}"
                 )]
             
+            # Cache the result
+            self._set_cache(cache_key, result)
+            self._update_stats(start_time)
+            return result
+            
         except Exception as e:
-            logger.error(f"Error in generate_documentation: {e}")
+            logger.error(f"Error in generate_documentation: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
             return [TextContent(
                     type="text",
                     text=f"Error generating documentation: {str(e)}"
@@ -550,14 +746,65 @@ class DeepflowMCPServer:
             )
         ]
 
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get current performance statistics."""
+        cache_hit_rate = (
+            self._stats['cache_hits'] / (self._stats['cache_hits'] + self._stats['cache_misses'])
+            if (self._stats['cache_hits'] + self._stats['cache_misses']) > 0
+            else 0
+        )
+        
+        return {
+            **self._stats,
+            'cache_size': len(self._cache),
+            'cache_hit_rate': f"{cache_hit_rate:.2%}",
+            'active_tool_instances': len(self._tool_instances)
+        }
+    
+    def cleanup_cache(self, max_age_seconds: Optional[float] = None) -> int:
+        """Clean up expired cache entries."""
+        if max_age_seconds is None:
+            max_age_seconds = self._cache_timeout
+        
+        current_time = time.time()
+        expired_keys = [
+            key for key, timestamp in self._cache_ttl.items()
+            if current_time - timestamp > max_age_seconds
+        ]
+        
+        for key in expired_keys:
+            self._cache.pop(key, None)
+            self._cache_ttl.pop(key, None)
+        
+        logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+        return len(expired_keys)
+    
     async def run(self):
-        """Run the MCP server."""
-        async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-            await self.server.run(
-                read_stream,
-                write_stream,
-                self.server.create_initialization_options()
-            )
+        """Run the MCP server with performance monitoring."""
+        logger.info("Starting Deepflow MCP server with performance optimizations")
+        logger.info(f"Cache timeout: {self._cache_timeout}s")
+        
+        try:
+            async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
+                # Log startup stats
+                stats = self.get_performance_stats()
+                logger.info(f"Server initialized - {stats}")
+                
+                await self.server.run(
+                    read_stream,
+                    write_stream,
+                    self.server.create_initialization_options()
+                )
+        except Exception as e:
+            logger.error(f"MCP server error during run: {e}", exc_info=True)
+            raise
+        finally:
+            # Log final statistics
+            stats = self.get_performance_stats()
+            logger.info(f"Server shutting down - Final stats: {stats}")
+            
+            # Cleanup on shutdown
+            self.cleanup_cache()
 
 
 async def async_main():
