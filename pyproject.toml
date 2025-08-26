@@ -66,6 +66,8 @@ docs = [
 ]
 mcp = [
     "mcp>=1.2.0",
+    "watchdog>=4.0.0",
+    "aiofiles>=24.1.0",
 ]
 all = [
     "deepflow[dev,docs,mcp]"
@@ -142,6 +144,7 @@ markers = [
     "integration: integration tests", 
     "mcp: MCP protocol tests",
     "slow: slow running tests",
+    "asyncio: async tests",
 ]
 asyncio_mode = "auto"
 filterwarnings = [

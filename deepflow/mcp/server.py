@@ -40,6 +40,19 @@ except ImportError:
     ERROR_HANDLING_AVAILABLE = False
     print("WARNING: Enhanced error handling not available")
 
+# Import real-time intelligence system
+try:
+    from .realtime_intelligence import (
+        RealTimeIntelligenceEngine, 
+        RealTimeNotificationService,
+        get_intelligence_engine,
+        get_notification_service
+    )
+    REALTIME_AVAILABLE = True
+except ImportError as e:
+    REALTIME_AVAILABLE = False
+    print(f"WARNING: Real-time intelligence not available: {e}")
+
 # Graceful MCP imports
 try:
     from mcp.server import Server
@@ -163,6 +176,11 @@ class DeepflowMCPServer:
             'errors': 0
         }
         
+        # Real-time intelligence integration
+        self._realtime_engine: Optional[RealTimeIntelligenceEngine] = None
+        self._notification_service: Optional[RealTimeNotificationService] = None
+        self._realtime_monitoring = False
+        
         self._setup_tools()
         
     def _setup_tools(self):
@@ -176,21 +194,29 @@ class DeepflowMCPServer:
         
         # Single call_tool handler that routes to the appropriate function
         @self.server.call_tool()
-        async def handle_call_tool(tool_name: str, arguments: dict):
+        async def handle_call_tool(name: str, arguments: dict):
             """Route tool calls to appropriate handlers."""
             
-            if tool_name == "analyze_dependencies":
+            if name == "analyze_dependencies":
                 return await self._handle_analyze_dependencies(arguments)
-            elif tool_name == "analyze_code_quality":
+            elif name == "analyze_code_quality":
                 return await self._handle_analyze_code_quality(arguments)
-            elif tool_name == "validate_commit":
+            elif name == "validate_commit":
                 return await self._handle_validate_commit(arguments)
-            elif tool_name == "generate_documentation":
+            elif name == "generate_documentation":
                 return await self._handle_generate_documentation(arguments)
+            elif name == "start_realtime_monitoring":
+                return await self._handle_start_realtime_monitoring(arguments)
+            elif name == "stop_realtime_monitoring":
+                return await self._handle_stop_realtime_monitoring(arguments)
+            elif name == "get_realtime_activity":
+                return await self._handle_get_realtime_activity(arguments)
+            elif name == "get_realtime_stats":
+                return await self._handle_get_realtime_stats(arguments)
             else:
                 return [TextContent(
                     type="text",
-                    text=f"Unknown tool: {tool_name}"
+                    text=f"Unknown tool: {name}"
                 )]
 
     def _get_cache_key(self, tool_name: str, arguments: dict) -> str:
@@ -642,6 +668,150 @@ class DeepflowMCPServer:
                     text=f"Error generating documentation: {str(e)}"
                 )]
 
+    async def _handle_start_realtime_monitoring(self, arguments: dict):
+        """Start real-time file monitoring and analysis."""
+        if not REALTIME_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Real-time intelligence not available. Install with: pip install deepflow[mcp]"
+            )]
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            ai_awareness = arguments.get("ai_awareness", True)
+            
+            # Initialize real-time engine
+            self._realtime_engine = get_intelligence_engine(project_path, ai_awareness)
+            self._notification_service = get_notification_service()
+            
+            # Set up MCP notification callback
+            async def mcp_notification_callback(notification_data):
+                """Handle real-time notifications for MCP clients."""
+                logger.info(f"Real-time notification: {notification_data['type']}")
+                # Store notification for retrieval by get_realtime_activity
+                if not hasattr(self, '_realtime_notifications'):
+                    self._realtime_notifications = []
+                self._realtime_notifications.append(notification_data)
+                # Keep only last 100 notifications
+                if len(self._realtime_notifications) > 100:
+                    self._realtime_notifications = self._realtime_notifications[-100:]
+            
+            # Add callback to engine
+            self._realtime_engine.add_notification_callback(mcp_notification_callback)
+            
+            # Start monitoring
+            success = await self._realtime_engine.start_monitoring()
+            
+            if success:
+                self._realtime_monitoring = True
+                return [TextContent(
+                    type="text",
+                    text=json.dumps({
+                        "status": "started",
+                        "message": f"Real-time monitoring started for {project_path}",
+                        "ai_awareness": ai_awareness,
+                        "features": [
+                            "Live file watching",
+                            "Incremental dependency analysis",
+                            "Architectural violation detection", 
+                            "AI context window monitoring"
+                        ]
+                    }, indent=2)
+                )]
+            else:
+                return [TextContent(
+                    type="text",
+                    text=json.dumps({
+                        "status": "failed",
+                        "error": "Could not start real-time monitoring"
+                    }, indent=2)
+                )]
+                
+        except Exception as e:
+            logger.error(f"Error starting real-time monitoring: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error starting real-time monitoring: {str(e)}"
+            )]
+
+    async def _handle_stop_realtime_monitoring(self, arguments: dict):
+        """Stop real-time file monitoring."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not running"
+            )]
+        
+        try:
+            await self._realtime_engine.stop_monitoring()
+            self._realtime_monitoring = False
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps({
+                    "status": "stopped",
+                    "message": "Real-time monitoring stopped"
+                }, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error stopping real-time monitoring: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error stopping real-time monitoring: {str(e)}"
+            )]
+
+    async def _handle_get_realtime_activity(self, arguments: dict):
+        """Get recent real-time monitoring activity."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available or not started"
+            )]
+        
+        try:
+            limit = arguments.get("limit", 20)
+            activity = self._realtime_engine.get_recent_activity(limit)
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(activity, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting real-time activity: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error getting real-time activity: {str(e)}"
+            )]
+
+    async def _handle_get_realtime_stats(self, arguments: dict):
+        """Get real-time monitoring statistics."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available or not started"
+            )]
+        
+        try:
+            stats = self._realtime_engine.get_real_time_stats()
+            
+            # Add recent notifications if available
+            if hasattr(self, '_realtime_notifications'):
+                stats['recent_notifications'] = len(self._realtime_notifications)
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(stats, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting real-time stats: {e}", exc_info=True)
+            return [TextContent(
+                type="text", 
+                text=f"Error getting real-time stats: {str(e)}"
+            )]
+
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""
         return [
@@ -742,6 +912,56 @@ class DeepflowMCPServer:
                             "default": None
                         }
                     }
+                }
+            ),
+            # Real-time intelligence tools
+            Tool(
+                name="start_realtime_monitoring",
+                description="Start real-time file monitoring and incremental dependency analysis",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to monitor",
+                            "default": "."
+                        },
+                        "ai_awareness": {
+                            "type": "boolean", 
+                            "description": "Enable AI-aware analysis features",
+                            "default": True
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="stop_realtime_monitoring",
+                description="Stop real-time file monitoring",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
+                }
+            ),
+            Tool(
+                name="get_realtime_activity",
+                description="Get recent real-time monitoring activity and events",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum number of events to return",
+                            "default": 20
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="get_realtime_stats",
+                description="Get real-time monitoring statistics and status",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
                 }
             )
         ]
