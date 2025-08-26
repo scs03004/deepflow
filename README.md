@@ -389,5 +389,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Compatibility**: All existing commands work with new `--ai-awareness` flags
 
 ---
-
-**Built with ❤️ for clean AI-assisted development**
