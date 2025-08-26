@@ -213,6 +213,108 @@ Once configured, you'll have access to these tools in Claude Code:
 - Duplicate patterns found
 - Learned patterns (naming conventions, structures)
 
+## 🧠 AI Session Intelligence Tools ✨ **NEW - Priority 3**
+
+### 9. `start_ai_session`
+**Purpose**: Start a new AI development session with context tracking and journaling
+
+**Usage in Claude Code**:
+```
+"Start a new AI session for feature development"
+"Begin session tracking for user authentication feature"  
+"Start AI session: refactoring database layer"
+```
+
+**Parameters**:
+- `session_name`: Name for the AI development session (default: "")
+- `session_description`: Description of session goals and context (default: "")
+- `session_tags`: Array of tags to categorize the session (default: [])
+
+### 10. `end_ai_session`
+**Purpose**: End the current AI development session and save context for future reference
+
+**Usage in Claude Code**:
+```
+"End the current AI session"
+"Complete session and save achievements"
+"Finish session with goal: implemented login system"
+```
+
+**Parameters**:
+- `achievements`: Array of goals achieved during the session (default: [])
+
+### 11. `get_session_context`
+**Purpose**: Get current AI session context for continuity and progress tracking
+
+**Usage in Claude Code**:
+```
+"What's the current session context?"
+"Show me the active session details"
+"Get session status and progress"
+```
+
+**Returns**:
+- Current session ID and metadata
+- Files modified in this session
+- Changes made and AI interactions count
+- Session duration and goals
+
+### 12. `restore_session_context`
+**Purpose**: Restore a previous AI session context for continuity across development cycles
+
+**Usage in Claude Code**:
+```
+"Restore session context from yesterday"
+"Resume previous session: session_123456"
+"Continue from where I left off in session ABC"
+```
+
+**Parameters**:
+- `session_id`: ID of the session to restore (required)
+
+### 13. `analyze_change_impact`
+**Purpose**: Analyze ripple effects and impact of code changes across the project
+
+**Usage in Claude Code**:
+```
+"Analyze impact of changing user.py"
+"What files are affected by modifying the auth system?"
+"Show ripple effects of database schema changes"
+```
+
+**Parameters**:
+- `file_path`: Path to the file that was changed (required)
+- `change_type`: Type of change - "addition", "modification", "deletion", "rename" (required)
+- `change_details`: Additional details about the change (default: {})
+
+**Returns**:
+- Risk assessment (low/medium/high/critical)
+- Impact score (0.0 to 1.0)
+- Affected files and dependencies
+- Test files that need updating
+- Documentation that requires changes
+- Mitigation suggestions
+
+### 14. `get_session_intelligence`
+**Purpose**: Get comprehensive AI session intelligence and analytics
+
+**Usage in Claude Code**:
+```
+"Show me session intelligence data"
+"Get development analytics and insights"
+"What patterns have been learned from my coding?"
+```
+
+**Parameters**:
+- `limit`: Maximum number of entries to return (default: 50)
+
+**Returns**:
+- Current and historical session data
+- Change impact analyses performed
+- Patterns learned from development
+- Multi-file coordination progress
+- Session journal entries and activities
+
 ## 🧪 Testing the Integration
 
 ### Verify MCP Tools are Available
@@ -239,17 +341,28 @@ Then try these commands in Claude Code:
 **Real-Time Intelligence Tools:**
 ```
 5. "Start real-time monitoring for this project"
-6. "Show me recent real-time activity"
+6. "Show me recent real-time activity" 
 7. "What are the current monitoring statistics?"
 8. "Stop the real-time monitoring"
 ```
 
+**AI Session Intelligence Tools:**
+```
+9. "Start AI session: implementing user auth"
+10. "End current session with achievements"
+11. "What's my current session context?"
+12. "Restore session from yesterday"
+13. "Analyze impact of changing database.py"
+14. "Show me session intelligence and patterns learned"
+```
+
 ### Expected Behavior
 - `claude mcp list` should show deepflow server as "✓ Connected"
-- Claude Code should recognize 8 deepflow MCP tools automatically
+- Claude Code should recognize **14 deepflow MCP tools** automatically
 - Core tools should provide structured analysis results in JSON format
 - Real-time tools should provide live monitoring capabilities
 - Pattern deviations and AI context alerts should be detected in real-time
+- Session intelligence tools provide development context and impact analysis
 
 ## 🚨 Troubleshooting
 

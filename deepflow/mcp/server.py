@@ -213,6 +213,19 @@ class DeepflowMCPServer:
                 return await self._handle_get_realtime_activity(arguments)
             elif name == "get_realtime_stats":
                 return await self._handle_get_realtime_stats(arguments)
+            # Priority 3: AI Session Intelligence tools
+            elif name == "start_ai_session":
+                return await self._handle_start_ai_session(arguments)
+            elif name == "end_ai_session":
+                return await self._handle_end_ai_session(arguments)
+            elif name == "get_session_context":
+                return await self._handle_get_session_context(arguments)
+            elif name == "restore_session_context":
+                return await self._handle_restore_session_context(arguments)
+            elif name == "analyze_change_impact":
+                return await self._handle_analyze_change_impact(arguments)
+            elif name == "get_session_intelligence":
+                return await self._handle_get_session_intelligence(arguments)
             else:
                 return [TextContent(
                     type="text",
@@ -811,6 +824,259 @@ class DeepflowMCPServer:
                 type="text", 
                 text=f"Error getting real-time stats: {str(e)}"
             )]
+    
+    # Priority 3: AI Session Intelligence Tool Handlers
+    
+    async def _handle_start_ai_session(self, arguments: dict):
+        """Start a new AI development session."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available. Start monitoring first to use session intelligence."
+            )]
+        
+        session_name = arguments.get('session_name', "")
+        session_description = arguments.get('session_description', "")
+        session_tags = set(arguments.get('session_tags', []))
+        
+        try:
+            session_id = self._realtime_engine.start_ai_session(
+                session_name=session_name,
+                session_description=session_description, 
+                session_tags=session_tags
+            )
+            
+            result = {
+                'session_id': session_id,
+                'session_name': session_name,
+                'start_time': time.time(),
+                'status': 'started',
+                'message': f'AI session "{session_name}" started successfully'
+            }
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error starting AI session: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error starting AI session: {str(e)}"
+            )]
+    
+    async def _handle_end_ai_session(self, arguments: dict):
+        """End the current AI development session."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available"
+            )]
+        
+        achievements = arguments.get('achievements', [])
+        
+        try:
+            completed_session = self._realtime_engine.end_ai_session(achievements=achievements)
+            
+            if not completed_session:
+                return [TextContent(
+                    type="text",
+                    text="No active AI session to end"
+                )]
+            
+            duration = completed_session.end_time - completed_session.start_time
+            result = {
+                'session_id': completed_session.session_id,
+                'session_name': completed_session.session_name, 
+                'duration_seconds': duration,
+                'files_modified': len(completed_session.files_modified),
+                'changes_made': len(completed_session.changes_made),
+                'patterns_learned': len(completed_session.patterns_learned),
+                'goals_achieved': completed_session.goals_achieved,
+                'status': 'completed',
+                'message': f'AI session completed in {duration:.1f} seconds'
+            }
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error ending AI session: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error ending AI session: {str(e)}"
+            )]
+    
+    async def _handle_get_session_context(self, arguments: dict):
+        """Get current AI session context."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available"
+            )]
+        
+        try:
+            current_session = self._realtime_engine.get_session_context()
+            
+            if not current_session:
+                return [TextContent(
+                    type="text",
+                    text="No active AI session"
+                )]
+            
+            duration = time.time() - current_session.start_time
+            result = {
+                'session_id': current_session.session_id,
+                'session_name': current_session.session_name,
+                'session_description': current_session.session_description,
+                'start_time': current_session.start_time,
+                'duration_seconds': duration,
+                'files_modified': list(current_session.files_modified),
+                'changes_made': len(current_session.changes_made),
+                'patterns_learned': len(current_session.patterns_learned),
+                'goals_achieved': current_session.goals_achieved,
+                'session_tags': list(current_session.session_tags),
+                'ai_interactions': current_session.ai_interactions
+            }
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting session context: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error getting session context: {str(e)}"
+            )]
+    
+    async def _handle_restore_session_context(self, arguments: dict):
+        """Restore a previous AI session context."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available"
+            )]
+        
+        session_id = arguments.get('session_id')
+        if not session_id:
+            return [TextContent(
+                type="text",
+                text="session_id is required"
+            )]
+        
+        try:
+            success = self._realtime_engine.restore_session_context(session_id)
+            
+            if success:
+                current_session = self._realtime_engine.get_session_context()
+                result = {
+                    'restored_session_id': session_id,
+                    'new_session_id': current_session.session_id,
+                    'session_name': current_session.session_name,
+                    'files_from_previous': len(current_session.files_modified),
+                    'patterns_from_previous': len(current_session.patterns_learned),
+                    'status': 'restored',
+                    'message': f'Session context restored from {session_id}'
+                }
+            else:
+                result = {
+                    'session_id': session_id,
+                    'status': 'failed',
+                    'message': f'Session {session_id} not found in history'
+                }
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error restoring session context: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error restoring session context: {str(e)}"
+            )]
+    
+    async def _handle_analyze_change_impact(self, arguments: dict):
+        """Analyze the ripple effects of code changes."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available"
+            )]
+        
+        file_path = arguments.get('file_path')
+        change_type = arguments.get('change_type')
+        change_details = arguments.get('change_details', {})
+        
+        if not file_path or not change_type:
+            return [TextContent(
+                type="text",
+                text="file_path and change_type are required"
+            )]
+        
+        try:
+            impact_analysis = await self._realtime_engine.analyze_change_impact(
+                file_path=file_path,
+                change_type=change_type,
+                change_details=change_details
+            )
+            
+            result = {
+                'change_id': impact_analysis.change_id,
+                'affected_file': impact_analysis.affected_file,
+                'change_type': impact_analysis.change_type,
+                'risk_assessment': impact_analysis.risk_assessment,
+                'impact_score': impact_analysis.impact_score,
+                'ripple_effects': impact_analysis.ripple_effects,
+                'dependency_impacts': impact_analysis.dependency_impacts,
+                'test_impacts': impact_analysis.test_impacts,
+                'documentation_impacts': impact_analysis.documentation_impacts,
+                'mitigation_suggestions': impact_analysis.mitigation_suggestions,
+                'timestamp': impact_analysis.timestamp
+            }
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error analyzing change impact: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error analyzing change impact: {str(e)}"
+            )]
+    
+    async def _handle_get_session_intelligence(self, arguments: dict):
+        """Get comprehensive AI session intelligence data."""
+        if not REALTIME_AVAILABLE or not self._realtime_engine:
+            return [TextContent(
+                type="text",
+                text="Real-time monitoring not available"
+            )]
+        
+        limit = arguments.get('limit', 50)
+        
+        try:
+            intelligence_data = self._realtime_engine.get_session_intelligence(limit=limit)
+            
+            return [TextContent(
+                type="text",
+                text=json.dumps(intelligence_data, indent=2)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting session intelligence: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error getting session intelligence: {str(e)}"
+            )]
 
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""
@@ -962,6 +1228,107 @@ class DeepflowMCPServer:
                 inputSchema={
                     "type": "object",
                     "properties": {}
+                }
+            ),
+            # Priority 3: AI Session Intelligence tools
+            Tool(
+                name="start_ai_session",
+                description="Start a new AI development session with context tracking",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "session_name": {
+                            "type": "string",
+                            "description": "Name for the AI development session",
+                            "default": ""
+                        },
+                        "session_description": {
+                            "type": "string", 
+                            "description": "Description of session goals and context",
+                            "default": ""
+                        },
+                        "session_tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Tags to categorize the session",
+                            "default": []
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="end_ai_session",
+                description="End the current AI development session and save context",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "achievements": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Goals achieved during the session",
+                            "default": []
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="get_session_context",
+                description="Get current AI session context for continuity",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
+                }
+            ),
+            Tool(
+                name="restore_session_context",
+                description="Restore a previous AI session context for continuity",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "session_id": {
+                            "type": "string",
+                            "description": "ID of the session to restore"
+                        }
+                    },
+                    "required": ["session_id"]
+                }
+            ),
+            Tool(
+                name="analyze_change_impact",
+                description="Analyze ripple effects and impact of code changes",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file that was changed"
+                        },
+                        "change_type": {
+                            "type": "string",
+                            "enum": ["addition", "modification", "deletion", "rename"],
+                            "description": "Type of change made to the file"
+                        },
+                        "change_details": {
+                            "type": "object",
+                            "description": "Additional details about the change",
+                            "default": {}
+                        }
+                    },
+                    "required": ["file_path", "change_type"]
+                }
+            ),
+            Tool(
+                name="get_session_intelligence",
+                description="Get comprehensive AI session intelligence and analytics",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum number of entries to return",
+                            "default": 50
+                        }
+                    }
                 }
             )
         ]
