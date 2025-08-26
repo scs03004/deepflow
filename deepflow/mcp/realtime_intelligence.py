@@ -100,6 +100,49 @@ class AIContextAlert:
     priority: str = 'medium'
     timestamp: float = field(default_factory=time.time)
 
+@dataclass
+class PatternDeviationAlert:
+    """Represents a pattern deviation in AI-generated code."""
+    file_path: str
+    deviation_type: str  # 'naming', 'structure', 'imports', 'style'
+    expected_pattern: str
+    actual_pattern: str
+    confidence: float  # 0.0 to 1.0
+    suggestion: str
+    severity: str = 'medium'  # 'low', 'medium', 'high'
+    timestamp: float = field(default_factory=time.time)
+
+@dataclass
+class CircularDependencyAlert:
+    """Represents a potential circular dependency."""
+    involved_files: List[str]
+    dependency_chain: List[str]
+    risk_level: str  # 'potential', 'likely', 'confirmed'
+    impact_assessment: str
+    prevention_suggestion: str
+    timestamp: float = field(default_factory=time.time)
+
+@dataclass
+class FileSplitSuggestion:
+    """Represents a suggestion to split a large file."""
+    file_path: str
+    current_size_tokens: int
+    suggested_splits: List[Dict[str, Any]]  # Each split contains classes/functions
+    split_rationale: str
+    estimated_improvement: str
+    priority: str = 'medium'
+    timestamp: float = field(default_factory=time.time)
+
+@dataclass
+class DuplicatePatternAlert:
+    """Represents detected duplicate patterns that could be consolidated."""
+    pattern_type: str  # 'function', 'class', 'import_block', 'logic_block'
+    duplicate_locations: List[Dict[str, Any]]  # file_path, line_range, content_hash
+    similarity_score: float  # 0.0 to 1.0
+    consolidation_suggestion: str
+    estimated_savings: str  # lines saved, complexity reduction
+    timestamp: float = field(default_factory=time.time)
+
 class RealTimeFileHandler(FileSystemEventHandler):
     """Handles real-time file system events for deepflow."""
     
@@ -204,13 +247,31 @@ class RealTimeIntelligenceEngine:
         self._violations: List[ArchitecturalViolation] = []
         self._ai_alerts: List[AIContextAlert] = []
         
+        # Priority 2: Proactive AI Development Assistance
+        self._pattern_deviations: List[PatternDeviationAlert] = []
+        self._circular_dependency_alerts: List[CircularDependencyAlert] = []
+        self._file_split_suggestions: List[FileSplitSuggestion] = []
+        self._duplicate_patterns: List[DuplicatePatternAlert] = []
+        
+        # Project pattern learning
+        self._learned_patterns = {
+            'naming_conventions': {},
+            'import_patterns': {},
+            'class_structures': {},
+            'function_signatures': {}
+        }
+        
         # Performance tracking
         self._stats = {
             'files_monitored': 0,
             'changes_processed': 0,
             'violations_detected': 0,
             'alerts_generated': 0,
-            'incremental_updates': 0
+            'incremental_updates': 0,
+            'pattern_deviations': 0,
+            'circular_dependencies_prevented': 0,
+            'file_splits_suggested': 0,
+            'duplicate_patterns_found': 0
         }
         
         # Notification callbacks
@@ -309,6 +370,13 @@ class RealTimeIntelligenceEngine:
             # Check for violations and alerts
             await self._check_architectural_violations(change_event)
             await self._check_ai_context_issues(change_event)
+            
+            # Priority 2: Proactive AI Development Assistance
+            if change_event.event_type in ['created', 'modified']:
+                await self._check_pattern_deviations(change_event)
+                await self._check_circular_dependencies(change_event)
+                await self._suggest_file_splits(change_event)
+                await self._detect_duplicate_patterns(change_event)
             
             # Send notifications
             await self._send_notifications(change_event)
@@ -460,6 +528,402 @@ class RealTimeIntelligenceEngine:
         except Exception as e:
             logger.error(f"Error checking AI context issues: {e}")
     
+    async def _check_pattern_deviations(self, change_event: FileChangeEvent):
+        """Check for pattern deviations in AI-generated code."""
+        if not change_event.is_python or change_event.event_type == 'deleted':
+            return
+        
+        try:
+            # Read file content
+            if AIOFILES_AVAILABLE:
+                async with aiofiles.open(change_event.file_path, 'r', encoding='utf-8') as f:
+                    content = await f.read()
+            else:
+                with open(change_event.file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            
+            # Simple pattern analysis - look for common deviations
+            lines = content.split('\n')
+            
+            # Check naming conventions
+            await self._analyze_naming_patterns(change_event.file_path, lines)
+            
+            # Check import patterns  
+            await self._analyze_import_patterns(change_event.file_path, lines)
+            
+            # Check function/class structure patterns
+            await self._analyze_structure_patterns(change_event.file_path, lines)
+            
+        except Exception as e:
+            logger.error(f"Error checking pattern deviations: {e}")
+    
+    async def _analyze_naming_patterns(self, file_path: str, lines: List[str]):
+        """Analyze naming convention patterns."""
+        try:
+            import re
+            
+            # Extract function and class names
+            functions = []
+            classes = []
+            variables = []
+            
+            for line in lines:
+                line = line.strip()
+                
+                # Function definitions
+                func_match = re.match(r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', line)
+                if func_match:
+                    functions.append(func_match.group(1))
+                
+                # Class definitions
+                class_match = re.match(r'class\s+([a-zA-Z_][a-zA-Z0-9_]*)', line)
+                if class_match:
+                    classes.append(class_match.group(1))
+                
+                # Variable assignments (simple detection)
+                var_match = re.match(r'([a-zA-Z_][a-zA-Z0-9_]*)\s*=', line)
+                if var_match and not line.startswith('def ') and not line.startswith('class '):
+                    variables.append(var_match.group(1))
+            
+            # Learn patterns from existing project
+            if not self._learned_patterns['naming_conventions'].get('functions'):
+                self._learned_patterns['naming_conventions']['functions'] = set()
+            if not self._learned_patterns['naming_conventions'].get('classes'):
+                self._learned_patterns['naming_conventions']['classes'] = set()
+            
+            # Add to learned patterns
+            self._learned_patterns['naming_conventions']['functions'].update(functions)
+            self._learned_patterns['naming_conventions']['classes'].update(classes)
+            
+            # Check for deviations
+            for func_name in functions:
+                if not re.match(r'^[a-z_][a-z0-9_]*$', func_name):
+                    deviation = PatternDeviationAlert(
+                        file_path=file_path,
+                        deviation_type='naming',
+                        expected_pattern='snake_case for functions',
+                        actual_pattern=f'Function "{func_name}" uses different naming',
+                        confidence=0.8,
+                        suggestion=f'Consider renaming "{func_name}" to use snake_case',
+                        severity='medium'
+                    )
+                    self._pattern_deviations.append(deviation)
+                    self._stats['pattern_deviations'] += 1
+            
+            for class_name in classes:
+                if not re.match(r'^[A-Z][a-zA-Z0-9]*$', class_name):
+                    deviation = PatternDeviationAlert(
+                        file_path=file_path,
+                        deviation_type='naming',
+                        expected_pattern='PascalCase for classes',
+                        actual_pattern=f'Class "{class_name}" uses different naming',
+                        confidence=0.8,
+                        suggestion=f'Consider renaming "{class_name}" to use PascalCase',
+                        severity='medium'
+                    )
+                    self._pattern_deviations.append(deviation)
+                    self._stats['pattern_deviations'] += 1
+            
+            # Trim history
+            if len(self._pattern_deviations) > 100:
+                self._pattern_deviations = self._pattern_deviations[-100:]
+                
+        except Exception as e:
+            logger.error(f"Error analyzing naming patterns: {e}")
+    
+    async def _analyze_import_patterns(self, file_path: str, lines: List[str]):
+        """Analyze import pattern consistency."""
+        try:
+            import re
+            
+            imports = []
+            from_imports = []
+            
+            for line in lines:
+                line = line.strip()
+                if line.startswith('import '):
+                    imports.append(line)
+                elif line.startswith('from '):
+                    from_imports.append(line)
+            
+            # Check for common import organization issues
+            if imports and from_imports:
+                # Look for mixed import styles that could be consolidated
+                import_modules = set()
+                for imp in imports:
+                    module = imp.replace('import ', '').split(' as ')[0].strip()
+                    import_modules.add(module.split('.')[0])
+                
+                for from_imp in from_imports:
+                    if ' import ' in from_imp:
+                        module = from_imp.split(' import ')[0].replace('from ', '').strip()
+                        base_module = module.split('.')[0]
+                        
+                        if base_module in import_modules:
+                            deviation = PatternDeviationAlert(
+                                file_path=file_path,
+                                deviation_type='imports',
+                                expected_pattern='Consistent import style per module',
+                                actual_pattern=f'Mixed import styles for {base_module}',
+                                confidence=0.7,
+                                suggestion=f'Consider using consistent import style for {base_module} module',
+                                severity='low'
+                            )
+                            self._pattern_deviations.append(deviation)
+                            self._stats['pattern_deviations'] += 1
+                            break
+                            
+        except Exception as e:
+            logger.error(f"Error analyzing import patterns: {e}")
+    
+    async def _analyze_structure_patterns(self, file_path: str, lines: List[str]):
+        """Analyze code structure patterns."""
+        try:
+            # Check for overly long functions (AI tends to generate these)
+            current_function = None
+            function_lines = 0
+            
+            for i, line in enumerate(lines):
+                line_stripped = line.strip()
+                
+                if line_stripped.startswith('def '):
+                    if current_function and function_lines > 50:
+                        deviation = PatternDeviationAlert(
+                            file_path=file_path,
+                            deviation_type='structure',
+                            expected_pattern='Functions should be concise (<50 lines)',
+                            actual_pattern=f'Function {current_function} has {function_lines} lines',
+                            confidence=0.6,
+                            suggestion=f'Consider breaking down {current_function} into smaller functions',
+                            severity='medium'
+                        )
+                        self._pattern_deviations.append(deviation)
+                        self._stats['pattern_deviations'] += 1
+                    
+                    # Reset for new function
+                    current_function = line_stripped.split('(')[0].replace('def ', '').strip()
+                    function_lines = 1
+                elif current_function:
+                    function_lines += 1
+                    
+        except Exception as e:
+            logger.error(f"Error analyzing structure patterns: {e}")
+    
+    async def _check_circular_dependencies(self, change_event: FileChangeEvent):
+        """Check for potential circular dependencies."""
+        if not TOOLS_AVAILABLE or not self._dependency_graph:
+            return
+        
+        try:
+            current_file = change_event.file_path
+            
+            # Get current file's dependencies
+            if current_file in self._dependency_graph.nodes:
+                current_deps = set(self._dependency_graph.nodes[current_file].imports)
+                
+                # Check for potential circular dependencies
+                for dep in current_deps:
+                    # Look for files that might import the current file
+                    for other_file, node in self._dependency_graph.nodes.items():
+                        if other_file != current_file:
+                            other_imports = set(node.imports)
+                            
+                            # Check if other_file imports current_file
+                            current_module = Path(current_file).stem
+                            if current_module in other_imports:
+                                # Check if current_file imports other_file  
+                                other_module = Path(other_file).stem
+                                if other_module in current_deps:
+                                    alert = CircularDependencyAlert(
+                                        involved_files=[current_file, other_file],
+                                        dependency_chain=[current_file, other_module, current_module],
+                                        risk_level='potential',
+                                        impact_assessment='May cause import errors or module initialization issues',
+                                        prevention_suggestion='Consider extracting shared functionality to a separate module'
+                                    )
+                                    self._circular_dependency_alerts.append(alert)
+                                    self._stats['circular_dependencies_prevented'] += 1
+                                    
+                                    logger.warning(f"Potential circular dependency: {current_file} <-> {other_file}")
+            
+            # Trim history
+            if len(self._circular_dependency_alerts) > 50:
+                self._circular_dependency_alerts = self._circular_dependency_alerts[-50:]
+                
+        except Exception as e:
+            logger.error(f"Error checking circular dependencies: {e}")
+    
+    async def _suggest_file_splits(self, change_event: FileChangeEvent):
+        """Suggest file splits for better AI comprehension."""
+        if not change_event.is_python or not hasattr(change_event, 'estimated_tokens'):
+            return
+        
+        try:
+            # Only suggest splits for large files
+            if change_event.estimated_tokens > 2000:
+                # Read file to analyze structure
+                if AIOFILES_AVAILABLE:
+                    async with aiofiles.open(change_event.file_path, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                else:
+                    with open(change_event.file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                
+                lines = content.split('\n')
+                
+                # Simple analysis to suggest splits
+                classes = []
+                functions = []
+                current_class = None
+                current_function = None
+                
+                for i, line in enumerate(lines):
+                    line_stripped = line.strip()
+                    
+                    if line_stripped.startswith('class '):
+                        class_name = line_stripped.split('(')[0].replace('class ', '').strip().rstrip(':')
+                        classes.append({
+                            'name': class_name,
+                            'start_line': i + 1,
+                            'estimated_lines': 50  # Will be calculated properly
+                        })
+                        current_class = class_name
+                    elif line_stripped.startswith('def ') and not line.startswith('    '):
+                        func_name = line_stripped.split('(')[0].replace('def ', '').strip()
+                        functions.append({
+                            'name': func_name,
+                            'start_line': i + 1,
+                            'estimated_lines': 20  # Will be calculated properly
+                        })
+                
+                # Suggest splits if we have multiple classes or many functions
+                suggested_splits = []
+                
+                if len(classes) > 1:
+                    for cls in classes:
+                        suggested_splits.append({
+                            'type': 'class',
+                            'name': cls['name'],
+                            'suggested_filename': f"{cls['name'].lower()}.py",
+                            'rationale': f"Extract {cls['name']} class to separate file for better organization"
+                        })
+                
+                if len(functions) > 10:
+                    # Group related functions
+                    suggested_splits.append({
+                        'type': 'functions',
+                        'name': 'utility_functions',
+                        'suggested_filename': 'utils.py',
+                        'rationale': f"Extract {len(functions)} utility functions to separate module"
+                    })
+                
+                if suggested_splits:
+                    suggestion = FileSplitSuggestion(
+                        file_path=change_event.file_path,
+                        current_size_tokens=change_event.estimated_tokens,
+                        suggested_splits=suggested_splits,
+                        split_rationale='Large file detected - splitting will improve AI comprehension and maintainability',
+                        estimated_improvement=f'Reduce file size from ~{change_event.estimated_tokens} to <1000 tokens per file',
+                        priority='high' if change_event.estimated_tokens > 4000 else 'medium'
+                    )
+                    self._file_split_suggestions.append(suggestion)
+                    self._stats['file_splits_suggested'] += 1
+                    
+                    logger.info(f"File split suggested for {change_event.file_path} ({change_event.estimated_tokens} tokens)")
+            
+            # Trim history
+            if len(self._file_split_suggestions) > 30:
+                self._file_split_suggestions = self._file_split_suggestions[-30:]
+                
+        except Exception as e:
+            logger.error(f"Error suggesting file splits: {e}")
+    
+    async def _detect_duplicate_patterns(self, change_event: FileChangeEvent):
+        """Detect duplicate patterns that could be consolidated."""
+        if not change_event.is_python:
+            return
+        
+        try:
+            # Read current file content
+            if AIOFILES_AVAILABLE:
+                async with aiofiles.open(change_event.file_path, 'r', encoding='utf-8') as f:
+                    content = await f.read()
+            else:
+                with open(change_event.file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            
+            lines = content.split('\n')
+            
+            # Simple duplicate detection - look for similar function structures
+            functions = []
+            current_function = None
+            function_body = []
+            
+            for line in lines:
+                line_stripped = line.strip()
+                
+                if line_stripped.startswith('def '):
+                    # Save previous function
+                    if current_function and function_body:
+                        functions.append({
+                            'name': current_function,
+                            'body_hash': hash('\n'.join(function_body)),
+                            'body': function_body.copy(),
+                            'file_path': change_event.file_path
+                        })
+                    
+                    # Start new function
+                    current_function = line_stripped.split('(')[0].replace('def ', '').strip()
+                    function_body = []
+                elif current_function and line.startswith('    '):
+                    # Function body line
+                    function_body.append(line_stripped)
+                elif current_function and not line.strip():
+                    # Empty line in function
+                    function_body.append('')
+                elif current_function:
+                    # End of function
+                    if function_body:
+                        functions.append({
+                            'name': current_function,
+                            'body_hash': hash('\n'.join(function_body)),
+                            'body': function_body.copy(),
+                            'file_path': change_event.file_path
+                        })
+                    current_function = None
+                    function_body = []
+            
+            # Check for duplicates within this file
+            seen_hashes = {}
+            for func in functions:
+                if func['body_hash'] in seen_hashes:
+                    # Found duplicate
+                    original = seen_hashes[func['body_hash']]
+                    
+                    duplicate_alert = DuplicatePatternAlert(
+                        pattern_type='function',
+                        duplicate_locations=[
+                            {'file_path': original['file_path'], 'function': original['name']},
+                            {'file_path': func['file_path'], 'function': func['name']}
+                        ],
+                        similarity_score=1.0,  # Exact match
+                        consolidation_suggestion=f'Functions "{original["name"]}" and "{func["name"]}" have identical implementations',
+                        estimated_savings=f'{len(func["body"])} lines could be consolidated'
+                    )
+                    self._duplicate_patterns.append(duplicate_alert)
+                    self._stats['duplicate_patterns_found'] += 1
+                    
+                    logger.info(f"Duplicate pattern detected: {original['name']} and {func['name']}")
+                else:
+                    seen_hashes[func['body_hash']] = func
+            
+            # Trim history
+            if len(self._duplicate_patterns) > 50:
+                self._duplicate_patterns = self._duplicate_patterns[-50:]
+                
+        except Exception as e:
+            logger.error(f"Error detecting duplicate patterns: {e}")
+    
     async def _send_notifications(self, change_event: FileChangeEvent):
         """Send real-time notifications to registered callbacks."""
         notification_data = {
@@ -489,6 +953,33 @@ class RealTimeIntelligenceEngine:
                     'recommendation': a.recommendation
                 }
                 for a in self._ai_alerts[-5:]  # Last 5 alerts
+            ],
+            'pattern_deviations': [
+                {
+                    'file_path': p.file_path,
+                    'type': p.deviation_type,
+                    'severity': p.severity,
+                    'suggestion': p.suggestion,
+                    'confidence': p.confidence
+                }
+                for p in self._pattern_deviations[-3:]  # Last 3 pattern deviations
+            ],
+            'circular_dependencies': [
+                {
+                    'files': c.involved_files,
+                    'risk_level': c.risk_level,
+                    'suggestion': c.prevention_suggestion
+                }
+                for c in self._circular_dependency_alerts[-3:]  # Last 3 circular dependency alerts
+            ],
+            'file_splits': [
+                {
+                    'file_path': f.file_path,
+                    'tokens': f.current_size_tokens,
+                    'priority': f.priority,
+                    'rationale': f.split_rationale
+                }
+                for f in self._file_split_suggestions[-3:]  # Last 3 file split suggestions
             ]
         }
         
@@ -513,7 +1004,18 @@ class RealTimeIntelligenceEngine:
             'dependency_updates': len(self._dependency_updates),
             'violations': len(self._violations),
             'ai_alerts': len(self._ai_alerts),
-            'notification_callbacks': len(self._notification_callbacks)
+            'pattern_deviations': len(self._pattern_deviations),
+            'circular_dependency_alerts': len(self._circular_dependency_alerts),
+            'file_split_suggestions': len(self._file_split_suggestions),
+            'duplicate_patterns': len(self._duplicate_patterns),
+            'notification_callbacks': len(self._notification_callbacks),
+            'learned_patterns': {
+                'naming_functions': len(self._learned_patterns['naming_conventions'].get('functions', [])),
+                'naming_classes': len(self._learned_patterns['naming_conventions'].get('classes', [])),
+                'import_patterns': len(self._learned_patterns['import_patterns']),
+                'class_structures': len(self._learned_patterns['class_structures']),
+                'function_signatures': len(self._learned_patterns['function_signatures'])
+            }
         }
     
     def get_recent_activity(self, limit: int = 20) -> Dict[str, Any]:
@@ -556,6 +1058,53 @@ class RealTimeIntelligenceEngine:
                     'timestamp': a.timestamp
                 }
                 for a in self._ai_alerts[-limit:]
+            ],
+            'pattern_deviations': [
+                {
+                    'file_path': p.file_path,
+                    'deviation_type': p.deviation_type,
+                    'expected_pattern': p.expected_pattern,
+                    'actual_pattern': p.actual_pattern,
+                    'confidence': p.confidence,
+                    'suggestion': p.suggestion,
+                    'severity': p.severity,
+                    'timestamp': p.timestamp
+                }
+                for p in self._pattern_deviations[-limit:]
+            ],
+            'circular_dependency_alerts': [
+                {
+                    'involved_files': c.involved_files,
+                    'dependency_chain': c.dependency_chain,
+                    'risk_level': c.risk_level,
+                    'impact_assessment': c.impact_assessment,
+                    'prevention_suggestion': c.prevention_suggestion,
+                    'timestamp': c.timestamp
+                }
+                for c in self._circular_dependency_alerts[-limit:]
+            ],
+            'file_split_suggestions': [
+                {
+                    'file_path': f.file_path,
+                    'current_size_tokens': f.current_size_tokens,
+                    'suggested_splits': f.suggested_splits,
+                    'split_rationale': f.split_rationale,
+                    'estimated_improvement': f.estimated_improvement,
+                    'priority': f.priority,
+                    'timestamp': f.timestamp
+                }
+                for f in self._file_split_suggestions[-limit:]
+            ],
+            'duplicate_patterns': [
+                {
+                    'pattern_type': d.pattern_type,
+                    'duplicate_locations': d.duplicate_locations,
+                    'similarity_score': d.similarity_score,
+                    'consolidation_suggestion': d.consolidation_suggestion,
+                    'estimated_savings': d.estimated_savings,
+                    'timestamp': d.timestamp
+                }
+                for d in self._duplicate_patterns[-limit:]
             ]
         }
 

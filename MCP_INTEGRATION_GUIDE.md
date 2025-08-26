@@ -135,6 +135,84 @@ Once configured, you'll have access to these tools in Claude Code:
 - `doc_type`: "dependency_map", "architecture_overview", or "api_docs"
 - `output_path`: Where to save documentation (optional)
 
+## 🚀 Real-Time Intelligence Tools ✨ **NEW**
+
+### 5. `start_realtime_monitoring`
+**Purpose**: Start live file monitoring with incremental dependency analysis and AI development assistance
+
+**Usage in Claude Code**:
+```
+"Start real-time monitoring of this project"
+"Begin live file monitoring with AI awareness"
+"Enable real-time intelligence for the current project"
+```
+
+**Parameters**:
+- `project_path`: Path to monitor (default: current directory) 
+- `ai_awareness`: Enable AI-aware analysis features (default: true)
+
+**What it does**:
+- Monitors file changes with 500ms debouncing
+- Updates dependency graphs incrementally (10x+ performance)
+- Detects AI context window issues (files >1500 tokens)
+- Identifies pattern deviations in AI-generated code
+- Prevents circular dependencies before they occur
+- Suggests file splits for better AI comprehension
+
+### 6. `stop_realtime_monitoring`
+**Purpose**: Stop real-time file monitoring
+
+**Usage in Claude Code**:
+```
+"Stop the real-time monitoring"
+"Disable live file watching"
+"Turn off real-time intelligence"
+```
+
+**Parameters**: None
+
+### 7. `get_realtime_activity`
+**Purpose**: Get recent real-time monitoring activity and events
+
+**Usage in Claude Code**:
+```
+"Show me recent real-time activity"
+"What pattern deviations were detected recently?"
+"Get the latest file changes and alerts"
+```
+
+**Parameters**:
+- `limit`: Maximum number of events to return (default: 20)
+
+**Returns**:
+- Recent file changes with token estimates
+- Pattern deviations (naming, imports, structure)
+- Circular dependency alerts 
+- File split suggestions
+- Duplicate pattern detections
+- AI context optimization alerts
+
+### 8. `get_realtime_stats`
+**Purpose**: View comprehensive real-time monitoring statistics
+
+**Usage in Claude Code**:
+```
+"Show me real-time monitoring statistics"
+"What are the current monitoring metrics?"
+"Give me a summary of real-time intelligence activity"
+```
+
+**Parameters**: None
+
+**Returns**:
+- Monitoring status and project path
+- Performance metrics (files monitored, changes processed)
+- Pattern deviation counts
+- Circular dependencies prevented
+- File split suggestions made
+- Duplicate patterns found
+- Learned patterns (naming conventions, structures)
+
 ## 🧪 Testing the Integration
 
 ### Verify MCP Tools are Available
@@ -150,17 +228,28 @@ claude mcp list
 
 Then try these commands in Claude Code:
 
+**Core Analysis Tools:**
 ```
 1. "What MCP tools are available?"
 2. "Use the analyze_dependencies tool on the current project"
 3. "Run code quality analysis using the analyze_code_quality tool"
+4. "Generate documentation using the generate_documentation tool"
+```
+
+**Real-Time Intelligence Tools:**
+```
+5. "Start real-time monitoring for this project"
+6. "Show me recent real-time activity"
+7. "What are the current monitoring statistics?"
+8. "Stop the real-time monitoring"
 ```
 
 ### Expected Behavior
 - `claude mcp list` should show deepflow server as "✓ Connected"
-- Claude Code should recognize the deepflow MCP server automatically
-- Tools should appear in the available tools list
-- You should get structured analysis results in JSON format
+- Claude Code should recognize 8 deepflow MCP tools automatically
+- Core tools should provide structured analysis results in JSON format
+- Real-time tools should provide live monitoring capabilities
+- Pattern deviations and AI context alerts should be detected in real-time
 
 ## 🚨 Troubleshooting
 
