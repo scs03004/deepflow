@@ -79,6 +79,19 @@ class RequirementsAnalysis:
     detected_imports: List[Dict[str, Any]]
 
 
+@dataclass
+class FileOrganizationAnalysis:
+    """Analysis result for file organization recommendations."""
+    project_structure_score: float
+    root_clutter_files: List[Dict[str, Any]]
+    suggested_directories: List[Dict[str, Any]]
+    file_relocations: List[Dict[str, Any]]
+    naming_inconsistencies: List[Dict[str, Any]]
+    organization_recommendations: List[Dict[str, Any]]
+    current_structure: Dict[str, Any]
+    ideal_structure: Dict[str, Any]
+
+
 class SmartRefactoringEngine:
     """
     Main engine for Smart Refactoring & Code Quality (Priority 4).
@@ -1177,3 +1190,570 @@ class SmartRefactoringEngine:
         """Apply documentation generation changes."""
         logger.info(f"Documentation generation ({'dry run' if dry_run else 'applying'})")
         return {'applied': len(analysis.generated_docstrings) if not dry_run else 0}
+    
+    # File Organization Methods
+    
+    def analyze_file_organization(self, check_patterns: bool = True) -> FileOrganizationAnalysis:
+        """
+        Analyze project file organization and detect common AI-generated mess patterns.
+        
+        Args:
+            check_patterns: Whether to analyze naming patterns and conventions
+            
+        Returns:
+            FileOrganizationAnalysis with recommendations for better organization
+        """
+        logger.info("Analyzing project file organization...")
+        
+        # Get all files in project
+        all_files = []
+        for pattern in ['**/*.py', '**/*.js', '**/*.ts', '**/*.java', '**/*.cpp', '**/*.h']:
+            all_files.extend(self.project_path.glob(pattern))
+        
+        # Analyze current structure
+        current_structure = self._analyze_current_structure(all_files)
+        
+        # Detect root clutter (files that should be in subdirectories)
+        root_clutter_files = self._detect_root_clutter(all_files)
+        
+        # Suggest better directory structure
+        suggested_directories = self._suggest_directory_structure(all_files)
+        
+        # Generate file relocation recommendations
+        file_relocations = self._generate_relocation_recommendations(all_files, suggested_directories)
+        
+        # Check for naming inconsistencies if requested
+        naming_inconsistencies = []
+        if check_patterns:
+            naming_inconsistencies = self._detect_naming_inconsistencies(all_files)
+        
+        # Generate organization recommendations
+        organization_recommendations = self._generate_organization_recommendations(
+            root_clutter_files, file_relocations, naming_inconsistencies
+        )
+        
+        # Calculate project structure score (0-100)
+        structure_score = self._calculate_structure_score(
+            all_files, root_clutter_files, naming_inconsistencies
+        )
+        
+        # Generate ideal structure
+        ideal_structure = self._generate_ideal_structure(suggested_directories, file_relocations)
+        
+        return FileOrganizationAnalysis(
+            project_structure_score=structure_score,
+            root_clutter_files=root_clutter_files,
+            suggested_directories=suggested_directories,
+            file_relocations=file_relocations,
+            naming_inconsistencies=naming_inconsistencies,
+            organization_recommendations=organization_recommendations,
+            current_structure=current_structure,
+            ideal_structure=ideal_structure
+        )
+    
+    def _analyze_current_structure(self, files: List[Path]) -> Dict[str, Any]:
+        """Analyze the current directory structure of the project."""
+        structure = {
+            'total_files': len(files),
+            'directories': {},
+            'file_types': {},
+            'depth_distribution': {}
+        }
+        
+        for file_path in files:
+            # Directory analysis
+            relative_path = file_path.relative_to(self.project_path)
+            depth = len(relative_path.parts) - 1
+            directory = str(relative_path.parent) if depth > 0 else 'root'
+            
+            if directory not in structure['directories']:
+                structure['directories'][directory] = 0
+            structure['directories'][directory] += 1
+            
+            # File type analysis
+            ext = file_path.suffix
+            if ext not in structure['file_types']:
+                structure['file_types'][ext] = 0
+            structure['file_types'][ext] += 1
+            
+            # Depth analysis
+            if depth not in structure['depth_distribution']:
+                structure['depth_distribution'][depth] = 0
+            structure['depth_distribution'][depth] += 1
+        
+        return structure
+    
+    def _detect_root_clutter(self, files: List[Path]) -> List[Dict[str, Any]]:
+        """Detect files in root that should probably be in subdirectories."""
+        root_clutter = []
+        
+        # Common patterns that suggest root clutter
+        clutter_patterns = {
+            'test_*.py': 'tests',
+            '*_test.py': 'tests', 
+            'test*.py': 'tests',
+            'spec_*.py': 'tests',
+            '*_spec.py': 'tests',
+            'config*.py': 'config',
+            'settings*.py': 'config',
+            'model*.py': 'models',
+            '*_model.py': 'models',
+            'view*.py': 'views',
+            '*_view.py': 'views',
+            'controller*.py': 'controllers',
+            '*_controller.py': 'controllers',
+            'util*.py': 'utils',
+            '*_util.py': 'utils',
+            'helper*.py': 'utils',
+            '*_helper.py': 'utils',
+            'script*.py': 'scripts',
+            '*_script.py': 'scripts'
+        }
+        
+        root_files = [f for f in files if len(f.relative_to(self.project_path).parts) == 1]
+        
+        for file_path in root_files:
+            filename = file_path.name.lower()
+            
+            # Skip common root files that should stay in root
+            if filename in ['main.py', 'app.py', 'run.py', 'manage.py', 'setup.py', '__init__.py']:
+                continue
+            
+            # Check against clutter patterns
+            for pattern, suggested_dir in clutter_patterns.items():
+                import fnmatch
+                if fnmatch.fnmatch(filename, pattern):
+                    root_clutter.append({
+                        'file_path': str(file_path.relative_to(self.project_path)),
+                        'file_name': file_path.name,
+                        'suggested_directory': suggested_dir,
+                        'reason': f'Matches pattern: {pattern}',
+                        'confidence': 0.8
+                    })
+                    break
+            else:
+                # Check for generic clutter (many files in root)
+                if len(root_files) > 10 and filename.endswith('.py'):
+                    root_clutter.append({
+                        'file_path': str(file_path.relative_to(self.project_path)),
+                        'file_name': file_path.name,
+                        'suggested_directory': 'src',
+                        'reason': 'Too many files in root directory',
+                        'confidence': 0.6
+                    })
+        
+        return root_clutter
+    
+    def _suggest_directory_structure(self, files: List[Path]) -> List[Dict[str, Any]]:
+        """Suggest an improved directory structure based on file analysis."""
+        suggestions = []
+        
+        # Analyze file types and purposes
+        file_analysis = {}
+        for file_path in files:
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read(1000)  # Read first 1000 chars
+                    file_analysis[file_path] = self._categorize_file_purpose(content, file_path.name)
+            except:
+                file_analysis[file_path] = 'unknown'
+        
+        # Count purposes
+        purpose_counts = {}
+        for purpose in file_analysis.values():
+            purpose_counts[purpose] = purpose_counts.get(purpose, 0) + 1
+        
+        # Generate directory suggestions based on file purposes
+        common_dirs = {
+            'test': {'directory': 'tests', 'description': 'Test files and test utilities'},
+            'model': {'directory': 'models', 'description': 'Data models and schemas'},
+            'view': {'directory': 'views', 'description': 'UI views and templates'},
+            'controller': {'directory': 'controllers', 'description': 'Business logic controllers'},
+            'utility': {'directory': 'utils', 'description': 'Utility functions and helpers'},
+            'config': {'directory': 'config', 'description': 'Configuration files'},
+            'script': {'directory': 'scripts', 'description': 'Standalone scripts'},
+            'api': {'directory': 'api', 'description': 'API endpoints and handlers'},
+            'service': {'directory': 'services', 'description': 'Business services'},
+            'component': {'directory': 'components', 'description': 'Reusable components'}
+        }
+        
+        for purpose, count in purpose_counts.items():
+            if count >= 2 and purpose in common_dirs:  # Only suggest if multiple files
+                suggestions.append({
+                    'directory_name': common_dirs[purpose]['directory'],
+                    'description': common_dirs[purpose]['description'],
+                    'file_count': count,
+                    'purpose': purpose,
+                    'priority': 'high' if count >= 5 else 'medium'
+                })
+        
+        return suggestions
+    
+    def _categorize_file_purpose(self, content: str, filename: str) -> str:
+        """Categorize the purpose of a file based on content and name."""
+        content_lower = content.lower()
+        filename_lower = filename.lower()
+        
+        # Test files
+        if any(pattern in filename_lower for pattern in ['test_', '_test', 'spec_', '_spec']):
+            return 'test'
+        if any(keyword in content_lower for keyword in ['import unittest', 'import pytest', 'from unittest', 'def test_']):
+            return 'test'
+        
+        # Model files
+        if any(keyword in content_lower for keyword in ['class.*model', 'sqlalchemy', 'django.db', 'dataclass']):
+            return 'model'
+        if any(pattern in filename_lower for pattern in ['model', 'schema']):
+            return 'model'
+        
+        # View files
+        if any(keyword in content_lower for keyword in ['render', 'template', 'html', 'return response']):
+            return 'view'
+        if 'view' in filename_lower:
+            return 'view'
+        
+        # Controller files
+        if any(keyword in content_lower for keyword in ['@app.route', '@router', 'def.*handler', 'fastapi']):
+            return 'controller'
+        if 'controller' in filename_lower:
+            return 'controller'
+        
+        # API files
+        if any(keyword in content_lower for keyword in ['flask', 'fastapi', '@api', 'rest', 'endpoint']):
+            return 'api'
+        if 'api' in filename_lower:
+            return 'api'
+        
+        # Service files
+        if 'service' in filename_lower or 'service' in content_lower:
+            return 'service'
+        
+        # Utility files
+        if any(pattern in filename_lower for pattern in ['util', 'helper', 'common']):
+            return 'utility'
+        
+        # Config files
+        if any(pattern in filename_lower for pattern in ['config', 'settings', 'env']):
+            return 'config'
+        
+        # Script files
+        if any(pattern in filename_lower for pattern in ['script', 'run', 'cli']):
+            return 'script'
+        if 'if __name__ == "__main__"' in content:
+            return 'script'
+        
+        # Component files (React/Vue/etc)
+        if any(keyword in content_lower for keyword in ['component', 'react', 'vue', 'angular']):
+            return 'component'
+        
+        return 'unknown'
+    
+    def _generate_relocation_recommendations(self, files: List[Path], suggested_directories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Generate specific file relocation recommendations."""
+        relocations = []
+        
+        # Create lookup for suggested directories
+        purpose_to_dir = {}
+        for suggestion in suggested_directories:
+            purpose_to_dir[suggestion['purpose']] = suggestion['directory_name']
+        
+        for file_path in files:
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read(1000)
+                    purpose = self._categorize_file_purpose(content, file_path.name)
+                
+                # Skip files that are already in appropriate directories
+                current_dir = file_path.parent.name if file_path.parent != self.project_path else 'root'
+                
+                if purpose in purpose_to_dir:
+                    target_dir = purpose_to_dir[purpose]
+                    if current_dir != target_dir and current_dir != purpose_to_dir.get(purpose, ''):
+                        relocations.append({
+                            'file_path': str(file_path.relative_to(self.project_path)),
+                            'current_location': current_dir,
+                            'target_directory': target_dir,
+                            'purpose': purpose,
+                            'confidence': 0.8 if purpose != 'unknown' else 0.4,
+                            'reason': f'File appears to be a {purpose} file'
+                        })
+            except:
+                continue
+        
+        return relocations
+    
+    def _detect_naming_inconsistencies(self, files: List[Path]) -> List[Dict[str, Any]]:
+        """Detect naming inconsistencies in file names."""
+        inconsistencies = []
+        
+        # Analyze naming patterns
+        naming_patterns = {
+            'snake_case': 0,
+            'camelCase': 0,
+            'PascalCase': 0,
+            'kebab-case': 0,
+            'mixed': 0
+        }
+        
+        file_patterns = {}
+        
+        for file_path in files:
+            filename = file_path.stem  # filename without extension
+            pattern = self._detect_naming_pattern(filename)
+            naming_patterns[pattern] += 1
+            file_patterns[file_path] = pattern
+        
+        # Determine dominant pattern
+        dominant_pattern = max(naming_patterns, key=naming_patterns.get)
+        
+        # Find files that don't follow the dominant pattern
+        for file_path, pattern in file_patterns.items():
+            if pattern != dominant_pattern and pattern != 'mixed':
+                inconsistencies.append({
+                    'file_path': str(file_path.relative_to(self.project_path)),
+                    'current_pattern': pattern,
+                    'expected_pattern': dominant_pattern,
+                    'suggested_name': self._convert_naming_pattern(file_path.stem, dominant_pattern) + file_path.suffix,
+                    'confidence': 0.7
+                })
+        
+        return inconsistencies
+    
+    def _detect_naming_pattern(self, filename: str) -> str:
+        """Detect the naming pattern of a filename."""
+        if '_' in filename and filename.islower():
+            return 'snake_case'
+        elif '-' in filename and filename.islower():
+            return 'kebab-case'
+        elif filename[0].isupper() and not '_' in filename and not '-' in filename:
+            return 'PascalCase'
+        elif filename[0].islower() and not '_' in filename and not '-' in filename and any(c.isupper() for c in filename):
+            return 'camelCase'
+        else:
+            return 'mixed'
+    
+    def _convert_naming_pattern(self, filename: str, target_pattern: str) -> str:
+        """Convert filename to target naming pattern."""
+        # This is a simplified implementation
+        if target_pattern == 'snake_case':
+            import re
+            # Convert camelCase/PascalCase to snake_case
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', filename)
+            s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            return s2.replace('-', '_')
+        elif target_pattern == 'camelCase':
+            import re
+            # First convert to snake_case if it's PascalCase/camelCase
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', filename)
+            s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            snake_case = s2.replace('-', '_')
+            # Then convert snake_case to camelCase
+            parts = snake_case.split('_')
+            if not parts:
+                return filename.lower()
+            return parts[0].lower() + ''.join(word.capitalize() for word in parts[1:])
+        elif target_pattern == 'PascalCase':
+            import re
+            # First convert to snake_case if it's PascalCase/camelCase
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', filename)
+            s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            snake_case = s2.replace('-', '_')
+            # Then convert snake_case to PascalCase
+            parts = snake_case.split('_')
+            return ''.join(word.capitalize() for word in parts if word)
+        elif target_pattern == 'kebab-case':
+            import re
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', filename)
+            s2 = re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
+            return s2.replace('_', '-')
+        
+        return filename
+    
+    def _generate_organization_recommendations(self, root_clutter: List[Dict], relocations: List[Dict], naming_issues: List[Dict]) -> List[Dict[str, Any]]:
+        """Generate high-level organization recommendations."""
+        recommendations = []
+        
+        if root_clutter:
+            recommendations.append({
+                'type': 'reduce_root_clutter',
+                'priority': 'high',
+                'action': f'Move {len(root_clutter)} files from root to appropriate subdirectories',
+                'affected_files': len(root_clutter),
+                'description': 'Too many files in root directory. Consider organizing into subdirectories.'
+            })
+        
+        if relocations:
+            high_confidence_relocations = [r for r in relocations if r['confidence'] >= 0.7]
+            if high_confidence_relocations:
+                recommendations.append({
+                    'type': 'organize_by_purpose',
+                    'priority': 'medium',
+                    'action': f'Reorganize {len(high_confidence_relocations)} files by purpose/functionality',
+                    'affected_files': len(high_confidence_relocations),
+                    'description': 'Group related files together for better maintainability.'
+                })
+        
+        if naming_issues:
+            high_confidence_naming = [n for n in naming_issues if n['confidence'] >= 0.7]
+            if high_confidence_naming:
+                recommendations.append({
+                    'type': 'standardize_naming',
+                    'priority': 'low',
+                    'action': f'Standardize naming convention for {len(high_confidence_naming)} files',
+                    'affected_files': len(high_confidence_naming),
+                    'description': 'Inconsistent file naming patterns detected.'
+                })
+        
+        return recommendations
+    
+    def _calculate_structure_score(self, all_files: List[Path], root_clutter: List[Dict], naming_issues: List[Dict]) -> float:
+        """Calculate a structure quality score from 0-100."""
+        score = 100.0
+        
+        # Penalize root clutter
+        if all_files:
+            clutter_penalty = (len(root_clutter) / len(all_files)) * 30
+            score -= clutter_penalty
+        
+        # Penalize naming inconsistencies
+        if all_files:
+            naming_penalty = (len(naming_issues) / len(all_files)) * 20
+            score -= naming_penalty
+        
+        # Bonus for good directory structure
+        root_files = [f for f in all_files if len(f.relative_to(self.project_path).parts) == 1]
+        if all_files and len(root_files) <= 5:  # Good if 5 or fewer root files
+            score += 10
+        
+        return max(0.0, min(100.0, score))
+    
+    def _generate_ideal_structure(self, suggested_directories: List[Dict], relocations: List[Dict]) -> Dict[str, Any]:
+        """Generate an ideal project structure recommendation."""
+        ideal = {
+            'suggested_directories': {},
+            'organization_principles': [],
+            'structure_benefits': []
+        }
+        
+        # Add suggested directories
+        for suggestion in suggested_directories:
+            ideal['suggested_directories'][suggestion['directory_name']] = {
+                'description': suggestion['description'],
+                'file_count': suggestion['file_count'],
+                'priority': suggestion['priority']
+            }
+        
+        # Add organization principles
+        ideal['organization_principles'] = [
+            'Group related functionality together',
+            'Keep root directory clean with main entry points only',
+            'Use consistent naming conventions throughout',
+            'Separate tests from application code',
+            'Organize by feature or layer depending on project size'
+        ]
+        
+        # Add structure benefits
+        ideal['structure_benefits'] = [
+            'Improved code discoverability',
+            'Easier maintenance and refactoring',
+            'Better collaboration between team members',
+            'Reduced cognitive load when navigating codebase',
+            'Enhanced AI assistant understanding of project structure'
+        ]
+        
+        return ideal
+    
+    def organize_files(self, analysis: FileOrganizationAnalysis, dry_run: bool = True, backup: bool = True) -> Dict[str, Any]:
+        """
+        Apply file organization recommendations with safety checks.
+        
+        Args:
+            analysis: FileOrganizationAnalysis result from analyze_file_organization
+            dry_run: If True, only show what would be done without making changes
+            backup: If True, create backup before making changes
+            
+        Returns:
+            Dictionary with results of the organization process
+        """
+        results = {
+            'success': True,
+            'dry_run': dry_run,
+            'changes_applied': 0,
+            'directories_created': [],
+            'files_moved': [],
+            'files_renamed': [],
+            'errors': []
+        }
+        
+        try:
+            # Create directories if needed
+            directories_to_create = set()
+            for relocation in analysis.file_relocations:
+                if relocation['confidence'] >= 0.7:  # Only high confidence moves
+                    directories_to_create.add(relocation['target_directory'])
+            
+            for directory in directories_to_create:
+                target_path = self.project_path / directory
+                if not dry_run and not target_path.exists():
+                    target_path.mkdir(parents=True, exist_ok=True)
+                    results['directories_created'].append(directory)
+                elif dry_run:
+                    results['directories_created'].append(f"[DRY RUN] {directory}")
+            
+            # Move files (high confidence only)
+            for relocation in analysis.file_relocations:
+                if relocation['confidence'] >= 0.8:  # Very high confidence for file moves
+                    source_path = self.project_path / relocation['file_path']
+                    target_dir = self.project_path / relocation['target_directory']
+                    target_path = target_dir / source_path.name
+                    
+                    if source_path.exists():
+                        if not dry_run:
+                            if backup:
+                                backup_path = source_path.with_suffix(source_path.suffix + '.backup')
+                                import shutil
+                                shutil.copy2(source_path, backup_path)
+                            
+                            import shutil
+                            shutil.move(str(source_path), str(target_path))
+                            results['files_moved'].append({
+                                'from': relocation['file_path'],
+                                'to': f"{relocation['target_directory']}/{source_path.name}"
+                            })
+                        else:
+                            results['files_moved'].append({
+                                'from': f"[DRY RUN] {relocation['file_path']}",
+                                'to': f"[DRY RUN] {relocation['target_directory']}/{source_path.name}"
+                            })
+                        
+                        results['changes_applied'] += 1
+            
+            # Rename files (only very high confidence)
+            for naming_issue in analysis.naming_inconsistencies:
+                if naming_issue['confidence'] >= 0.9:  # Very conservative
+                    source_path = self.project_path / naming_issue['file_path']
+                    target_path = source_path.parent / naming_issue['suggested_name']
+                    
+                    if source_path.exists() and not target_path.exists():
+                        if not dry_run:
+                            source_path.rename(target_path)
+                            results['files_renamed'].append({
+                                'from': naming_issue['file_path'],
+                                'to': str(target_path.relative_to(self.project_path))
+                            })
+                        else:
+                            results['files_renamed'].append({
+                                'from': f"[DRY RUN] {naming_issue['file_path']}",
+                                'to': f"[DRY RUN] {str(target_path.relative_to(self.project_path))}"
+                            })
+                        
+                        results['changes_applied'] += 1
+            
+            logger.info(f"File organization {'simulation' if dry_run else 'completed'} - {results['changes_applied']} changes")
+            
+        except Exception as e:
+            results['success'] = False
+            results['errors'].append(str(e))
+            logger.error(f"Error during file organization: {e}")
+        
+        return results

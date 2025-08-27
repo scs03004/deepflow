@@ -84,6 +84,8 @@ deepflow-mcp-server
 - 📝 **`generate_documentation`** - Auto-generate dependency maps and architecture docs
 - 📦 **`analyze_requirements`** - Detect missing packages from imports (AI coding workflow helper)
 - 🔄 **`update_requirements`** - Update requirements.txt automatically based on code imports
+- 🗂️ **`analyze_file_organization`** - Analyze project structure and detect messy AI-generated patterns
+- 🎯 **`organize_files`** - Apply file organization recommendations with safety checks
 
 > **📚 Complete Setup Guide**: See [`MCP_INTEGRATION_GUIDE.md`](./MCP_INTEGRATION_GUIDE.md) for step-by-step Claude Code configuration.
 
@@ -330,6 +332,78 @@ import pandas as pd
 
 > **🎯 Perfect for**: Claude Code, Cursor, GitHub Copilot, and any AI-assisted development workflow!
 
+### 8. 🗂️ **File Organization for AI Workflows** 🆕
+
+**🚨 Problem**: AI coding tools generate files messily without proper organization - everything ends up in root or scattered randomly!
+
+**✅ Solution**: Deepflow intelligently analyzes and organizes project structure with safe, automated file organization.
+
+#### Smart Organization Features
+- **🎯 Intelligent File Categorization** - Detects test files, models, views, controllers, utilities automatically
+- **📁 Smart Directory Structure** - Suggests proper directory organization based on file purpose and content
+- **🔍 Root Clutter Detection** - Identifies files that should be moved to subdirectories
+- **📝 Naming Pattern Analysis** - Detects and fixes inconsistent naming conventions (snake_case, camelCase, etc.)
+- **🛡️ Conservative Safety** - Only high-confidence moves, with backups and dry-run mode
+- **📊 Structure Scoring** - Rates project organization quality (0-100 score)
+
+#### MCP Integration
+```bash
+# In Claude Code conversations:
+analyze_file_organization project_path="."          # Analyze current structure
+organize_files dry_run=true project_path="."        # Preview organization changes
+organize_files apply_changes=true backup=true       # Apply organization safely
+```
+
+#### Example AI Workflow Problem → Solution
+```
+🚨 BEFORE (Messy AI-Generated Project):
+my-project/
+├── test_user.py              # Test file in root!
+├── user_model.py             # Model in root!
+├── UserService.py            # Inconsistent naming!
+├── api-handler.py            # Different naming pattern!
+├── config_dev.py             # Config in root!
+├── string_utils.py           # Utility in root!
+├── main.py                   # Should stay in root ✓
+└── ... 20+ more files in root 😵
+
+✅ AFTER (deepflow organized):
+my-project/
+├── main.py                   # Stays in root ✓
+├── app.py                    # Stays in root ✓
+├── tests/
+│   └── test_user.py          # Organized by purpose
+├── models/
+│   └── user_model.py         # Grouped with related files
+├── services/
+│   └── user_service.py       # Fixed naming + organized
+├── api/
+│   └── api_handler.py        # Consistent naming
+├── config/
+│   └── config_dev.py         # Configuration grouped
+└── utils/
+    └── string_utils.py       # Utilities organized
+
+📊 Structure Score: 23/100 → 89/100 ✅
+```
+
+#### File Purpose Detection
+Deepflow intelligently detects file purposes:
+- **🧪 Test Files** - `test_*.py`, `*_test.py`, `import unittest/pytest` → `tests/`
+- **📊 Model Files** - `*_model.py`, `@dataclass`, `SQLAlchemy` → `models/`
+- **🌐 View Files** - `*_view.py`, `render_template`, `return response` → `views/`
+- **🎮 Controllers** - `@app.route`, `@router`, `fastapi` → `controllers/`
+- **🔧 Utilities** - `*_utils.py`, `*_helper.py` → `utils/`
+- **⚙️ Config Files** - `config*.py`, `settings*.py` → `config/`
+- **📜 Scripts** - `if __name__ == "__main__"` → `scripts/`
+
+#### Naming Pattern Standardization
+- **Detects dominant pattern** in project (snake_case, camelCase, PascalCase, kebab-case)
+- **Suggests consistent naming** for outlier files
+- **Converts between patterns** safely with high confidence thresholds
+
+> **🎯 Perfect for**: Cleaning up AI-generated projects, maintaining consistent structure, reducing cognitive load
+
 ## 📁 **Project Structure**
 
 ```
@@ -414,7 +488,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ### 🔌 **NEW: MCP Integration**
 - **deepflow-mcp-server**: Model Context Protocol server for Claude Code integration
-- **6 MCP Tools**: analyze_dependencies, analyze_code_quality, validate_commit, generate_documentation, analyze_requirements, update_requirements
+- **8 MCP Tools**: analyze_dependencies, analyze_code_quality, validate_commit, generate_documentation, analyze_requirements, update_requirements, analyze_file_organization, organize_files
 - **Seamless AI Assistant Integration**: Works directly with Claude Code and other MCP clients
 - **Optional Dependency**: Install with `pip install deepflow[mcp]`
 

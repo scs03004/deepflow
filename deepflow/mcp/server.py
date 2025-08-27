@@ -284,6 +284,11 @@ class DeepflowMCPServer:
                 return await self._handle_analyze_requirements(arguments)
             elif name == "update_requirements":
                 return await self._handle_update_requirements(arguments)
+            # File Organization tools
+            elif name == "analyze_file_organization":
+                return await self._handle_analyze_file_organization(arguments)
+            elif name == "organize_files":
+                return await self._handle_organize_files(arguments)
             else:
                 return [TextContent(
                     type="text",
@@ -2367,6 +2372,184 @@ class DeepflowMCPServer:
                 text=f"Error updating requirements: {str(e)}"
             )]
 
+    async def _handle_analyze_file_organization(self, arguments: dict):
+        """Analyze project file organization and detect messy patterns."""
+        if not SMART_REFACTORING_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Smart Refactoring Engine not available."
+            )]
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            check_patterns = arguments.get("check_patterns", True)
+            
+            # Initialize smart refactoring engine
+            refactoring_engine = SmartRefactoringEngine(project_path)
+            
+            # Analyze file organization
+            analysis = refactoring_engine.analyze_file_organization(check_patterns=check_patterns)
+            
+            # Format response
+            response_text = f"""File Organization Analysis 📁
+
+📊 PROJECT STRUCTURE SCORE: {analysis.project_structure_score:.1f}/100
+
+📁 CURRENT STRUCTURE:
+• Total files analyzed: {analysis.current_structure['total_files']}
+• Root directory files: {analysis.current_structure.get('depth_distribution', {}).get(0, 0)}
+• File types found: {len(analysis.current_structure.get('file_types', {}))}
+
+🚨 ISSUES DETECTED:
+"""
+            
+            if analysis.root_clutter_files:
+                response_text += f"• Root clutter: {len(analysis.root_clutter_files)} files in root should be organized\n"
+                for clutter in analysis.root_clutter_files[:5]:  # Show top 5
+                    response_text += f"  - {clutter['file_name']} → {clutter['suggested_directory']} ({clutter['reason']})\n"
+                if len(analysis.root_clutter_files) > 5:
+                    response_text += f"  ... and {len(analysis.root_clutter_files) - 5} more files\n"
+            
+            if analysis.naming_inconsistencies:
+                response_text += f"• Naming inconsistencies: {len(analysis.naming_inconsistencies)} files with inconsistent patterns\n"
+                # Find the dominant pattern
+                patterns = {}
+                for issue in analysis.naming_inconsistencies:
+                    patterns[issue['expected_pattern']] = patterns.get(issue['expected_pattern'], 0) + 1
+                if patterns:
+                    dominant_pattern = max(patterns, key=patterns.get)
+                    response_text += f"  - Project uses mainly {dominant_pattern}, but some files use different patterns\n"
+            
+            response_text += "\n💡 RECOMMENDATIONS:\n"
+            for recommendation in analysis.organization_recommendations:
+                priority_emoji = "🔴" if recommendation['priority'] == 'high' else "🟡" if recommendation['priority'] == 'medium' else "🟢"
+                response_text += f"{priority_emoji} {recommendation['action']}\n"
+                response_text += f"   {recommendation['description']}\n"
+            
+            if analysis.suggested_directories:
+                response_text += f"\n📁 SUGGESTED DIRECTORY STRUCTURE:\n"
+                for suggestion in analysis.suggested_directories:
+                    response_text += f"• {suggestion['directory_name']}/: {suggestion['description']} ({suggestion['file_count']} files)\n"
+            
+            response_text += f"\n🎯 Use 'organize_files' tool to apply these recommendations safely!"
+            
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error analyzing file organization: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error analyzing file organization: {str(e)}"
+            )]
+
+    async def _handle_organize_files(self, arguments: dict):
+        """Apply file organization recommendations with safety checks."""
+        if not SMART_REFACTORING_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Smart Refactoring Engine not available."
+            )]
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            dry_run = arguments.get("dry_run", True)
+            backup = arguments.get("backup", True)
+            apply_changes = arguments.get("apply_changes", False)
+            
+            # Override dry_run if apply_changes is explicitly set
+            if apply_changes:
+                dry_run = False
+            
+            # Initialize smart refactoring engine
+            refactoring_engine = SmartRefactoringEngine(project_path)
+            
+            # First analyze file organization
+            analysis = refactoring_engine.analyze_file_organization(check_patterns=True)
+            
+            # Apply organization recommendations
+            results = refactoring_engine.organize_files(
+                analysis=analysis,
+                dry_run=dry_run,
+                backup=backup
+            )
+            
+            # Format response
+            if dry_run:
+                response_text = f"""File Organization Preview (DRY RUN) 📁
+
+🔍 CHANGES PREVIEW:
+• Directories to create: {len(results['directories_created'])}
+• Files to move: {len(results['files_moved'])}
+• Files to rename: {len(results['files_renamed'])}
+• Total changes: {results['changes_applied']}
+
+📁 DIRECTORIES TO CREATE:
+"""
+                for directory in results['directories_created']:
+                    response_text += f"• {directory}\n"
+                
+                response_text += "\n📦 FILES TO MOVE:\n"
+                for move in results['files_moved']:
+                    response_text += f"• {move['from']} → {move['to']}\n"
+                
+                if results['files_renamed']:
+                    response_text += "\n🏷️ FILES TO RENAME:\n"
+                    for rename in results['files_renamed']:
+                        response_text += f"• {rename['from']} → {rename['to']}\n"
+                
+                response_text += f"\n💡 To apply changes, use: organize_files with apply_changes=true"
+                
+            else:
+                response_text = f"""File Organization Complete! ✅
+
+📦 CHANGES APPLIED:
+• Directories created: {len([d for d in results['directories_created'] if not d.startswith('[DRY RUN]')])}
+• Files moved: {len([f for f in results['files_moved'] if not f['from'].startswith('[DRY RUN]')])}
+• Files renamed: {len([f for f in results['files_renamed'] if not f['from'].startswith('[DRY RUN]')])}
+• Total changes: {results['changes_applied']}
+"""
+                
+                if results['directories_created']:
+                    response_text += "\n📁 DIRECTORIES CREATED:\n"
+                    for directory in results['directories_created']:
+                        if not directory.startswith('[DRY RUN]'):
+                            response_text += f"• {directory}/\n"
+                
+                if results['files_moved']:
+                    response_text += "\n📦 FILES MOVED:\n"
+                    for move in results['files_moved']:
+                        if not move['from'].startswith('[DRY RUN]'):
+                            response_text += f"• {move['from']} → {move['to']}\n"
+                
+                if results['files_renamed']:
+                    response_text += "\n🏷️ FILES RENAMED:\n"
+                    for rename in results['files_renamed']:
+                        if not rename['from'].startswith('[DRY RUN]'):
+                            response_text += f"• {rename['from']} → {rename['to']}\n"
+                
+                if backup:
+                    response_text += "\n💾 Backups were created for moved files\n"
+            
+            if results['errors']:
+                response_text += f"\n❌ ERRORS ENCOUNTERED:\n"
+                for error in results['errors']:
+                    response_text += f"• {error}\n"
+            
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error organizing files: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error organizing files: {str(e)}"
+            )]
+
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""
         return [
@@ -3136,6 +3319,54 @@ class DeepflowMCPServer:
                         "apply_changes": {
                             "type": "boolean",
                             "description": "Actually apply changes to requirements.txt",
+                            "default": False
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="analyze_file_organization",
+                description="Analyze project file organization and detect messy AI-generated patterns (AI coding workflow helper)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to analyze",
+                            "default": "."
+                        },
+                        "check_patterns": {
+                            "type": "boolean",
+                            "description": "Check for naming pattern inconsistencies",
+                            "default": True
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="organize_files",
+                description="Apply file organization recommendations with safety checks (AI coding workflow helper)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to organize",
+                            "default": "."
+                        },
+                        "dry_run": {
+                            "type": "boolean",
+                            "description": "Show what changes would be made without applying them",
+                            "default": True
+                        },
+                        "backup": {
+                            "type": "boolean",
+                            "description": "Create backups before moving files",
+                            "default": True
+                        },
+                        "apply_changes": {
+                            "type": "boolean",
+                            "description": "Actually apply the organization changes",
                             "default": False
                         }
                     }
