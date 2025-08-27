@@ -279,6 +279,11 @@ class DeepflowMCPServer:
                 return await self._handle_list_workflows(arguments)
             elif name == "get_workflow_metrics":
                 return await self._handle_get_workflow_metrics(arguments)
+            # Requirements Management tools
+            elif name == "analyze_requirements":
+                return await self._handle_analyze_requirements(arguments)
+            elif name == "update_requirements":
+                return await self._handle_update_requirements(arguments)
             else:
                 return [TextContent(
                     type="text",
@@ -2200,6 +2205,168 @@ class DeepflowMCPServer:
                 text=f"Error getting workflow metrics: {str(e)}"
             )]
 
+    async def _handle_analyze_requirements(self, arguments: dict):
+        """Analyze requirements.txt and detect missing packages from imports."""
+        if not SMART_REFACTORING_ENGINE_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Smart Refactoring Engine not available."
+            )]
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            check_installed = arguments.get("check_installed", True)
+            target_files = arguments.get("target_files")
+            
+            # Initialize smart refactoring engine
+            refactoring_engine = SmartRefactoringEngine(project_path)
+            
+            # Analyze requirements
+            analysis = refactoring_engine.analyze_requirements(
+                target_files=target_files,
+                check_installed=check_installed
+            )
+            
+            # Format results for MCP response
+            results = {
+                "summary": {
+                    "missing_packages_count": len(analysis.missing_packages),
+                    "unused_packages_count": len(analysis.unused_packages),
+                    "current_requirements_count": len(analysis.current_requirements),
+                    "detected_imports_count": len(analysis.detected_imports)
+                },
+                "missing_packages": [
+                    {
+                        "import_name": pkg["import_name"],
+                        "package_name": pkg["package_name"],
+                        "confidence": pkg["confidence"],
+                        "files_using": pkg["files_using"],
+                        "is_standard_library": pkg["is_standard_library"],
+                        "suggested_version": pkg.get("suggested_version", "")
+                    }
+                    for pkg in analysis.missing_packages
+                ],
+                "unused_packages": analysis.unused_packages,
+                "update_recommendations": analysis.update_recommendations,
+                "high_confidence_missing": [
+                    pkg["package_name"] for pkg in analysis.missing_packages
+                    if pkg["confidence"] >= 0.9 and not pkg["is_standard_library"]
+                ]
+            }
+            
+            response_text = f"""Requirements Analysis Results:
+
+📦 SUMMARY:
+• Missing packages: {results['summary']['missing_packages_count']}
+• Unused packages: {results['summary']['unused_packages_count']}
+• Current requirements: {results['summary']['current_requirements_count']}
+• Detected imports: {results['summary']['detected_imports_count']}
+
+🔍 HIGH-CONFIDENCE MISSING PACKAGES:
+"""
+            
+            if results['high_confidence_missing']:
+                for pkg in results['high_confidence_missing']:
+                    response_text += f"• {pkg}\n"
+            else:
+                response_text += "• None detected\n"
+                
+            response_text += "\n💡 RECOMMENDATIONS:\n"
+            for rec in analysis.update_recommendations:
+                response_text += f"• [{rec['priority'].upper()}] {rec['action']}\n"
+                for pkg in rec['packages']:
+                    response_text += f"  - {pkg}\n"
+            
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error analyzing requirements: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error analyzing requirements: {str(e)}"
+            )]
+
+    async def _handle_update_requirements(self, arguments: dict):
+        """Update requirements.txt file based on analysis."""
+        if not SMART_REFACTORING_ENGINE_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Smart Refactoring Engine not available."
+            )]
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            backup = arguments.get("backup", True)
+            dry_run = arguments.get("dry_run", True)
+            apply_changes = arguments.get("apply_changes", False)
+            
+            # Override dry_run if apply_changes is explicitly set
+            if apply_changes:
+                dry_run = False
+            
+            # Initialize smart refactoring engine
+            refactoring_engine = SmartRefactoringEngine(project_path)
+            
+            # First analyze requirements
+            analysis = refactoring_engine.analyze_requirements()
+            
+            # Update requirements.txt
+            update_results = refactoring_engine.update_requirements_file(
+                analysis=analysis,
+                backup=backup,
+                dry_run=dry_run
+            )
+            
+            # Format response
+            if dry_run:
+                response_text = f"""Requirements Update Preview (DRY RUN):
+
+📦 CHANGES SUMMARY:
+• Packages to add: {update_results['packages_added']}
+• Packages to remove: {update_results['packages_removed']}
+• Original count: {update_results['original_count']}
+• New count: {update_results['new_count']}
+
+📝 PROPOSED REQUIREMENTS.TXT:
+"""
+                for req in update_results['new_requirements']:
+                    if req not in analysis.current_requirements:
+                        response_text += f"+ {req}\n"
+                    else:
+                        response_text += f"  {req}\n"
+                
+                response_text += "\n💡 To apply changes, use: update_requirements with apply_changes=true"
+            
+            else:
+                response_text = f"""Requirements Updated Successfully! ✅
+
+📦 CHANGES APPLIED:
+• Packages added: {update_results['packages_added']}
+• Packages removed: {update_results['packages_removed']}
+• Backup created: {update_results['backup_created']}
+• Total requirements: {update_results['new_count']}
+
+📁 FILES MODIFIED:
+• requirements.txt updated
+"""
+                if update_results['backup_created']:
+                    response_text += "• requirements.txt.backup created\n"
+            
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error updating requirements: {e}", exc_info=True)
+            return [TextContent(
+                type="text",
+                text=f"Error updating requirements: {str(e)}"
+            )]
+
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""
         return [
@@ -2916,6 +3083,60 @@ class DeepflowMCPServer:
                             "type": "string",
                             "description": "Path to the project",
                             "default": "."
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="analyze_requirements",
+                description="Analyze requirements.txt and detect missing packages from imports (AI coding workflow helper)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to analyze",
+                            "default": "."
+                        },
+                        "check_installed": {
+                            "type": "boolean",
+                            "description": "Check if packages are actually installed",
+                            "default": True
+                        },
+                        "target_files": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Specific files to analyze (optional)",
+                            "default": None
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="update_requirements",
+                description="Update requirements.txt file based on analysis (AI coding workflow helper)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project",
+                            "default": "."
+                        },
+                        "backup": {
+                            "type": "boolean",
+                            "description": "Create backup of original requirements.txt",
+                            "default": True
+                        },
+                        "dry_run": {
+                            "type": "boolean", 
+                            "description": "Show changes without applying them",
+                            "default": True
+                        },
+                        "apply_changes": {
+                            "type": "boolean",
+                            "description": "Actually apply changes to requirements.txt",
+                            "default": False
                         }
                     }
                 }

@@ -68,6 +68,17 @@ class DocumentationAnalysis:
     generated_docstrings: Dict[str, str]
 
 
+@dataclass 
+class RequirementsAnalysis:
+    """Analysis result for requirements.txt management."""
+    missing_packages: List[Dict[str, Any]]
+    unused_packages: List[str]
+    version_conflicts: List[Dict[str, Any]]
+    update_recommendations: List[Dict[str, Any]]
+    current_requirements: List[str]
+    detected_imports: List[Dict[str, Any]]
+
+
 class SmartRefactoringEngine:
     """
     Main engine for Smart Refactoring & Code Quality (Priority 4).
@@ -86,6 +97,181 @@ class SmartRefactoringEngine:
         self.pattern_cache = {}
         self.import_cache = {}
         self.analysis_cache = {}
+        self.requirements_cache = {}
+        
+        # Comprehensive import-to-package mapping for common libraries
+        self.import_to_package = {
+            # Web Frameworks
+            'flask': 'flask',
+            'django': 'django', 
+            'fastapi': 'fastapi',
+            'starlette': 'starlette',
+            'tornado': 'tornado',
+            'bottle': 'bottle',
+            'pyramid': 'pyramid',
+            
+            # HTTP & API
+            'requests': 'requests',
+            'urllib3': 'urllib3',
+            'httpx': 'httpx',
+            'aiohttp': 'aiohttp',
+            'websockets': 'websockets',
+            'socketio': 'python-socketio',
+            'pydantic': 'pydantic',
+            
+            # Database
+            'sqlalchemy': 'sqlalchemy',
+            'sqlite3': '',  # Built-in
+            'pymongo': 'pymongo',
+            'redis': 'redis',
+            'psycopg2': 'psycopg2-binary',
+            'mysql': 'mysql-connector-python',
+            'cx_Oracle': 'cx-Oracle',
+            'peewee': 'peewee',
+            'tortoise': 'tortoise-orm',
+            'databases': 'databases',
+            'asyncpg': 'asyncpg',
+            
+            # Data Science & ML
+            'numpy': 'numpy',
+            'pandas': 'pandas',
+            'matplotlib': 'matplotlib',
+            'seaborn': 'seaborn',
+            'plotly': 'plotly',
+            'scipy': 'scipy',
+            'sklearn': 'scikit-learn',
+            'tensorflow': 'tensorflow',
+            'torch': 'torch',
+            'keras': 'keras',
+            'xgboost': 'xgboost',
+            'lightgbm': 'lightgbm',
+            'opencv': 'opencv-python',
+            'cv2': 'opencv-python',
+            'PIL': 'Pillow',
+            'skimage': 'scikit-image',
+            'statsmodels': 'statsmodels',
+            
+            # Async & Concurrency  
+            'asyncio': '',  # Built-in
+            'aiofiles': 'aiofiles',
+            'aiodns': 'aiodns',
+            'uvloop': 'uvloop',
+            'celery': 'celery',
+            'rq': 'rq',
+            
+            # Testing
+            'pytest': 'pytest',
+            'unittest': '',  # Built-in
+            'mock': '',  # Built-in (unittest.mock)
+            'nose': 'nose',
+            'coverage': 'coverage',
+            'hypothesis': 'hypothesis',
+            'factory_boy': 'factory-boy',
+            'faker': 'faker',
+            
+            # CLI & Config
+            'click': 'click',
+            'argparse': '',  # Built-in
+            'typer': 'typer',
+            'fire': 'fire',
+            'configparser': '',  # Built-in
+            'yaml': 'pyyaml',
+            'toml': 'toml',
+            'dotenv': 'python-dotenv',
+            
+            # Utilities
+            'rich': 'rich',
+            'tqdm': 'tqdm',
+            'loguru': 'loguru',
+            'schedule': 'schedule',
+            'watchdog': 'watchdog',
+            
+            # Built-in modules (Python standard library)
+            'os': '',  # Built-in
+            'sys': '',  # Built-in
+            'pathlib': '',  # Built-in
+            'datetime': '',  # Built-in
+            'json': '',  # Built-in
+            'csv': '',  # Built-in
+            'pickle': '',  # Built-in
+            'hashlib': '',  # Built-in
+            'uuid': '',  # Built-in
+            'base64': '',  # Built-in
+            'gzip': '',  # Built-in
+            'zipfile': '',  # Built-in
+            'tarfile': '',  # Built-in
+            'time': '',  # Built-in
+            'random': '',  # Built-in
+            'math': '',  # Built-in
+            'statistics': '',  # Built-in
+            'collections': '',  # Built-in
+            'itertools': '',  # Built-in
+            'functools': '',  # Built-in
+            'operator': '',  # Built-in
+            're': '',  # Built-in
+            'string': '',  # Built-in
+            'textwrap': '',  # Built-in
+            'difflib': '',  # Built-in
+            'unicodedata': '',  # Built-in
+            'logging': '',  # Built-in
+            'threading': '',  # Built-in
+            'multiprocessing': '',  # Built-in
+            'concurrent': '',  # Built-in
+            'subprocess': '',  # Built-in
+            'signal': '',  # Built-in
+            'contextlib': '',  # Built-in
+            'io': '',  # Built-in
+            'tempfile': '',  # Built-in
+            'shutil': '',  # Built-in
+            'glob': '',  # Built-in
+            'fnmatch': '',  # Built-in
+            
+            # Development Tools
+            'black': 'black',
+            'flake8': 'flake8',
+            'mypy': 'mypy',
+            'isort': 'isort',
+            'bandit': 'bandit',
+            'safety': 'safety',
+            'pre_commit': 'pre-commit',
+            
+            # Crypto & Security
+            'cryptography': 'cryptography',
+            'bcrypt': 'bcrypt',
+            'passlib': 'passlib',
+            'jose': 'python-jose',
+            'jwt': 'pyjwt',
+            
+            # File Processing
+            'openpyxl': 'openpyxl',
+            'xlsxwriter': 'xlsxwriter',
+            'docx': 'python-docx',
+            'pdf': 'pypdf2',
+            'lxml': 'lxml',
+            'bs4': 'beautifulsoup4',
+            
+            # Network & Parsing
+            'paramiko': 'paramiko',
+            'ftplib': '',  # Built-in
+            'smtplib': '',  # Built-in
+            'email': '',  # Built-in
+            'dns': 'dnspython',
+            'netifaces': 'netifaces',
+            
+            # Graphics & GUI
+            'tkinter': '',  # Built-in
+            'kivy': 'kivy',
+            'pygame': 'pygame',
+            'qt': 'pyqt5',
+            'wx': 'wxpython',
+            
+            # Scientific Computing
+            'sympy': 'sympy',
+            'networkx': 'networkx',
+            'igraph': 'python-igraph',
+            'Bio': 'biopython',
+            'astropy': 'astropy',
+        }
         
     def standardize_patterns(self, target_files: Optional[List[str]] = None) -> PatternAnalysis:
         """
@@ -342,6 +528,140 @@ class SmartRefactoringEngine:
             generated_docstrings=generated_docstrings
         )
     
+    def analyze_requirements(self, target_files: Optional[List[str]] = None, 
+                           check_installed: bool = True) -> RequirementsAnalysis:
+        """
+        Analyze and manage requirements.txt for AI-assisted development.
+        
+        Detects missing packages from imports, identifies unused requirements,
+        and provides intelligent update recommendations for requirements.txt.
+        
+        Args:
+            target_files: Optional list of specific files to analyze
+            check_installed: Whether to check if packages are actually installed
+            
+        Returns:
+            RequirementsAnalysis with package recommendations
+        """
+        logger.info("Starting requirements analysis...")
+        
+        files_to_analyze = target_files or self._get_python_files()
+        
+        # Parse current requirements.txt
+        current_requirements = self._parse_requirements_file()
+        current_packages = {req.split('==')[0].split('>=')[0].split('<=')[0].split('~=')[0].lower() 
+                           for req in current_requirements}
+        
+        # Detect all imports from Python files
+        detected_imports = self._detect_all_imports(files_to_analyze)
+        
+        # Map imports to package names
+        required_packages = set()
+        missing_packages = []
+        
+        for import_info in detected_imports:
+            import_name = import_info['import_name']
+            package_name = self._map_import_to_package(import_name)
+            
+            if package_name and package_name not in current_packages:
+                required_packages.add(package_name)
+                missing_packages.append({
+                    'import_name': import_name,
+                    'package_name': package_name,
+                    'files_using': import_info['files'],
+                    'is_standard_library': package_name == '',
+                    'confidence': self._get_mapping_confidence(import_name),
+                    'suggested_version': self._get_suggested_version(package_name)
+                })
+        
+        # Find potentially unused packages
+        unused_packages = []
+        if check_installed:
+            unused_packages = self._find_unused_packages(current_packages, detected_imports)
+        
+        # Check for version conflicts
+        version_conflicts = self._detect_version_conflicts(current_requirements, missing_packages)
+        
+        # Generate update recommendations
+        update_recommendations = self._generate_update_recommendations(
+            missing_packages, unused_packages, version_conflicts
+        )
+        
+        return RequirementsAnalysis(
+            missing_packages=missing_packages,
+            unused_packages=unused_packages,
+            version_conflicts=version_conflicts,
+            update_recommendations=update_recommendations,
+            current_requirements=current_requirements,
+            detected_imports=detected_imports
+        )
+    
+    def update_requirements_file(self, analysis: RequirementsAnalysis, 
+                               backup: bool = True, dry_run: bool = True) -> Dict[str, Any]:
+        """
+        Update requirements.txt based on analysis results.
+        
+        Args:
+            analysis: RequirementsAnalysis from analyze_requirements()
+            backup: Whether to create a backup of the original file
+            dry_run: If True, only show what would be changed
+            
+        Returns:
+            Dictionary with update results and statistics
+        """
+        requirements_path = self.project_path / "requirements.txt"
+        
+        if backup and requirements_path.exists() and not dry_run:
+            backup_path = self.project_path / "requirements.txt.backup"
+            import shutil
+            shutil.copy2(requirements_path, backup_path)
+        
+        # Build new requirements content
+        new_requirements = set(analysis.current_requirements)
+        
+        # Add missing packages
+        for pkg in analysis.missing_packages:
+            if not pkg['is_standard_library'] and pkg['confidence'] >= 0.8:
+                package_name = pkg['package_name']
+                version = pkg.get('suggested_version', '')
+                if version:
+                    new_requirements.add(f"{package_name}=={version}")
+                else:
+                    new_requirements.add(package_name)
+        
+        # Remove unused packages if user confirms
+        for unused_pkg in analysis.unused_packages:
+            new_requirements.discard(unused_pkg)
+        
+        # Sort requirements for consistency
+        sorted_requirements = sorted(list(new_requirements))
+        
+        results = {
+            'dry_run': dry_run,
+            'packages_added': len([p for p in analysis.missing_packages 
+                                  if not p['is_standard_library'] and p['confidence'] >= 0.8]),
+            'packages_removed': len(analysis.unused_packages),
+            'original_count': len(analysis.current_requirements),
+            'new_count': len(sorted_requirements),
+            'backup_created': backup and requirements_path.exists() and not dry_run,
+            'new_requirements': sorted_requirements
+        }
+        
+        if not dry_run:
+            # Write updated requirements.txt
+            with open(requirements_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(sorted_requirements) + '\n')
+            logger.info(f"Updated requirements.txt with {results['packages_added']} new packages")
+        else:
+            logger.info("Dry run: would update requirements.txt with the following changes:")
+            for req in sorted_requirements:
+                if req not in analysis.current_requirements:
+                    logger.info(f"  + {req}")
+            for unused in analysis.unused_packages:
+                logger.info(f"  - {unused}")
+        
+        return results
+    
     def apply_refactoring(self, analysis_results: Dict[str, Any], dry_run: bool = True) -> Dict[str, Any]:
         """
         Apply refactoring suggestions with safety validation.
@@ -405,6 +725,170 @@ class SmartRefactoringEngine:
             results['errors'].append(str(e))
         
         return results
+    
+    # Requirements management helper methods
+    
+    def _parse_requirements_file(self) -> List[str]:
+        """Parse existing requirements.txt file."""
+        requirements_path = self.project_path / "requirements.txt"
+        if not requirements_path.exists():
+            return []
+        
+        try:
+            with open(requirements_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            requirements = []
+            for line in lines:
+                line = line.strip()
+                # Skip comments and empty lines
+                if line and not line.startswith('#'):
+                    requirements.append(line)
+            
+            return requirements
+        except Exception as e:
+            logger.warning(f"Error reading requirements.txt: {e}")
+            return []
+    
+    def _detect_all_imports(self, files: List[Path]) -> List[Dict[str, Any]]:
+        """Detect all imports across Python files."""
+        import_usage = defaultdict(list)
+        
+        for file_path in files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                tree = ast.parse(content, filename=str(file_path))
+                
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        for alias in node.names:
+                            import_name = alias.name.split('.')[0]  # Get top-level module
+                            import_usage[import_name].append(str(file_path))
+                    elif isinstance(node, ast.ImportFrom):
+                        if node.module:
+                            import_name = node.module.split('.')[0]  # Get top-level module
+                            import_usage[import_name].append(str(file_path))
+                            
+            except Exception as e:
+                logger.warning(f"Error parsing {file_path}: {e}")
+                continue
+        
+        # Convert to list format
+        detected_imports = []
+        for import_name, files_using in import_usage.items():
+            detected_imports.append({
+                'import_name': import_name,
+                'files': list(set(files_using)),  # Remove duplicates
+                'usage_count': len(files_using)
+            })
+        
+        return detected_imports
+    
+    def _map_import_to_package(self, import_name: str) -> str:
+        """Map import name to package name using comprehensive mapping."""
+        # Direct mapping from our comprehensive dictionary
+        if import_name in self.import_to_package:
+            return self.import_to_package[import_name]
+        
+        # Handle common patterns for unmapped imports
+        # Most imports match their package name
+        return import_name
+    
+    def _get_mapping_confidence(self, import_name: str) -> float:
+        """Get confidence score for import-to-package mapping."""
+        if import_name in self.import_to_package:
+            return 1.0  # High confidence for known mappings
+        else:
+            return 0.7  # Medium confidence for direct name mapping
+    
+    def _get_suggested_version(self, package_name: str) -> str:
+        """Get suggested version for a package."""
+        # For now, return empty string to use latest version
+        # In the future, could query PyPI API or use version constraints
+        return ""
+    
+    def _find_unused_packages(self, current_packages: Set[str], 
+                            detected_imports: List[Dict[str, Any]]) -> List[str]:
+        """Find packages in requirements.txt that might not be used."""
+        detected_package_names = set()
+        
+        for import_info in detected_imports:
+            package_name = self._map_import_to_package(import_info['import_name'])
+            if package_name:  # Skip built-in modules
+                detected_package_names.add(package_name.lower())
+        
+        # Find packages in requirements but not in detected imports
+        unused = []
+        for pkg in current_packages:
+            if pkg.lower() not in detected_package_names:
+                # Be conservative - only flag obvious unused packages
+                if not self._is_likely_indirect_dependency(pkg):
+                    unused.append(pkg)
+        
+        return unused
+    
+    def _is_likely_indirect_dependency(self, package_name: str) -> bool:
+        """Check if package is likely an indirect dependency."""
+        # Common indirect dependencies that shouldn't be flagged as unused
+        indirect_deps = {
+            'setuptools', 'pip', 'wheel', 'six', 'urllib3', 'certifi', 
+            'charset-normalizer', 'idna', 'pycparser', 'cffi'
+        }
+        return package_name.lower() in indirect_deps
+    
+    def _detect_version_conflicts(self, current_requirements: List[str], 
+                                missing_packages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Detect potential version conflicts."""
+        conflicts = []
+        
+        # For now, return empty list - could be enhanced to check for known conflicts
+        # between packages or Python version compatibility
+        
+        return conflicts
+    
+    def _generate_update_recommendations(self, missing_packages: List[Dict[str, Any]],
+                                       unused_packages: List[str],
+                                       version_conflicts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Generate intelligent update recommendations."""
+        recommendations = []
+        
+        # High-confidence missing packages
+        high_confidence_missing = [pkg for pkg in missing_packages 
+                                 if pkg['confidence'] >= 0.9 and not pkg['is_standard_library']]
+        if high_confidence_missing:
+            recommendations.append({
+                'type': 'add_packages',
+                'priority': 'high',
+                'action': 'Add missing packages to requirements.txt',
+                'packages': [pkg['package_name'] for pkg in high_confidence_missing],
+                'rationale': 'These packages are imported but not in requirements.txt'
+            })
+        
+        # Medium-confidence missing packages
+        medium_confidence_missing = [pkg for pkg in missing_packages 
+                                   if 0.7 <= pkg['confidence'] < 0.9 and not pkg['is_standard_library']]
+        if medium_confidence_missing:
+            recommendations.append({
+                'type': 'review_packages',
+                'priority': 'medium',
+                'action': 'Review and potentially add packages',
+                'packages': [pkg['package_name'] for pkg in medium_confidence_missing],
+                'rationale': 'These imports might require additional packages'
+            })
+        
+        # Unused packages (be conservative)
+        if unused_packages:
+            recommendations.append({
+                'type': 'review_unused',
+                'priority': 'low',
+                'action': 'Review potentially unused packages',
+                'packages': unused_packages,
+                'rationale': 'These packages may not be directly imported (could be indirect dependencies)'
+            })
+        
+        return recommendations
     
     # Helper methods
     

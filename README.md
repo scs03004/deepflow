@@ -82,6 +82,8 @@ deepflow-mcp-server
 - 🎯 **`analyze_code_quality`** - Code quality, unused imports, and technical debt analysis  
 - ✅ **`validate_commit`** - Pre-commit validation and change impact analysis
 - 📝 **`generate_documentation`** - Auto-generate dependency maps and architecture docs
+- 📦 **`analyze_requirements`** - Detect missing packages from imports (AI coding workflow helper)
+- 🔄 **`update_requirements`** - Update requirements.txt automatically based on code imports
 
 > **📚 Complete Setup Guide**: See [`MCP_INTEGRATION_GUIDE.md`](./MCP_INTEGRATION_GUIDE.md) for step-by-step Claude Code configuration.
 
@@ -280,6 +282,54 @@ deepflow-visualizer /path/to/project --format mermaid
 - **📊 Pattern evolution** - Track how code patterns change over time
 - **🔍 Impact reports** - Document AI session impacts for review
 
+### 7. 📦 **Requirements Management for AI Workflows** 🆕
+
+**🚨 Problem**: AI coding tools generate code with imports but often forget to update requirements.txt!
+
+**✅ Solution**: Deepflow automatically detects missing packages from imports and updates requirements.txt intelligently.
+
+#### Smart Features
+- **🧠 Smart Package Mapping** - 130+ common packages mapped correctly (sklearn→scikit-learn, yaml→pyyaml, cv2→opencv-python)  
+- **🎯 Confidence Scoring** - Reliability indicators for each detected package requirement
+- **🛡️ Conservative Detection** - Won't accidentally remove important indirect dependencies
+- **💾 Safe Updates** - Automatic backups and dry-run mode by default
+- **🏗️ Built-in Module Detection** - Automatically skips standard library modules (os, sys, json, etc.)
+
+#### MCP Integration
+```bash
+# In Claude Code conversations:
+analyze_requirements project_path="."     # Detect missing packages  
+update_requirements apply_changes=true    # Update requirements.txt automatically
+```
+
+#### Example AI Workflow
+```python
+# 1. AI generates code with new imports
+import matplotlib.pyplot as plt
+import seaborn as sns  
+from rich.console import Console
+import pandas as pd
+
+# 2. deepflow automatically detects missing packages
+# Result: Found 4 missing packages with 100% confidence:
+#   - matplotlib, seaborn, rich, pandas
+
+# 3. Update requirements.txt with one command  
+# Result: Added packages to requirements.txt with backup created
+```
+
+#### Supported Import Mappings (Sample)
+| Import | Package Name | Built-in? |
+|--------|--------------|-----------|
+| `import sklearn` | `scikit-learn` | ❌ |
+| `import yaml` | `pyyaml` | ❌ |
+| `import cv2` | `opencv-python` | ❌ |
+| `from PIL import Image` | `Pillow` | ❌ |
+| `from bs4 import BeautifulSoup` | `beautifulsoup4` | ❌ |
+| `import os, sys, json` | *skipped (built-in)* | ✅ |
+
+> **🎯 Perfect for**: Claude Code, Cursor, GitHub Copilot, and any AI-assisted development workflow!
+
 ## 📁 **Project Structure**
 
 ```
@@ -364,7 +414,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ### 🔌 **NEW: MCP Integration**
 - **deepflow-mcp-server**: Model Context Protocol server for Claude Code integration
-- **4 MCP Tools**: analyze_dependencies, analyze_code_quality, validate_commit, generate_documentation
+- **6 MCP Tools**: analyze_dependencies, analyze_code_quality, validate_commit, generate_documentation, analyze_requirements, update_requirements
 - **Seamless AI Assistant Integration**: Works directly with Claude Code and other MCP clients
 - **Optional Dependency**: Install with `pip install deepflow[mcp]`
 
