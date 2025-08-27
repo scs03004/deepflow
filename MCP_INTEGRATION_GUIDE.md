@@ -213,9 +213,100 @@ Once configured, you'll have access to these tools in Claude Code:
 - Duplicate patterns found
 - Learned patterns (naming conventions, structures)
 
+## 🔧 Requirements Management Tools ✨ **NEW**
+
+### 9. `analyze_requirements`
+**Purpose**: Analyze project dependencies and detect missing requirements.txt packages
+
+**Usage in Claude Code**:
+```
+"Analyze requirements for this project"
+"Check for missing packages in requirements.txt"
+"What dependencies does this project need?"
+```
+
+**Parameters**:
+- `project_path`: Path to analyze (default: current directory)
+- `check_patterns`: Validate common requirement patterns (default: true)
+
+**Returns**:
+- Missing packages with confidence scores
+- Current requirements.txt content
+- Package mapping suggestions (sklearn→scikit-learn, yaml→pyyaml, etc.)
+- Import detection results
+- Update recommendations
+
+### 10. `update_requirements`
+**Purpose**: Update requirements.txt with missing packages automatically
+
+**Usage in Claude Code**:
+```
+"Update requirements.txt with missing packages"
+"Add detected dependencies to requirements file"
+"Apply requirements recommendations"
+```
+
+**Parameters**:
+- `project_path`: Path to update (default: current directory)
+- `backup`: Create backup before updating (default: true)
+- `dry_run`: Preview changes without applying (default: false)
+- `apply_changes`: Actually update the file (default: false)
+
+**Returns**:
+- Requirements file updates applied
+- Backup file location
+- Update statistics and results
+
+## 🗂️ File Organization Tools ✨ **NEW**
+
+### 11. `analyze_file_organization`
+**Purpose**: Analyze project structure and detect messy file organization patterns
+
+**Usage in Claude Code**:
+```
+"Analyze the file organization of this project"
+"Check for root clutter and naming inconsistencies"
+"Score the project structure quality"
+```
+
+**Parameters**:
+- `project_path`: Path to analyze (default: current directory)
+- `check_patterns`: Check naming pattern consistency (default: true)
+
+**Returns**:
+- Project structure score (0-100)
+- Root clutter files that should be moved
+- Suggested directory structure
+- File relocation recommendations
+- Naming pattern inconsistencies
+- Organization recommendations with confidence scores
+
+### 12. `organize_files`
+**Purpose**: Apply file organization recommendations with safety checks
+
+**Usage in Claude Code**:
+```
+"Organize files in this project"
+"Apply file organization recommendations"
+"Clean up the project structure"
+```
+
+**Parameters**:
+- `project_path`: Path to organize (default: current directory)
+- `dry_run`: Preview changes without applying (default: true)
+- `backup`: Create backups before moving files (default: true)
+- `apply_changes`: Actually reorganize files (default: false)
+
+**Returns**:
+- Organization changes applied
+- Files moved and directories created
+- Backup locations
+- Before/after structure scores
+- Organization statistics
+
 ## 🧠 AI Session Intelligence Tools ✨ **NEW - Priority 3**
 
-### 9. `start_ai_session`
+### 13. `start_ai_session`
 **Purpose**: Start a new AI development session with context tracking and journaling
 
 **Usage in Claude Code**:
@@ -230,7 +321,7 @@ Once configured, you'll have access to these tools in Claude Code:
 - `session_description`: Description of session goals and context (default: "")
 - `session_tags`: Array of tags to categorize the session (default: [])
 
-### 10. `end_ai_session`
+### 14. `end_ai_session`
 **Purpose**: End the current AI development session and save context for future reference
 
 **Usage in Claude Code**:
@@ -243,7 +334,7 @@ Once configured, you'll have access to these tools in Claude Code:
 **Parameters**:
 - `achievements`: Array of goals achieved during the session (default: [])
 
-### 11. `get_session_context`
+### 15. `get_session_context`
 **Purpose**: Get current AI session context for continuity and progress tracking
 
 **Usage in Claude Code**:
@@ -259,7 +350,7 @@ Once configured, you'll have access to these tools in Claude Code:
 - Changes made and AI interactions count
 - Session duration and goals
 
-### 12. `restore_session_context`
+### 16. `restore_session_context`
 **Purpose**: Restore a previous AI session context for continuity across development cycles
 
 **Usage in Claude Code**:
@@ -272,7 +363,7 @@ Once configured, you'll have access to these tools in Claude Code:
 **Parameters**:
 - `session_id`: ID of the session to restore (required)
 
-### 13. `analyze_change_impact`
+### 17. `analyze_change_impact`
 **Purpose**: Analyze ripple effects and impact of code changes across the project
 
 **Usage in Claude Code**:
@@ -295,7 +386,7 @@ Once configured, you'll have access to these tools in Claude Code:
 - Documentation that requires changes
 - Mitigation suggestions
 
-### 14. `get_session_intelligence`
+### 18. `get_session_intelligence`
 **Purpose**: Get comprehensive AI session intelligence and analytics
 
 **Usage in Claude Code**:
@@ -338,27 +429,39 @@ Then try these commands in Claude Code:
 4. "Generate documentation using the generate_documentation tool"
 ```
 
+**Requirements Management Tools:**
+```
+5. "Analyze requirements for this project"
+6. "Update requirements.txt with missing packages"
+```
+
+**File Organization Tools:**
+```
+7. "Analyze the file organization of this project"
+8. "Organize files and clean up the project structure"
+```
+
 **Real-Time Intelligence Tools:**
 ```
-5. "Start real-time monitoring for this project"
-6. "Show me recent real-time activity" 
-7. "What are the current monitoring statistics?"
-8. "Stop the real-time monitoring"
+9. "Start real-time monitoring for this project"
+10. "Show me recent real-time activity" 
+11. "What are the current monitoring statistics?"
+12. "Stop the real-time monitoring"
 ```
 
 **AI Session Intelligence Tools:**
 ```
-9. "Start AI session: implementing user auth"
-10. "End current session with achievements"
-11. "What's my current session context?"
-12. "Restore session from yesterday"
-13. "Analyze impact of changing database.py"
-14. "Show me session intelligence and patterns learned"
+13. "Start AI session: implementing user auth"
+14. "End current session with achievements"
+15. "What's my current session context?"
+16. "Restore session from yesterday"
+17. "Analyze impact of changing database.py"
+18. "Show me session intelligence and patterns learned"
 ```
 
 ### Expected Behavior
 - `claude mcp list` should show deepflow server as "✓ Connected"
-- Claude Code should recognize **14 deepflow MCP tools** automatically
+- Claude Code should recognize **18 deepflow MCP tools** automatically
 - Core tools should provide structured analysis results in JSON format
 - Real-time tools should provide live monitoring capabilities
 - Pattern deviations and AI context alerts should be detected in real-time
