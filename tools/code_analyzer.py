@@ -716,7 +716,7 @@ class CodeAnalyzer:
                     content = f.read()
 
                 tree = ast.parse(content, filename=str(file_path))
-                imports = self._extract_detailed_imports(tree)
+                imports = self.import_analyzer.extract_imports(tree)
 
                 # Add node
                 self.import_graph.add_node(module_name, file_path=str(file_path))

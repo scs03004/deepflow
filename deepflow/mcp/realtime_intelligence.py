@@ -374,6 +374,42 @@ class RealTimeIntelligenceEngine:
         
         logger.info(f"Initialized RealTime Intelligence Engine for {self.project_path}")
     
+    @property
+    def is_monitoring(self) -> bool:
+        """Check if real-time monitoring is currently active."""
+        return self._is_monitoring
+    
+    def get_ai_context_stats(self) -> Dict[str, Any]:
+        """Get AI context and file size statistics."""
+        python_files = list(self.project_path.rglob("*.py"))
+        oversized_files = []
+        total_tokens = 0
+        
+        for file_path in python_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    # Rough token estimation: 1 token ≈ 4 characters
+                    file_tokens = len(content) // 4
+                    total_tokens += file_tokens
+                    
+                    # Flag files over 8K tokens (Claude's optimal context window segment)
+                    if file_tokens > 8000:
+                        oversized_files.append({
+                            'file_path': str(file_path),
+                            'estimated_tokens': file_tokens,
+                            'lines': len(content.splitlines())
+                        })
+            except Exception:
+                continue
+        
+        return {
+            'total_python_files': len(python_files),
+            'oversized_files': oversized_files,
+            'total_estimated_tokens': total_tokens,
+            'optimal_context_violations': len(oversized_files)
+        }
+    
     def add_notification_callback(self, callback: Callable):
         """Add a callback for real-time notifications."""
         self._notification_callbacks.append(callback)
