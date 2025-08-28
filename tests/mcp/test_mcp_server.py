@@ -19,6 +19,7 @@ class MockServerClass:
         self.run = AsyncMock()
         self.create_initialization_options = MagicMock(return_value={})
         self.call_tool = MagicMock(return_value=lambda func: func)
+        self.list_tools = MagicMock(return_value=lambda func: func)
 
 mock_server.Server = MockServerClass
 
@@ -88,7 +89,7 @@ class TestDeepflowMCPServer:
             tools = server.get_tools()
             
             assert isinstance(tools, list)
-            assert len(tools) == 4  # Expected number of tools
+            assert len(tools) >= 30  # Should have many tools (34 as of current implementation)
             
             # Extract tool names from MockTool objects
             tool_names = [tool.name for tool in tools]

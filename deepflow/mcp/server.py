@@ -3143,6 +3143,7 @@ class DeepflowMCPServer:
                     "type": "object",
                     "properties": {
                         "workflow_definition": {
+                            "type": "string",
                             "description": "Workflow definition (file path for YAML or object for dict)"
                         },
                         "workflow_format": {
@@ -3438,7 +3439,7 @@ class DeepflowMCPServer:
 async def async_main():
     """Async main entry point for the MCP server."""
     if not MCP_AVAILABLE:
-        print("ERROR: MCP dependencies not found. Install with: pip install mcp")
+        print("ERROR: MCP dependencies not found. Install with: pip install deepflow[mcp]")
         sys.exit(1)
         return  # This line won't be reached in normal execution, but helps in tests
     

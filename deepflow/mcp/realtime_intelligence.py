@@ -278,7 +278,13 @@ class RealTimeFileHandler(FileSystemEventHandler):
                 timestamp=time.time(),
                 is_python=event.src_path.endswith('.py')
             )
-            asyncio.create_task(self.engine.handle_file_change(change_event))
+            # Schedule the async task properly
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.engine.handle_file_change(change_event))
+            except RuntimeError:
+                # No running event loop, store for processing later
+                self.engine._pending_changes.append(change_event)
     
     def on_created(self, event):
         """Handle file creation events."""
@@ -321,6 +327,7 @@ class RealTimeIntelligenceEngine:
         
         # Change tracking
         self._recent_changes: List[FileChangeEvent] = []
+        self._pending_changes: List[FileChangeEvent] = []  # For changes from non-async contexts
         self._dependency_updates: List[DependencyUpdate] = []
         self._violations: List[ArchitecturalViolation] = []
         self._ai_alerts: List[AIContextAlert] = []
@@ -514,6 +521,17 @@ class RealTimeIntelligenceEngine:
             
         except Exception as e:
             logger.error(f"Error handling file change {change_event.file_path}: {e}", exc_info=True)
+    
+    async def process_pending_changes(self):
+        """Process any pending changes that were queued from non-async contexts."""
+        if not self._pending_changes:
+            return
+        
+        pending = self._pending_changes.copy()
+        self._pending_changes.clear()
+        
+        for change_event in pending:
+            await self.handle_file_change(change_event)
     
     async def _analyze_file_incrementally(self, change_event: FileChangeEvent):
         """Perform incremental dependency analysis on changed file."""

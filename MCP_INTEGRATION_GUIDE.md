@@ -406,6 +406,348 @@ Once configured, you'll have access to these tools in Claude Code:
 - Multi-file coordination progress
 - Session journal entries and activities
 
+## 🔧 Smart Refactoring Tools ✨ **NEW**
+
+### 19. `standardize_patterns`
+**Purpose**: Standardize code patterns across the project for consistency and maintainability
+
+**Usage in Claude Code**:
+```
+"Standardize naming patterns in this project"
+"Apply consistent code patterns to all modules"
+"Fix inconsistent import styles across files"
+```
+
+**Parameters**:
+- `project_path`: Path to analyze (default: current directory)
+- `pattern_type`: Type of patterns to standardize - "naming", "imports", "structure", "all" (default: "all")
+- `apply_changes`: Actually apply the standardization (default: false)
+
+**Returns**:
+- Pattern inconsistencies detected
+- Standardization recommendations
+- Files requiring changes
+- Preview of proposed changes
+
+### 20. `optimize_imports`
+**Purpose**: Optimize import statements by removing unused imports and organizing efficiently
+
+**Usage in Claude Code**:
+```
+"Optimize import statements in this project"
+"Remove unused imports and reorganize"
+"Clean up import organization"
+```
+
+**Parameters**:
+- `project_path`: Path to optimize (default: current directory)
+- `remove_unused`: Remove unused imports (default: true)
+- `sort_imports`: Sort imports alphabetically (default: true)
+- `apply_changes`: Actually apply the optimizations (default: false)
+
+**Returns**:
+- Unused imports removed
+- Import organization improvements
+- Files modified
+- Import optimization statistics
+
+### 21. `suggest_file_splits`
+**Purpose**: Suggest file splits for large files to improve maintainability and AI comprehension
+
+**Usage in Claude Code**:
+```
+"Suggest file splits for better organization"
+"What large files should be split up?"
+"Recommend file organization improvements"
+```
+
+**Parameters**:
+- `project_path`: Path to analyze (default: current directory)
+- `max_lines`: Maximum lines per file threshold (default: 500)
+- `ai_context_aware`: Consider AI context window optimization (default: true)
+
+**Returns**:
+- Files exceeding size thresholds
+- Suggested split points and new file names
+- Refactoring recommendations
+- AI comprehension improvements
+
+### 22. `remove_dead_code`
+**Purpose**: Identify and remove dead code including unused functions, classes, and variables
+
+**Usage in Claude Code**:
+```
+"Remove dead code from this project"
+"Find unused functions and classes"
+"Clean up unreachable code"
+```
+
+**Parameters**:
+- `project_path`: Path to analyze (default: current directory)
+- `aggressive`: Use aggressive dead code detection (default: false)
+- `apply_changes`: Actually remove dead code (default: false)
+
+**Returns**:
+- Dead code locations identified
+- Unused functions and classes
+- Unreachable code blocks
+- Code cleanup recommendations
+
+### 23. `generate_docstrings`
+**Purpose**: Automatically generate comprehensive docstrings for functions, classes, and modules
+
+**Usage in Claude Code**:
+```
+"Generate docstrings for undocumented functions"
+"Add comprehensive documentation to this project"
+"Create docstrings following project conventions"
+```
+
+**Parameters**:
+- `project_path`: Path to document (default: current directory)
+- `style`: Docstring style - "google", "numpy", "sphinx" (default: "google")
+- `apply_changes`: Actually add docstrings (default: false)
+
+**Returns**:
+- Undocumented functions and classes
+- Generated docstrings preview
+- Documentation coverage improvements
+- Style consistency recommendations
+
+### 24. `comprehensive_refactor`
+**Purpose**: Perform comprehensive refactoring combining multiple optimization techniques
+
+**Usage in Claude Code**:
+```
+"Perform comprehensive refactoring of this project"
+"Apply all code quality improvements"
+"Refactor project for better maintainability"
+```
+
+**Parameters**:
+- `project_path`: Path to refactor (default: current directory)
+- `include_patterns`: Include pattern standardization (default: true)
+- `include_imports`: Include import optimization (default: true)
+- `include_splits`: Include file split suggestions (default: true)
+- `include_dead_code`: Include dead code removal (default: true)
+- `include_docstrings`: Include docstring generation (default: true)
+- `apply_changes`: Actually apply all refactoring (default: false)
+
+**Returns**:
+- Comprehensive refactoring plan
+- All improvement recommendations
+- Risk assessment for changes
+- Step-by-step implementation guide
+
+## 🔄 Workflow Orchestration Tools ✨ **NEW**
+
+### 25. `create_analysis_pipeline`
+**Purpose**: Create custom analysis pipelines that combine multiple deepflow tools
+
+**Usage in Claude Code**:
+```
+"Create an analysis pipeline for CI/CD"
+"Set up a custom workflow for code quality checks"
+"Build a pipeline combining dependency analysis and documentation"
+```
+
+**Parameters**:
+- `pipeline_name`: Name for the analysis pipeline (required)
+- `tools`: Array of tools to include in pipeline (required)
+- `configuration`: Pipeline configuration options (default: {})
+
+**Returns**:
+- Created pipeline configuration
+- Execution order and dependencies
+- Pipeline validation results
+- Usage instructions
+
+### 26. `execute_workflow`
+**Purpose**: Execute a predefined workflow or pipeline with specified parameters
+
+**Usage in Claude Code**:
+```
+"Execute the CI/CD analysis workflow"
+"Run the comprehensive code quality pipeline"
+"Execute workflow: pre-commit-validation"
+```
+
+**Parameters**:
+- `workflow_name`: Name of workflow to execute (required)
+- `project_path`: Path to execute workflow on (default: current directory)
+- `parameters`: Workflow-specific parameters (default: {})
+
+**Returns**:
+- Workflow execution results
+- Individual tool outputs
+- Execution time and performance metrics
+- Success/failure status with details
+
+### 27. `create_conditional_workflow`
+**Purpose**: Create workflows with conditional logic based on project characteristics
+
+**Usage in Claude Code**:
+```
+"Create conditional workflow based on project type"
+"Set up workflow that adapts to codebase characteristics"
+"Build smart workflow with conditional steps"
+```
+
+**Parameters**:
+- `workflow_name`: Name for conditional workflow (required)
+- `conditions`: Conditions and corresponding actions (required)
+- `fallback_actions`: Default actions if no conditions match (default: [])
+
+**Returns**:
+- Conditional workflow configuration
+- Condition evaluation logic
+- Workflow branching structure
+- Testing recommendations
+
+### 28. `create_batch_operation`
+**Purpose**: Create batch operations for processing multiple projects or directories
+
+**Usage in Claude Code**:
+```
+"Create batch operation for multiple projects"
+"Set up batch analysis across repositories"
+"Configure bulk code quality assessment"
+```
+
+**Parameters**:
+- `operation_name`: Name for batch operation (required)
+- `target_pattern`: Pattern for selecting targets (required)
+- `operation_config`: Configuration for the batch operation (default: {})
+
+**Returns**:
+- Batch operation configuration
+- Target selection results
+- Estimated execution time
+- Resource requirements
+
+### 29. `execute_batch_operation`
+**Purpose**: Execute batch operations across multiple projects or directories
+
+**Usage in Claude Code**:
+```
+"Execute batch analysis on all repositories"
+"Run bulk code quality checks"
+"Process multiple projects with batch operation"
+```
+
+**Parameters**:
+- `operation_name`: Name of batch operation to execute (required)
+- `parallel`: Execute operations in parallel (default: true)
+- `max_workers`: Maximum parallel workers (default: 4)
+
+**Returns**:
+- Batch execution results
+- Per-project success/failure status
+- Aggregated metrics and insights
+- Performance and timing information
+
+### 30. `load_custom_workflow`
+**Purpose**: Load and register custom workflow definitions from configuration files
+
+**Usage in Claude Code**:
+```
+"Load custom workflow from config file"
+"Import workflow definition from YAML"
+"Register new workflow from configuration"
+```
+
+**Parameters**:
+- `workflow_file`: Path to workflow configuration file (required)
+- `validate`: Validate workflow before loading (default: true)
+- `overwrite`: Overwrite existing workflow with same name (default: false)
+
+**Returns**:
+- Loaded workflow configuration
+- Validation results
+- Available workflow commands
+- Registration status
+
+### 31. `setup_scheduled_hygiene`
+**Purpose**: Set up scheduled code hygiene tasks and maintenance workflows
+
+**Usage in Claude Code**:
+```
+"Set up scheduled code hygiene tasks"
+"Configure automated maintenance workflows"
+"Schedule regular dependency analysis"
+```
+
+**Parameters**:
+- `project_path`: Path to set up hygiene for (default: current directory)
+- `schedule`: Schedule configuration (cron-like syntax) (required)
+- `tasks`: Array of hygiene tasks to schedule (required)
+
+**Returns**:
+- Scheduled hygiene configuration
+- Task scheduling details
+- Integration instructions (GitHub Actions, etc.)
+- Monitoring setup
+
+### 32. `get_workflow_status`
+**Purpose**: Get status and progress information for running or completed workflows
+
+**Usage in Claude Code**:
+```
+"What's the status of the current workflow?"
+"Check progress of batch analysis operation"
+"Get workflow execution details"
+```
+
+**Parameters**:
+- `workflow_id`: ID of workflow to check (optional)
+- `include_history`: Include execution history (default: false)
+
+**Returns**:
+- Current workflow status
+- Progress and completion information
+- Execution history (if requested)
+- Performance metrics
+
+### 33. `list_workflows`
+**Purpose**: List all available workflows, pipelines, and batch operations
+
+**Usage in Claude Code**:
+```
+"List all available workflows"
+"What workflows are configured?"
+"Show me all custom pipelines"
+```
+
+**Parameters**:
+- `filter_type`: Filter by type - "pipeline", "workflow", "batch", "all" (default: "all")
+- `include_custom`: Include user-defined workflows (default: true)
+
+**Returns**:
+- Available workflows and pipelines
+- Configuration summaries
+- Usage statistics
+- Recommended workflows for current project
+
+### 34. `get_workflow_metrics`
+**Purpose**: Get comprehensive metrics and analytics for workflow executions
+
+**Usage in Claude Code**:
+```
+"Show workflow execution metrics"
+"Get analytics for batch operations"
+"What are the performance trends for workflows?"
+```
+
+**Parameters**:
+- `time_range`: Time range for metrics - "day", "week", "month", "all" (default: "week")
+- `workflow_name`: Specific workflow to analyze (optional)
+
+**Returns**:
+- Execution frequency and success rates
+- Performance trends and bottlenecks
+- Resource utilization metrics
+- Optimization recommendations
+
 ## 🧪 Testing the Integration
 
 ### Verify MCP Tools are Available
@@ -459,13 +801,39 @@ Then try these commands in Claude Code:
 18. "Show me session intelligence and patterns learned"
 ```
 
+**Smart Refactoring Tools:**
+```
+19. "Standardize naming patterns in this project"
+20. "Optimize import statements and remove unused imports"
+21. "Suggest file splits for better organization"
+22. "Remove dead code from this project"
+23. "Generate docstrings for undocumented functions"
+24. "Perform comprehensive refactoring of this project"
+```
+
+**Workflow Orchestration Tools:**
+```
+25. "Create an analysis pipeline for CI/CD"
+26. "Execute the CI/CD analysis workflow"
+27. "Create conditional workflow based on project type"
+28. "Create batch operation for multiple projects"
+29. "Execute batch analysis on all repositories"
+30. "Load custom workflow from config file"
+31. "Set up scheduled code hygiene tasks"
+32. "What's the status of the current workflow?"
+33. "List all available workflows"
+34. "Show workflow execution metrics"
+```
+
 ### Expected Behavior
 - `claude mcp list` should show deepflow server as "✓ Connected"
-- Claude Code should recognize **18 deepflow MCP tools** automatically
+- Claude Code should recognize **34 deepflow MCP tools** automatically
 - Core tools should provide structured analysis results in JSON format
 - Real-time tools should provide live monitoring capabilities
 - Pattern deviations and AI context alerts should be detected in real-time
 - Session intelligence tools provide development context and impact analysis
+- Smart refactoring tools automate code quality improvements
+- Workflow orchestration enables custom analysis pipelines and batch operations
 
 ## 🚨 Troubleshooting
 
