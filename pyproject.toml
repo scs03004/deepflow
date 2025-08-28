@@ -144,6 +144,7 @@ markers = [
     "unit: unit tests",
     "integration: integration tests", 
     "mcp: MCP protocol tests",
+    "security: security validation tests",
     "slow: slow running tests",
     "asyncio: async tests",
 ]
