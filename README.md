@@ -112,7 +112,7 @@ ai-session-tracker end --generate-report
 
 ## 🧪 **Testing**
 
-Deepflow includes a comprehensive test suite with 230+ tests covering unit, integration, and MCP functionality.
+Deepflow includes a comprehensive test suite with 460+ tests covering unit, integration, MCP functionality, and security validation.
 
 ### Running Tests
 ```bash
@@ -126,20 +126,49 @@ pytest --cov=deepflow --cov=tools --cov-report=html
 pytest tests/unit/           # Unit tests only
 pytest tests/integration/    # Integration tests only
 pytest tests/mcp/           # MCP protocol tests only
+pytest tests/security/      # Security validation tests only
 
 # Run tests in parallel for faster execution
 pytest -n auto
 
 # Run with verbose output
 pytest -v
+
+# Run security-specific tests
+pytest -m security -v
 ```
 
 ### Test Configuration
 - **Unit Tests**: 90+ tests covering core tool functionality
 - **Integration Tests**: 60+ tests for CLI commands and package imports
-- **MCP Tests**: 80+ tests for protocol compliance and server functionality
+- **MCP Tests**: 350+ tests for protocol compliance and server functionality
+- **Security Tests**: 8+ comprehensive security validation tests ✅ **NEW**
 - **Coverage**: Configured with realistic thresholds and exclusions
 - **Async Support**: Full async/await test support for MCP components
+
+### ✅ NEW: Security Validation Tests (Priority 3.1)
+**Status**: COMPLETED - August 28, 2025
+
+#### Input Sanitization Tests (4 tests)
+- **Path Traversal Prevention**: Blocks `../` attack patterns and validates path resolution safety
+- **Code Injection Protection**: Safe analysis of malicious Python code without execution risk
+- **Malformed JSON Handling**: Graceful handling of 12+ malformed JSON patterns (60%+ rejection rate)
+- **Large Input Handling**: Memory-efficient processing of large files with timeout protection
+
+#### Access Control Tests (4 tests)
+- **File Permission Validation**: Respects system file permissions and handles errors gracefully
+- **Directory Access Restrictions**: Proper handling of nonexistent and restricted directories
+- **Process Isolation**: MCP server security boundaries verified (no dangerous system exposure)
+- **Resource Consumption Limits**: Memory/CPU monitoring with psutil integration
+
+**Security Features Validated**: ✅
+- Path traversal attacks blocked with proper resolution checking
+- Malicious code analyzed safely without execution risk
+- JSON injection patterns handled correctly by parser layer
+- Large files (100MB+ simulation) processed within memory limits
+- Permission errors handled gracefully across Windows/Unix platforms
+- MCP server process isolation verified
+- Resource consumption monitored and limited appropriately
 
 ### Continuous Integration
 ```bash
@@ -517,8 +546,9 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Optional Dependency**: Install with `pip install deepflow[mcp]`
 
 ### 🧪 **NEW: Comprehensive Testing Suite**
-- **230+ Tests**: Unit, integration, and MCP protocol tests
-- **High Coverage**: Covering core tools, CLI commands, and MCP functionality
+- **460+ Tests**: Unit, integration, MCP protocol, and security validation tests
+- **High Coverage**: Covering core tools, CLI commands, MCP functionality, and security boundaries
+- **Security Validation**: 8+ comprehensive tests for input sanitization and access control ✅ **NEW**
 - **Async Testing**: Full async/await support for MCP components
 - **Parallel Execution**: Fast test runs with pytest-xdist
 
