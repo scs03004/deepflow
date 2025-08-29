@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph (Tests Only) - 41 modules</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .graph-container {
+            text-align: center;
+            margin: 20px 0;
+            overflow: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #fafafa;
+            padding: 20px;
+            min-height: 600px;
+        }
+        .mermaid {
+            min-width: 100%;
+            min-height: 600px;
+            background: white;
+            border-radius: 4px;
+            padding: 20px;
+            cursor: grab;
+            overflow: hidden;
+            position: relative;
+        }
+        .mermaid:active {
+            cursor: grabbing;
+        }
+        .mermaid svg {
+            transition: transform 0.1s ease-out;
+        }
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 1000;
+        }
+        .zoom-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .zoom-btn:hover {
+            background: #0056b3;
+        }
+        .diagram-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Dependency Graph Analysis (Tests Only)</h1>
+            <p class="subtitle">Interactive visualization of project dependencies</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">41</div>
+                <div class="metric-label">Total Modules</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">91</div>
+                <div class="metric-label">Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">External</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">41</div>
+                <div class="metric-label">Internal</div>
+            </div>
+        </div>
+        
+        <div class="diagram-info">
+            <h3>📊 Interactive Dependency Diagram</h3>
+            <p><strong>Zoom:</strong> Use buttons, mouse wheel, or keyboard (Ctrl/Cmd + +/- to zoom, Ctrl/Cmd + 0 to reset)</p>
+            <p><strong>Pan:</strong> Click and drag to move around, or use arrow keys for precise movement</p>
+            <p><strong>Mobile:</strong> Touch and drag to pan, pinch to zoom</p>
+        </div>
+        
+        <div class="graph-container" style="position: relative;">
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (Ctrl/Cmd + +)">+</button>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (Ctrl/Cmd + -)">-</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom (Ctrl/Cmd + 0)">100%</button>
+                <span class="zoom-btn" id="zoom-level" style="background: #28a745; cursor: default;">100%</span>
+            </div>
+            <div class="mermaid" id="diagram">
+graph TB
+    demos_test_realtime_demo["demos.test_realtime_demo"]
+    tests_conftest["tests.conftest"]
+    tests_mcp_client_compatibility_test["tests.mcp_client_compatibility_test"]
+    tests_test_fallbacks_comprehensive["tests.test_fallbacks_comprehensive"]
+    tests_test_runner["tests.test_runner"]
+    tests_integration_test_cli_commands["tests.integration.test_cli_commands"]
+    tests_integration_test_cross_platform["tests.integration.test_cross_platform"]
+    tests_integration_test_e2e_workflows["tests.integration.test_e2e_workflows"]
+    tests_integration_test_live_file_monitoring_comprehensive["tests.integration.test_live_file_monitoring_comprehensive"]
+    tests_integration_test_optional_dependencies["tests.integration.test_optional_dependencies"]
+    tests_integration_test_package_imports["tests.integration.test_package_imports"]
+    tests_integration_test_pattern_detection_systems_comprehensive["tests.integration.test_pattern_detection_systems_comprehensive"]
+    tests_mcp_test_mcp_entry_points["tests.mcp.test_mcp_entry_points"]
+    tests_mcp_test_mcp_fallbacks["tests.mcp.test_mcp_fallbacks"]
+    tests_mcp_test_mcp_server["tests.mcp.test_mcp_server"]
+    tests_mcp_test_mcp_tools["tests.mcp.test_mcp_tools"]
+    tests_mcp_test_priority2_features["tests.mcp.test_priority2_features"]
+    tests_mcp_test_priority3_features["tests.mcp.test_priority3_features"]
+    tests_mcp_test_priority4_features["tests.mcp.test_priority4_features"]
+    tests_mcp_test_priority5_features["tests.mcp.test_priority5_features"]
+    tests_mcp_test_realtime_intelligence["tests.mcp.test_realtime_intelligence"]
+    tests_performance_test_performance_benchmarks["tests.performance.test_performance_benchmarks"]
+    tests_performance_test_stress_scenarios["tests.performance.test_stress_scenarios"]
+    tests_security_test_security_validation_comprehensive["tests.security.test_security_validation_comprehensive"]
+    tests_unit_test_code_analyzer["tests.unit.test_code_analyzer"]
+    tests_unit_test_code_quality_simple["tests.unit.test_code_quality_simple"]
+    tests_unit_test_dependency_analysis_comprehensive["tests.unit.test_dependency_analysis_comprehensive"]
+    tests_unit_test_dependency_visualizer["tests.unit.test_dependency_visualizer"]
+    tests_unit_test_documentation_generation_comprehensive["tests.unit.test_documentation_generation_comprehensive"]
+    tests_unit_test_documentation_generation_simple["tests.unit.test_documentation_generation_simple"]
+    tests_unit_test_doc_generator["tests.unit.test_doc_generator"]
+    tests_unit_test_error_handling_and_recovery_comprehensive["tests.unit.test_error_handling_and_recovery_comprehensive"]
+    tests_unit_test_file_organization["tests.unit.test_file_organization"]
+    tests_unit_test_mcp_comprehensive["tests.unit.test_mcp_comprehensive"]
+    tests_unit_test_mcp_protocol_comprehensive["tests.unit.test_mcp_protocol_comprehensive"]
+    tests_unit_test_requirements_management["tests.unit.test_requirements_management"]
+    tests_unit_test_smart_refactoring_engine["tests.unit.test_smart_refactoring_engine"]
+    tests_unit_test_tools_import["tests.unit.test_tools_import"]
+    tests_unit_test_workflow_orchestrator["tests.unit.test_workflow_orchestrator"]
+    tools_mcp_test_client["tools.mcp_test_client"]
+    tools_test_mcp_clients["tools.test_mcp_clients"]
+    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:2px,color:#fff,font-size:14px
+    classDef medium fill:#fdcb6e,stroke:#e17055,stroke-width:2px,color:#2d3436,font-size:14px
+    classDef low fill:#00b894,stroke:#00a085,stroke-width:2px,color:#fff,font-size:14px
+    classDef external fill:#74b9ff,stroke:#0984e3,stroke-width:1px,color:#fff,font-size:14px
+    classDef summary fill:#ddd,stroke:#999,stroke-width:1px,color:#666,font-size:12px
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legend</h3>
+            <ul>
+                <li>🟢 Low Risk Dependencies</li>
+                <li>🟡 Medium Risk Dependencies</li>
+                <li>🔴 High Risk Dependencies</li>
+            </ul>
+        </div>
+        <div class="details">
+            <h3>Analysis Details</h3>
+            <p>This graph shows the dependency relationships in your project. Click on nodes to explore connections.</p>
+        </div>
+        
+        <footer>
+            <p>Generated by Dependency Visualizer • <a href="https://github.com/scs03004/deepflow">Deepflow</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        let zoomLevel = 1.0;
+        const zoomStep = 0.2;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral',
+            flowchart: { 
+                useMaxWidth: false, 
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            },
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif'
+            }
+        });
+        
+        function zoomIn() {
+            zoomLevel += zoomStep;
+            updateTransform();
+        }
+        
+        function zoomOut() {
+            zoomLevel = Math.max(0.2, zoomLevel - zoomStep);
+            updateTransform();
+        }
+        
+        function resetZoom() {
+            zoomLevel = 1.0;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        }
+        
+        function updateTransform() {
+            const diagram = document.querySelector('.mermaid svg') || document.querySelector('.mermaid');
+            if (diagram) {
+                diagram.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+                diagram.style.transformOrigin = '0 0';
+                const zoomDisplay = document.getElementById('zoom-level');
+                if (zoomDisplay) {
+                    zoomDisplay.textContent = Math.round(zoomLevel * 100) + '%';
+                }
+            }
+        }
+        
+        // Initialize drag functionality when mermaid is ready
+        setTimeout(function() {
+            const diagramContainer = document.querySelector('.mermaid');
+            if (diagramContainer) {
+                setupDragFunctionality(diagramContainer);
+            }
+        }, 1000);
+        
+        function setupDragFunctionality(container) {
+            // Mouse events for desktop
+            container.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            // Touch events for mobile
+            container.addEventListener('touchstart', startTouchDrag, { passive: false });
+            document.addEventListener('touchmove', touchDrag, { passive: false });
+            document.addEventListener('touchend', endTouchDrag);
+            
+            // Prevent context menu on right-click
+            container.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            // Mouse wheel zoom
+            container.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -zoomStep : zoomStep;
+                const rect = container.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Zoom towards mouse cursor
+                const oldZoom = zoomLevel;
+                zoomLevel = Math.max(0.2, Math.min(5.0, zoomLevel + delta));
+                
+                if (zoomLevel !== oldZoom) {
+                    const zoomChange = zoomLevel - oldZoom;
+                    panX -= (mouseX - panX) * (zoomChange / oldZoom);
+                    panY -= (mouseY - panY) * (zoomChange / oldZoom);
+                    updateTransform();
+                }
+            });
+        }
+        
+        function startDrag(e) {
+            isDragging = true;
+            dragStart.x = e.clientX - panX;
+            dragStart.y = e.clientY - panY;
+            e.preventDefault();
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            panX = e.clientX - dragStart.x;
+            panY = e.clientY - dragStart.y;
+            updateTransform();
+        }
+        
+        function endDrag(e) {
+            isDragging = false;
+        }
+        
+        function startTouchDrag(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                const touch = e.touches[0];
+                dragStart.x = touch.clientX - panX;
+                dragStart.y = touch.clientY - panY;
+                e.preventDefault();
+            }
+        }
+        
+        function touchDrag(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            panX = touch.clientX - dragStart.x;
+            panY = touch.clientY - dragStart.y;
+            updateTransform();
+        }
+        
+        function endTouchDrag(e) {
+            isDragging = false;
+        }
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    resetZoom();
+                }
+            }
+            // Arrow key panning
+            const panSpeed = 50;
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                panX += panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                panX -= panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                panY += panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                panY -= panSpeed;
+                updateTransform();
+            }
+        });
+        </script>
+</body>
+</html>

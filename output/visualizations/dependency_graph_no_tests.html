@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph (Excluding Tests) - 26 modules</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .graph-container {
+            text-align: center;
+            margin: 20px 0;
+            overflow: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #fafafa;
+            padding: 20px;
+            min-height: 600px;
+        }
+        .mermaid {
+            min-width: 100%;
+            min-height: 600px;
+            background: white;
+            border-radius: 4px;
+            padding: 20px;
+            cursor: grab;
+            overflow: hidden;
+            position: relative;
+        }
+        .mermaid:active {
+            cursor: grabbing;
+        }
+        .mermaid svg {
+            transition: transform 0.1s ease-out;
+        }
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 1000;
+        }
+        .zoom-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .zoom-btn:hover {
+            background: #0056b3;
+        }
+        .diagram-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Dependency Graph Analysis (Excluding Tests)</h1>
+            <p class="subtitle">Interactive visualization of project dependencies</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">26</div>
+                <div class="metric-label">Total Modules</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">11</div>
+                <div class="metric-label">Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">External</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">26</div>
+                <div class="metric-label">Internal</div>
+            </div>
+        </div>
+        
+        <div class="diagram-info">
+            <h3>📊 Interactive Dependency Diagram</h3>
+            <p><strong>Zoom:</strong> Use buttons, mouse wheel, or keyboard (Ctrl/Cmd + +/- to zoom, Ctrl/Cmd + 0 to reset)</p>
+            <p><strong>Pan:</strong> Click and drag to move around, or use arrow keys for precise movement</p>
+            <p><strong>Mobile:</strong> Touch and drag to pan, pinch to zoom</p>
+        </div>
+        
+        <div class="graph-container" style="position: relative;">
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (Ctrl/Cmd + +)">+</button>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (Ctrl/Cmd + -)">-</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom (Ctrl/Cmd + 0)">100%</button>
+                <span class="zoom-btn" id="zoom-level" style="background: #28a745; cursor: default;">100%</span>
+            </div>
+            <div class="mermaid" id="diagram">
+graph TD
+    setup("setup")
+    deepflow_smart_refactoring_engine(("deepflow.smart_refactoring_engine"))
+    deepflow_tools("deepflow.tools")
+    deepflow_workflow_orchestrator(("deepflow.workflow_orchestrator"))
+    deepflow___init__("deepflow.__init__")
+    deepflow_mcp_error_handler("deepflow.mcp.error_handler")
+    deepflow_mcp_realtime_intelligence(("deepflow.mcp.realtime_intelligence"))
+    deepflow_mcp_server(("deepflow.mcp.server"))
+    deepflow_mcp___init__("deepflow.mcp.__init__")
+    deepflow_mcp___main__("deepflow.mcp.__main__")
+    demos_demo_file_organization(("demos.demo_file_organization"))
+    demos_demo_priority2_features("demos.demo_priority2_features")
+    demos_demo_priority3_features["demos.demo_priority3_features"]
+    demos_demo_priority4_features["demos.demo_priority4_features"]
+    demos_demo_priority5_features["demos.demo_priority5_features"]
+    demos_demo_realtime_intelligence("demos.demo_realtime_intelligence")
+    demos_demo_requirements_management("demos.demo_requirements_management")
+    demos_demo_requirements_management_ascii("demos.demo_requirements_management_ascii")
+    examples_mcp_client_examples("examples.mcp_client_examples")
+    tools_ai_session_tracker["tools.ai_session_tracker"]
+    tools_ci_cd_integrator["tools.ci_cd_integrator"]
+    tools_code_analyzer(("tools.code_analyzer"))
+    tools_dependency_visualizer(("tools.dependency_visualizer"))
+    tools_doc_generator(("tools.doc_generator"))
+    tools_monitoring_dashboard["tools.monitoring_dashboard"]
+    tools_pre_commit_validator["tools.pre_commit_validator"]
+    demos_demo_file_organization --> deepflow_smart_refactoring_engine
+    demos_demo_priority2_features --> deepflow_mcp_realtime_intelligence
+    demos_demo_priority3_features --> deepflow_mcp_realtime_intelligence
+    demos_demo_priority4_features --> deepflow_smart_refactoring_engine
+    demos_demo_priority4_features --> deepflow_mcp_server
+    demos_demo_priority5_features --> deepflow_workflow_orchestrator
+    demos_demo_priority5_features --> deepflow_mcp_server
+    demos_demo_realtime_intelligence --> deepflow_mcp_realtime_intelligence
+    demos_demo_realtime_intelligence --> deepflow_mcp_server
+    demos_demo_requirements_management --> deepflow_smart_refactoring_engine
+    demos_demo_requirements_management_ascii --> deepflow_smart_refactoring_engine
+    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:2px,color:#fff,font-size:14px
+    classDef medium fill:#fdcb6e,stroke:#e17055,stroke-width:2px,color:#2d3436,font-size:14px
+    classDef low fill:#00b894,stroke:#00a085,stroke-width:2px,color:#fff,font-size:14px
+    classDef external fill:#74b9ff,stroke:#0984e3,stroke-width:1px,color:#fff,font-size:14px
+    classDef summary fill:#ddd,stroke:#999,stroke-width:1px,color:#666,font-size:12px
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legend</h3>
+            <ul>
+                <li>🟢 Low Risk Dependencies</li>
+                <li>🟡 Medium Risk Dependencies</li>
+                <li>🔴 High Risk Dependencies</li>
+            </ul>
+        </div>
+        <div class="details">
+            <h3>Analysis Details</h3>
+            <p>This graph shows the dependency relationships in your project. Click on nodes to explore connections.</p>
+        </div>
+        
+        <footer>
+            <p>Generated by Dependency Visualizer • <a href="https://github.com/scs03004/deepflow">Deepflow</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        let zoomLevel = 1.0;
+        const zoomStep = 0.2;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral',
+            flowchart: { 
+                useMaxWidth: true, 
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20,
+                rankdir: 'TD'  // Force top-down direction
+            },
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: 'Arial, sans-serif'
+            }
+        });
+        
+        function zoomIn() {
+            zoomLevel += zoomStep;
+            updateTransform();
+        }
+        
+        function zoomOut() {
+            zoomLevel = Math.max(0.2, zoomLevel - zoomStep);
+            updateTransform();
+        }
+        
+        function resetZoom() {
+            zoomLevel = 1.0;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        }
+        
+        function updateTransform() {
+            const diagram = document.querySelector('.mermaid svg') || document.querySelector('.mermaid');
+            if (diagram) {
+                diagram.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+                diagram.style.transformOrigin = '0 0';
+                const zoomDisplay = document.getElementById('zoom-level');
+                if (zoomDisplay) {
+                    zoomDisplay.textContent = Math.round(zoomLevel * 100) + '%';
+                }
+            }
+        }
+        
+        // Initialize drag functionality when mermaid is ready
+        setTimeout(function() {
+            const diagramContainer = document.querySelector('.mermaid');
+            if (diagramContainer) {
+                setupDragFunctionality(diagramContainer);
+            }
+        }, 1000);
+        
+        function setupDragFunctionality(container) {
+            // Mouse events for desktop
+            container.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            // Touch events for mobile
+            container.addEventListener('touchstart', startTouchDrag, { passive: false });
+            document.addEventListener('touchmove', touchDrag, { passive: false });
+            document.addEventListener('touchend', endTouchDrag);
+            
+            // Prevent context menu on right-click
+            container.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            // Mouse wheel zoom
+            container.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -zoomStep : zoomStep;
+                const rect = container.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Zoom towards mouse cursor
+                const oldZoom = zoomLevel;
+                zoomLevel = Math.max(0.2, Math.min(5.0, zoomLevel + delta));
+                
+                if (zoomLevel !== oldZoom) {
+                    const zoomChange = zoomLevel - oldZoom;
+                    panX -= (mouseX - panX) * (zoomChange / oldZoom);
+                    panY -= (mouseY - panY) * (zoomChange / oldZoom);
+                    updateTransform();
+                }
+            });
+        }
+        
+        function startDrag(e) {
+            isDragging = true;
+            dragStart.x = e.clientX - panX;
+            dragStart.y = e.clientY - panY;
+            e.preventDefault();
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            panX = e.clientX - dragStart.x;
+            panY = e.clientY - dragStart.y;
+            updateTransform();
+        }
+        
+        function endDrag(e) {
+            isDragging = false;
+        }
+        
+        function startTouchDrag(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                const touch = e.touches[0];
+                dragStart.x = touch.clientX - panX;
+                dragStart.y = touch.clientY - panY;
+                e.preventDefault();
+            }
+        }
+        
+        function touchDrag(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            panX = touch.clientX - dragStart.x;
+            panY = touch.clientY - dragStart.y;
+            updateTransform();
+        }
+        
+        function endTouchDrag(e) {
+            isDragging = false;
+        }
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    resetZoom();
+                }
+            }
+            // Arrow key panning
+            const panSpeed = 50;
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                panX += panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                panX -= panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                panY += panSpeed;
+                updateTransform();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                panY -= panSpeed;
+                updateTransform();
+            }
+        });
+        </script>
+</body>
+</html>

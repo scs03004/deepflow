@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph - 71 modules</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .graph-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Dependency Graph Analysis</h1>
+            <p class="subtitle">Interactive visualization of project dependencies</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">71</div>
+                <div class="metric-label">Total Modules</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">102</div>
+                <div class="metric-label">Dependencies</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">External</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">71</div>
+                <div class="metric-label">Internal</div>
+            </div>
+        </div>
+        
+        <div class="graph-container">
+            <div class="mermaid">
+graph TD
+    demo_file_organization((name))
+    demo_priority2_features(name)
+    demo_priority3_features[name]
+    demo_priority4_features[name]
+    demo_priority5_features[name]
+    demo_realtime_intelligence(name)
+    demo_requirements_management(name)
+    demo_requirements_management_ascii(name)
+    setup(name)
+    test_realtime_demo(name)
+    deepflow_smart_refactoring_engine((name))
+    deepflow_tools(name)
+    deepflow_workflow_orchestrator((name))
+    deepflow___init__(name)
+    deepflow_mcp_error_handler(name)
+    deepflow_mcp_realtime_intelligence((name))
+    deepflow_mcp_server((name))
+    deepflow_mcp___init__(name)
+    deepflow_mcp___main__(name)
+    examples_mcp_client_examples(name)
+    tests_conftest(name)
+    tests_mcp_client_compatibility_test(name)
+    tests_test_fallbacks_comprehensive[name]
+    tests_test_runner(name)
+    tests___init__(name)
+    tests_integration_test_cli_commands[name]
+    tests_integration_test_cross_platform[name]
+    tests_integration_test_e2e_workflows((name))
+    tests_integration_test_live_file_monitoring_comprehensive[name]
+    tests_integration_test_optional_dependencies[name]
+    tests_integration_test_package_imports[name]
+    tests_integration_test_pattern_detection_systems_comprehensive((name))
+    tests_integration___init__(name)
+    tests_mcp_test_mcp_entry_points[name]
+    tests_mcp_test_mcp_fallbacks[name]
+    tests_mcp_test_mcp_server[name]
+    tests_mcp_test_mcp_tools[name]
+    tests_mcp_test_priority2_features[name]
+    tests_mcp_test_priority3_features[name]
+    tests_mcp_test_priority4_features[name]
+    tests_mcp_test_priority5_features[name]
+    tests_mcp_test_realtime_intelligence[name]
+    tests_mcp___init__(name)
+    tests_performance_test_performance_benchmarks((name))
+    tests_performance_test_stress_scenarios((name))
+    tests_security_test_security_validation_comprehensive((name))
+    tests_unit_test_code_analyzer(name)
+    tests_unit_test_code_quality_simple(name)
+    tests_unit_test_dependency_analysis_comprehensive[name]
+    tests_unit_test_dependency_visualizer(name)
+    tests_unit_test_documentation_generation_comprehensive[name]
+    tests_unit_test_documentation_generation_simple(name)
+    tests_unit_test_doc_generator(name)
+    tests_unit_test_error_handling_and_recovery_comprehensive((name))
+    tests_unit_test_file_organization[name]
+    tests_unit_test_mcp_comprehensive[name]
+    tests_unit_test_mcp_protocol_comprehensive[name]
+    tests_unit_test_requirements_management[name]
+    tests_unit_test_smart_refactoring_engine[name]
+    tests_unit_test_tools_import(name)
+    tests_unit_test_workflow_orchestrator[name]
+    tests_unit___init__(name)
+    tools_ai_session_tracker[name]
+    tools_ci_cd_integrator[name]
+    tools_code_analyzer((name))
+    tools_dependency_visualizer((name))
+    tools_doc_generator((name))
+    tools_mcp_test_client[name]
+    tools_monitoring_dashboard[name]
+    tools_pre_commit_validator[name]
+    tools_test_mcp_clients[name]
+    demo_file_organization --> deepflow_smart_refactoring_engine
+    demo_priority2_features --> deepflow_mcp_realtime_intelligence
+    demo_priority3_features --> deepflow_mcp_realtime_intelligence
+    demo_priority4_features --> deepflow_smart_refactoring_engine
+    demo_priority4_features --> deepflow_mcp_server
+    demo_priority5_features --> deepflow_workflow_orchestrator
+    demo_priority5_features --> deepflow_mcp_server
+    demo_realtime_intelligence --> deepflow_mcp_realtime_intelligence
+    demo_realtime_intelligence --> deepflow_mcp_server
+    demo_requirements_management --> deepflow_smart_refactoring_engine
+    demo_requirements_management_ascii --> deepflow_smart_refactoring_engine
+    test_realtime_demo --> deepflow_mcp_realtime_intelligence
+    tests_test_fallbacks_comprehensive --> deepflow_mcp_server
+    tests_integration_test_cross_platform --> tools_dependency_visualizer
+    tests_integration_test_cross_platform --> tools_code_analyzer
+    tests_integration_test_cross_platform --> tools_doc_generator
+    tests_integration_test_e2e_workflows --> tools_dependency_visualizer
+    tests_integration_test_e2e_workflows --> tools_code_analyzer
+    tests_integration_test_e2e_workflows --> tools_doc_generator
+    tests_integration_test_e2e_workflows --> tools_pre_commit_validator
+    tests_integration_test_e2e_workflows --> deepflow_mcp_server
+    tests_integration_test_e2e_workflows --> deepflow_mcp_realtime_intelligence
+    tests_integration_test_live_file_monitoring_comprehensive --> deepflow_mcp_realtime_intelligence
+    tests_integration_test_pattern_detection_systems_comprehensive --> deepflow_mcp_realtime_intelligence
+    tests_integration_test_pattern_detection_systems_comprehensive --> tools_code_analyzer
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_entry_points --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_fallbacks --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_mcp_tools --> deepflow_mcp_server
+    tests_mcp_test_priority2_features --> deepflow_mcp_realtime_intelligence
+    tests_mcp_test_priority3_features --> deepflow_mcp_realtime_intelligence
+    tests_mcp_test_priority3_features --> deepflow_mcp_server
+    tests_mcp_test_priority4_features --> deepflow_mcp_server
+    tests_mcp_test_priority4_features --> deepflow_smart_refactoring_engine
+    tests_mcp_test_priority5_features --> deepflow_mcp_server
+    tests_mcp_test_priority5_features --> deepflow_workflow_orchestrator
+    tests_mcp_test_realtime_intelligence --> deepflow_mcp_realtime_intelligence
+    tests_mcp_test_realtime_intelligence --> deepflow_mcp_server
+    tests_performance_test_performance_benchmarks --> tools_dependency_visualizer
+    tests_performance_test_performance_benchmarks --> tools_code_analyzer
+    tests_performance_test_performance_benchmarks --> tools_doc_generator
+    tests_performance_test_performance_benchmarks --> deepflow_mcp_realtime_intelligence
+    tests_performance_test_performance_benchmarks --> deepflow_mcp_server
+    tests_performance_test_stress_scenarios --> tools_dependency_visualizer
+    tests_performance_test_stress_scenarios --> tools_code_analyzer
+    tests_performance_test_stress_scenarios --> tools_doc_generator
+    tests_performance_test_stress_scenarios --> deepflow_mcp_realtime_intelligence
+    tests_security_test_security_validation_comprehensive --> tools_dependency_visualizer
+    tests_security_test_security_validation_comprehensive --> tools_code_analyzer
+    tests_security_test_security_validation_comprehensive --> deepflow_mcp_server
+    tests_unit_test_code_quality_simple --> tools_code_analyzer
+    tests_unit_test_dependency_analysis_comprehensive --> tools_dependency_visualizer
+    tests_unit_test_documentation_generation_comprehensive --> tools_doc_generator
+    tests_unit_test_documentation_generation_simple --> tools_doc_generator
+    tests_unit_test_error_handling_and_recovery_comprehensive --> tools_dependency_visualizer
+    tests_unit_test_error_handling_and_recovery_comprehensive --> tools_code_analyzer
+    tests_unit_test_error_handling_and_recovery_comprehensive --> tools_doc_generator
+    tests_unit_test_error_handling_and_recovery_comprehensive --> deepflow_mcp_server
+    tests_unit_test_file_organization --> deepflow_smart_refactoring_engine
+    tests_unit_test_mcp_comprehensive --> deepflow_mcp_server
+    tests_unit_test_mcp_protocol_comprehensive --> deepflow_mcp_server
+    tests_unit_test_requirements_management --> deepflow_smart_refactoring_engine
+    tests_unit_test_smart_refactoring_engine --> deepflow_smart_refactoring_engine
+    tests_unit_test_workflow_orchestrator --> deepflow_workflow_orchestrator
+    classDef high fill:#ff6b6b,stroke:#d63031,stroke-width:2px,color:#fff
+    classDef medium fill:#fdcb6e,stroke:#e17055,stroke-width:2px,color:#2d3436
+    classDef low fill:#00b894,stroke:#00a085,stroke-width:2px,color:#fff
+    classDef external fill:#74b9ff,stroke:#0984e3,stroke-width:1px,color:#fff
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legend</h3>
+            <ul>
+                <li>🟢 Low Risk Dependencies</li>
+                <li>🟡 Medium Risk Dependencies</li>
+                <li>🔴 High Risk Dependencies</li>
+            </ul>
+        </div>
+        <div class="details">
+            <h3>Analysis Details</h3>
+            <p>This graph shows the dependency relationships in your project. Click on nodes to explore connections.</p>
+        </div>
+        
+        <footer>
+            <p>Generated by Dependency Visualizer • <a href="https://github.com/scs03004/deepflow">Deepflow</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral',
+            flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+        </script>
+</body>
+</html>
