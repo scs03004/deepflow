@@ -33,7 +33,7 @@ except ImportError as e:
     DependencyVisualizer = None
 
 try:
-    from code_analyzer import CodeAnalyzer
+    from tools.code_analyzer import CodeAnalyzer
     ANALYZER_AVAILABLE = True
 except ImportError as e:
     warnings.warn(f"Code analyzer not available: {e}")

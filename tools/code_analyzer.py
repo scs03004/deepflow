@@ -662,7 +662,7 @@ class CodeAnalyzer:
                 f.writelines(lines)
 
             self.console.print(
-                f"[green]✅ Fixed {len(unused_imports)} unused imports in {file_path.name}[/green]"
+                f"[green][OK] Fixed {len(unused_imports)} unused imports in {file_path.name}[/green]"
             )
 
         except Exception as e:
@@ -699,6 +699,43 @@ class CodeAnalyzer:
         tight_coupling = self._find_tight_coupling()
         coupling_metrics.extend(tight_coupling)
 
+        return coupling_metrics
+
+    def _find_circular_dependencies(self) -> List[List[str]]:
+        """Find circular dependencies in the import graph."""
+        try:
+            cycles = list(nx.simple_cycles(self.import_graph))
+            return [cycle for cycle in cycles if len(cycle) > 1]  # Ignore self-loops
+        except Exception:
+            return []
+    
+    def _find_tight_coupling(self) -> List[CouplingMetric]:
+        """Find modules with excessive shared dependencies."""
+        coupling_metrics = []
+        
+        nodes = list(self.import_graph.nodes())
+        for i, module_a in enumerate(nodes):
+            for module_b in nodes[i+1:]:
+                deps_a = set(self.import_graph.successors(module_a))
+                deps_b = set(self.import_graph.successors(module_b))
+                shared_deps = deps_a.intersection(deps_b)
+                
+                # Only flag if there are many shared dependencies (indicates tight coupling)
+                if len(shared_deps) >= 3:  # Threshold for "tight coupling"
+                    coupling_strength = len(shared_deps) / max(len(deps_a), len(deps_b), 1)
+                    
+                    if coupling_strength > 0.5:  # More than 50% shared dependencies
+                        coupling_metrics.append(
+                            CouplingMetric(
+                                module_a=module_a,
+                                module_b=module_b,
+                                coupling_strength=coupling_strength,
+                                coupling_type="tight",
+                                shared_dependencies=list(shared_deps),
+                                refactoring_opportunity=f"Consider extracting shared logic into common module or interface - {len(shared_deps)} shared dependencies"
+                            )
+                        )
+        
         return coupling_metrics
 
     def _build_dependency_graph(self):
@@ -1608,7 +1645,7 @@ class CLIHandler:
     
     def _run_architecture_analysis(self, analyzer):
         """Run architecture analysis and return results."""
-        arch_results = analyzer.check_architecture_violations()
+        arch_results = analyzer.detect_architecture_violations()
         results = {"architecture": [asdict(v) for v in arch_results]}
         
         # Display results

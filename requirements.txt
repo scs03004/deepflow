@@ -1,15 +1,15 @@
 # Core dependencies (minimal for maximum compatibility)
 networkx>=2.8,<4.0        # Graph analysis 
-rich>=12.0.0,<14.0        # Rich terminal output
+rich>=12.0.0,<15.0        # Rich terminal output
 
 # Optional visualization (graceful fallback if not available)
 matplotlib>=3.5.0,<4.0    # Graph visualization
-plotly>=5.0.0,<6.0        # Interactive plots
+plotly>=6.0.0,<7.0        # Interactive plots
 pandas>=1.4.0,<3.0        # Data analysis
 
 # Optional integrations (graceful fallback if not available)  
 GitPython>=3.1.0,<4.0     # Git operations
-flask>=2.0.0,<3.0         # Web framework
+flask>=3.0.0,<4.0         # Web framework
 flask-socketio>=5.0.0,<6.0  # Real-time updates
 jinja2>=3.1.0,<4.0       # Template engine with security fixes
 
