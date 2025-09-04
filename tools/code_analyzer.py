@@ -108,6 +108,8 @@ class PatternConsistency:
     consistent_instances: int
     violations: List[Dict[str, str]]  # file_path, line, description
     recommended_standard: str
+    file_examples: List[str]  # List of files where patterns are found
+    primary_variant: str  # The most common pattern variant
 
 
 @dataclass
@@ -1279,7 +1281,9 @@ class CodeAnalyzer:
                 total_instances=0,
                 consistent_instances=0,
                 violations=[],
-                recommended_standard="No error handling patterns found"
+                recommended_standard="No error handling patterns found",
+                file_examples=[],
+                primary_variant="No error handling patterns found"
             )
         
         pattern_counts = Counter(p['pattern'] for p in all_patterns)
@@ -1288,6 +1292,7 @@ class CodeAnalyzer:
         consistency_score = consistent_count / len(all_patterns) if all_patterns else 0.0
         
         violations = [p for p in all_patterns if p['pattern'] != most_common[0]]
+        file_examples = list(set(p['file'] for p in all_patterns))
         
         return PatternConsistency(
             pattern_type='error_handling',
@@ -1295,7 +1300,9 @@ class CodeAnalyzer:
             total_instances=len(all_patterns),
             consistent_instances=consistent_count,
             violations=violations,
-            recommended_standard=most_common[0]
+            recommended_standard=most_common[0],
+            file_examples=file_examples,
+            primary_variant=most_common[0]
         )
 
     def _analyze_logging_patterns(self) -> PatternConsistency:
@@ -1334,7 +1341,9 @@ class CodeAnalyzer:
                 total_instances=0,
                 consistent_instances=0,
                 violations=[],
-                recommended_standard="No logging patterns found"
+                recommended_standard="No logging patterns found",
+                file_examples=[],
+                primary_variant="No logging patterns found"
             )
         
         pattern_counts = Counter(p['pattern'] for p in logging_patterns)
@@ -1343,6 +1352,7 @@ class CodeAnalyzer:
         consistency_score = consistent_count / len(logging_patterns)
         
         violations = [p for p in logging_patterns if p['pattern'] != most_common[0]]
+        file_examples = list(set(p['file'] for p in logging_patterns))
         
         return PatternConsistency(
             pattern_type='logging',
@@ -1350,7 +1360,9 @@ class CodeAnalyzer:
             total_instances=len(logging_patterns),
             consistent_instances=consistent_count,
             violations=violations,
-            recommended_standard=most_common[0]
+            recommended_standard=most_common[0],
+            file_examples=file_examples,
+            primary_variant=most_common[0]
         )
 
     def _analyze_import_patterns(self) -> PatternConsistency:
@@ -1389,7 +1401,9 @@ class CodeAnalyzer:
                 total_instances=0,
                 consistent_instances=0,
                 violations=[],
-                recommended_standard="No import patterns found"
+                recommended_standard="No import patterns found",
+                file_examples=[],
+                primary_variant="No import patterns found"
             )
         
         pattern_counts = Counter(p['pattern'] for p in import_styles)
@@ -1398,6 +1412,7 @@ class CodeAnalyzer:
         consistency_score = consistent_count / len(import_styles)
         
         violations = [p for p in import_styles if p['pattern'] != most_common[0]]
+        file_examples = list(set(p['file'] for p in import_styles))
         
         return PatternConsistency(
             pattern_type='imports',
@@ -1405,7 +1420,9 @@ class CodeAnalyzer:
             total_instances=len(import_styles),
             consistent_instances=consistent_count,
             violations=violations,
-            recommended_standard=most_common[0]
+            recommended_standard=most_common[0],
+            file_examples=file_examples,
+            primary_variant=most_common[0]
         )
 
     def _analyze_naming_patterns(self) -> PatternConsistency:
@@ -1447,7 +1464,9 @@ class CodeAnalyzer:
                 total_instances=0,
                 consistent_instances=0,
                 violations=[],
-                recommended_standard="No naming patterns found"
+                recommended_standard="No naming patterns found",
+                file_examples=[],
+                primary_variant="No naming patterns found"
             )
         
         pattern_counts = Counter(p['pattern'] for p in naming_patterns)
@@ -1456,6 +1475,7 @@ class CodeAnalyzer:
         consistency_score = consistent_count / len(naming_patterns)
         
         violations = [p for p in naming_patterns if p['pattern'] != most_common[0]]
+        file_examples = list(set(p['file'] for p in naming_patterns))
         
         return PatternConsistency(
             pattern_type='naming',
@@ -1463,7 +1483,9 @@ class CodeAnalyzer:
             total_instances=len(naming_patterns),
             consistent_instances=consistent_count,
             violations=violations,
-            recommended_standard=most_common[0]
+            recommended_standard=most_common[0],
+            file_examples=file_examples,
+            primary_variant=most_common[0]
         )
 
     def analyze_ai_code_metrics(self) -> List[AICodeMetrics]:

@@ -1,0 +1,39 @@
+{
+  "enabled": true,
+  "complexity_threshold": 40,
+  "triggers": {
+    "architectural_impact": {
+      "weight": 50,
+      "keywords": [
+        "new service", "database schema", "api change", "mcp server",
+        "authentication", "authorization", "infrastructure",
+        "dependency analysis", "code analysis", "visualization",
+        "workflow orchestration", "monitoring", "ai integration"
+      ]
+    },
+    "file_impact": {
+      "modified_files_threshold": 5,
+      "new_files_threshold": 3
+    },
+    "complexity_indicators": {
+      "weight": 30,
+      "keywords": [
+        "framework", "library", "integration", "external",
+        "performance", "optimization", "graph processing",
+        "ast parsing", "workflow engine", "smart refactoring",
+        "real-time analysis", "documentation generation"
+      ]
+    },
+    "feature_keywords": {
+      "weight": 20,
+      "keywords": [
+        "implement new", "add feature", "create system",
+        "integrate", "migrate", "refactor architecture",
+        "dependency tracking", "code refactoring", "analysis engine",
+        "visualization improvement", "workflow enhancement"
+      ]
+    }
+  },
+  "output_directory": "docs/design-docs",
+  "template_file": "docs/design-docs/_TEMPLATE.md"
+}
