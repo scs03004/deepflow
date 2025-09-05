@@ -263,6 +263,37 @@ this future need."
 
 ---
 
+## 🧹 Development Tools & File Management Enhancements
+
+### **Repository Cleanup & File Management**
+**Current Issue**: Development sessions sometimes create problematic NUL files and extraneous artifacts that can interfere with git operations and project integrity.
+
+**Proposed Enhancement**: Add intelligent file system monitoring and cleanup capabilities to deepflow:
+
+#### **🎯 High Priority: NUL File Detection & Cleanup**
+- **Automatic Detection**: Scan project directories for NUL files created during development sessions
+- **Smart Removal**: Safely remove NUL files while preserving legitimate zero-byte files that may be intentional
+- **Prevention**: Real-time monitoring to detect NUL file creation and alert developers immediately
+- **Integration**: Add cleanup commands to existing deepflow MCP tools
+
+#### **📁 Extraneous File Management**
+- **Build Artifact Detection**: Identify and clean temporary build files, caches, and development debris
+- **Git Integration**: Pre-commit hooks to prevent problematic files from being committed
+- **Pattern Learning**: RAG-enhanced learning of project-specific cleanup patterns
+- **Safe Cleanup**: Interactive cleanup with preview and rollback capabilities
+
+#### **🔍 File System Health Monitoring**
+- **Real-time Monitoring**: Track file creation patterns during development sessions
+- **Anomaly Detection**: Identify unusual file creation patterns that might indicate issues
+- **Session Integration**: Include file system health in development session logs
+- **Cross-platform Support**: Windows, Linux, and macOS compatible file monitoring
+
+**Implementation Priority**: High - This directly impacts daily development workflow and repository integrity
+
+**Estimated Effort**: 2-4 weeks for core functionality, additional 2 weeks for RAG integration
+
+---
+
 **Status**: Future Enhancement Specification
 **Priority**: Medium-High (after core MCP stability)
 **Estimated Effort**: 6-9 months across 3 phases
