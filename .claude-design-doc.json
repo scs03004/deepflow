@@ -35,5 +35,13 @@
     }
   },
   "output_directory": "docs/design-docs",
-  "template_file": "docs/design-docs/_TEMPLATE.md"
+  "template_file": "docs/design-docs/_TEMPLATE.md",
+  "lifecycle_folders": {
+    "draft": "docs/design-docs",
+    "in_progress": "docs/design-docs/in-progress",
+    "completed": "docs/design-docs/completed", 
+    "cancelled": "docs/design-docs/cancelled",
+    "archived": "docs/design-docs/archived"
+  },
+  "auto_move_on_status": true
 }

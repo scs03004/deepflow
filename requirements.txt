@@ -9,6 +9,7 @@ pandas>=1.4.0,<3.0        # Data analysis
 
 # Optional integrations (graceful fallback if not available)  
 GitPython>=3.1.0,<4.0     # Git operations
+watchdog>=6.0.0,<7.0      # File system monitoring for real-time features
 flask>=3.0.0,<4.0         # Web framework
 flask-socketio>=5.0.0,<6.0  # Real-time updates
 jinja2>=3.1.0,<4.0       # Template engine with security fixes

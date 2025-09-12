@@ -31,6 +31,7 @@ import traceback
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
+import tempfile
 
 # Import our enhanced error handling
 try:
@@ -154,18 +155,62 @@ except ImportError as e:
     WORKFLOW_ORCHESTRATOR_AVAILABLE = False
     print(f"WARNING: Could not import workflow orchestrator: {e}")
 
+def is_running_as_mcp_server():
+    """
+    Detect if we're running as an MCP server based on environment and stdio state.
+    
+    MCP servers typically have their stdout/stderr redirected for protocol communication.
+    """
+    # Check if stdout/stderr are redirected (common for MCP servers)
+    return (
+        not sys.stdout.isatty() or 
+        not sys.stderr.isatty() or
+        os.getenv('MCP_SERVER', '').lower() == 'true' or
+        'mcp' in ' '.join(sys.argv).lower()
+    )
+
+def setup_mcp_safe_logging():
+    """
+    Configure logging that's safe for MCP protocol usage.
+    
+    When running as an MCP server, we need to avoid writing to stdout/stderr
+    as they're used for protocol communication.
+    """
+    # Create logs directory
+    logs_dir = Path(tempfile.gettempdir()) / "deepflow_mcp"
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Create log file path
+    log_file = logs_dir / "mcp_server.log"
+    
+    # Configure file-only logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.FileHandler(log_file),
+            # Only add console handler if not running as MCP server
+            *([] if is_running_as_mcp_server() else [logging.StreamHandler()])
+        ]
+    )
+    
+    return logging.getLogger(__name__)
+
 # Configure logging with enhanced error handling if available
 if ERROR_HANDLING_AVAILABLE:
     error_handler = setup_mcp_error_handling("deepflow.mcp")
     logger = error_handler.logger
+    
+    # If running as MCP server, ensure no stdout/stderr handlers
+    if is_running_as_mcp_server():
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+                root_logger.removeHandler(handler)
 else:
-    # Fallback logging configuration
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    logger = logging.getLogger(__name__)
+    # Use MCP-safe logging configuration
+    logger = setup_mcp_safe_logging()
     error_handler = None
 
 class DeepflowMCPServer:

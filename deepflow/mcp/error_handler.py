@@ -12,10 +12,25 @@ import sys
 import traceback
 import time
 import functools
+import os
 from typing import Dict, Any, Optional, Callable, List
 from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
+
+def is_running_as_mcp_server():
+    """
+    Detect if we're running as an MCP server based on environment and stdio state.
+    
+    MCP servers typically have their stdout/stderr redirected for protocol communication.
+    """
+    # Check if stdout/stderr are redirected (common for MCP servers)
+    return (
+        not sys.stdout.isatty() or 
+        not sys.stderr.isatty() or
+        os.getenv('MCP_SERVER', '').lower() == 'true' or
+        'mcp' in ' '.join(sys.argv).lower()
+    )
 
 # Configure structured logging
 class LogLevel(Enum):
@@ -79,17 +94,19 @@ class MCPErrorHandler:
             
         logger.setLevel(logging.DEBUG)
         
-        # Console handler with colored output
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
-        
-        # Detailed formatter for console
-        console_formatter = logging.Formatter(
-            '%(asctime)s | %(name)s | %(levelname)8s | %(message)s',
-            datefmt='%H:%M:%S'
-        )
-        console_handler.setFormatter(console_formatter)
-        logger.addHandler(console_handler)
+        # Only add console handler if not running as MCP server
+        if not is_running_as_mcp_server():
+            # Console handler with colored output
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(logging.INFO)
+            
+            # Detailed formatter for console
+            console_formatter = logging.Formatter(
+                '%(asctime)s | %(name)s | %(levelname)8s | %(message)s',
+                datefmt='%H:%M:%S'
+            )
+            console_handler.setFormatter(console_formatter)
+            logger.addHandler(console_handler)
         
         # File handler for detailed debugging (if possible)
         try:
