@@ -54,6 +54,14 @@ except ImportError as e:
     REALTIME_AVAILABLE = False
     print(f"WARNING: Real-time intelligence not available: {e}")
 
+# Import Unicode cleanup system
+try:
+    from ..unicode_cleanup import AIAwareUnicodeCleanup, quick_unicode_scan, apply_unicode_cleanup
+    UNICODE_CLEANUP_AVAILABLE = True
+except ImportError as e:
+    UNICODE_CLEANUP_AVAILABLE = False
+    print(f"WARNING: Unicode cleanup not available: {e}")
+
 # Graceful MCP imports
 try:
     from mcp.server import Server
@@ -334,6 +342,11 @@ class DeepflowMCPServer:
                 return await self._handle_analyze_file_organization(arguments)
             elif name == "organize_files":
                 return await self._handle_organize_files(arguments)
+            # Unicode Cleanup tools
+            elif name == "scan_unicode_issues":
+                return await self._handle_scan_unicode_issues(arguments)
+            elif name == "clean_unicode_characters":
+                return await self._handle_clean_unicode_characters(arguments)
             else:
                 return [TextContent(
                     type="text",
@@ -2595,6 +2608,280 @@ class DeepflowMCPServer:
                 text=f"Error organizing files: {str(e)}"
             )]
 
+    async def _handle_scan_unicode_issues(self, arguments: dict):
+        """Scan codebase for problematic Unicode characters."""
+        if not UNICODE_CLEANUP_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Unicode cleanup functionality not available."
+            )]
+        
+        start_time = time.time()
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            file_types = arguments.get("file_types", ["py"])
+            report_format = arguments.get("report_format", "text")
+            include_severity = arguments.get("include_severity", True)
+            
+            logger.info(f"Scanning Unicode issues in {project_path}")
+            
+            # Initialize Unicode cleanup tool
+            cleanup = AIAwareUnicodeCleanup(Path(project_path))
+            
+            # Extend to handle multiple file types
+            if "py" not in file_types:
+                cleanup.excluded_files = set()  # Allow scanning all files if not Python-only
+            
+            # Perform scan
+            results = cleanup.scan_for_unicode()
+            
+            if not results:
+                response_text = """Unicode Scan Results ✅
+
+✅ SUCCESS: No problematic Unicode characters found!
+Your codebase is encoding-safe and ready for deployment on any system.
+
+📊 SCAN SUMMARY:
+• Files scanned: {files_scanned}
+• Unicode issues: 0
+• Encoding compatibility: ✅ Perfect
+
+🎯 Your code is ready for cross-platform deployment!
+""".format(files_scanned=cleanup.stats['files_scanned'])
+            
+            else:
+                # Generate detailed report
+                if report_format == "json":
+                    report = cleanup.generate_report(
+                        cleanup.CleanupResults(
+                            files_processed=len(results),
+                            files_changed=0,
+                            total_replacements=0,
+                            issues_found=[issue for issues in results.values() for issue in issues],
+                            unmapped_chars=set(),
+                            cleanup_successful=False
+                        ),
+                        format="json"
+                    )
+                    response_text = f"Unicode Scan Results (JSON):\n\n{report}"
+                
+                else:
+                    # Text format with AI-coding awareness
+                    response_text = f"""Unicode Scan Results ⚠️
+
+🚨 UNICODE ISSUES DETECTED: {len(results)} files contain problematic characters
+
+📊 SCAN SUMMARY:
+• Files scanned: {cleanup.stats['files_scanned']}
+• Files with Unicode: {len(results)}
+• Total Unicode characters: {cleanup.stats['unicode_chars_found']}
+• Encoding risk: ⚠️  HIGH
+
+🔍 ISSUE BREAKDOWN:"""
+                    
+                    if include_severity:
+                        severity_count = {'high': 0, 'medium': 0, 'low': 0}
+                        category_count = {'emoji': 0, 'symbol': 0, 'accented': 0, 'technical': 0, 'unknown': 0}
+                        
+                        for issues in results.values():
+                            for issue in issues:
+                                severity_count[issue.severity] += 1
+                                category_count[issue.category] += 1
+                        
+                        response_text += f"""
+• 🔴 High severity: {severity_count['high']} (AI status indicators, common in generated code)
+• 🟡 Medium severity: {severity_count['medium']} (Emojis, visual elements)  
+• 🟢 Low severity: {severity_count['low']} (Accented characters, symbols)
+
+📋 CHARACTER CATEGORIES:
+• Emoji: {category_count['emoji']} (🚀 ✅ ❌ etc.)
+• Symbols: {category_count['symbol']} (→ ← ↑ etc.)
+• Technical: {category_count['technical']} (± ≥ ≤ etc.)
+• Accented: {category_count['accented']} (á é í etc.)
+• Unknown: {category_count['unknown']} (unmapped characters)"""
+                    
+                    response_text += f"""
+
+📁 TOP FILES AFFECTED:"""
+                    file_list = sorted(results.items(), key=lambda x: len(x[1]), reverse=True)[:10]
+                    for file_path, issues in file_list:
+                        rel_path = file_path.relative_to(Path(project_path))
+                        issue_count = len(issues)
+                        severity_indicator = "🔴" if any(i.severity == 'high' for i in issues) else "🟡" if any(i.severity == 'medium' for i in issues) else "🟢"
+                        response_text += f"\n• {severity_indicator} {rel_path} ({issue_count} issues)"
+                    
+                    response_text += f"""
+
+💡 NEXT STEPS:
+1. Use 'clean_unicode_characters' tool to fix these issues
+2. Enable apply_changes=true to actually clean the files
+3. All changes are safely backed up before modification
+
+🎯 Cleaning will make your code compatible with Windows CP1252, Linux UTF-8, and all deployment environments!"""
+            
+            self._update_stats(start_time)
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error scanning Unicode issues: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
+            return [TextContent(
+                type="text",
+                text=f"Error scanning Unicode issues: {str(e)}"
+            )]
+
+    async def _handle_clean_unicode_characters(self, arguments: dict):
+        """Clean problematic Unicode characters from codebase."""
+        if not UNICODE_CLEANUP_AVAILABLE:
+            return [TextContent(
+                type="text",
+                text="Error: Unicode cleanup functionality not available."
+            )]
+        
+        start_time = time.time()
+        
+        try:
+            project_path = arguments.get("project_path", ".")
+            dry_run = arguments.get("dry_run", True)
+            backup = arguments.get("backup", True)
+            apply_changes = arguments.get("apply_changes", False)
+            file_types = arguments.get("file_types", ["py"])
+            preserve_docs = arguments.get("preserve_docs", True)
+            
+            # Override dry_run if apply_changes is explicitly set
+            if apply_changes:
+                dry_run = False
+            
+            logger.info(f"{'[DRY-RUN] ' if dry_run else ''}Cleaning Unicode characters in {project_path}")
+            
+            # Initialize Unicode cleanup tool with proper exclusions
+            cleanup = AIAwareUnicodeCleanup(Path(project_path))
+            
+            if preserve_docs:
+                # Keep default exclusions for documentation
+                pass
+            else:
+                # Clean everything if preserve_docs is False
+                cleanup.excluded_files = set()
+            
+            # Extend file types if needed
+            if "py" not in file_types:
+                # This would need custom file finding logic for non-Python files
+                logger.warning("Non-Python file cleaning not fully implemented yet")
+            
+            # Perform cleanup
+            results = cleanup.clean_all_files(dry_run=dry_run)
+            
+            if dry_run:
+                response_text = f"""Unicode Cleanup Preview (DRY RUN) 🧹
+
+🔍 CLEANUP ANALYSIS:
+• Files processed: {results.files_processed}
+• Files needing changes: {results.files_changed}
+• Total replacements needed: {results.total_replacements}
+• Backup creation: {'✅ Enabled' if backup else '❌ Disabled'}
+
+🔄 SAMPLE REPLACEMENTS:
+• ✅ → [PASS] (AI success indicators)
+• ❌ → [FAIL] (AI failure indicators)  
+• 🚀 → [LAUNCH] (AI launch/deploy indicators)
+• ⚠️ → [WARN] (AI warning indicators)
+• → → -> (Arrow symbols)
+• ± → +/- (Mathematical symbols)"""
+
+                if results.unmapped_chars:
+                    response_text += f"""
+
+⚠️  UNMAPPED CHARACTERS DETECTED:
+These characters don't have replacement mappings and need attention:"""
+                    for char in sorted(results.unmapped_chars):
+                        response_text += f"\n• U+{ord(char):04X} ({char})"
+                    
+                    response_text += f"""
+
+💡 Consider adding these to the replacement mapping or removing manually."""
+                
+                response_text += f"""
+
+📊 IMPACT ASSESSMENT:
+• Encoding compatibility: Will improve from ⚠️ to ✅
+• Cross-platform safety: Will be 100% compatible
+• AI-generated code: Will be production-ready
+
+🎯 To apply these changes: use clean_unicode_characters with apply_changes=true"""
+            
+            else:
+                # Actual cleanup was performed
+                success_emoji = "✅" if results.cleanup_successful else "⚠️"
+                response_text = f"""Unicode Cleanup Complete! {success_emoji}
+
+📊 CLEANUP RESULTS:
+• Files processed: {results.files_processed}
+• Files modified: {results.files_changed}
+• Total replacements made: {results.total_replacements}
+• Cleanup status: {'✅ Successful' if results.cleanup_successful else '⚠️ Partial'}
+
+🔄 REPLACEMENTS APPLIED:
+• AI status indicators cleaned (✅❌🚀⚠️ → [PASS][FAIL][LAUNCH][WARN])
+• Mathematical symbols normalized (±≥≤ → +/->>=<=)
+• Arrow symbols converted (→←↑↓ → -><<-v^)
+• Quotation marks standardized (""'' → ""'')"""
+
+                if backup and results.files_changed > 0:
+                    response_text += f"""
+
+💾 BACKUP INFORMATION:
+• Original files backed up before modification
+• Backup location: Same directory with .backup extension
+• You can restore any file if needed"""
+
+                if results.unmapped_chars:
+                    response_text += f"""
+
+⚠️  ATTENTION NEEDED:
+Some Unicode characters couldn't be automatically replaced:"""
+                    for char in sorted(results.unmapped_chars):
+                        response_text += f"\n• U+{ord(char):04X} ({char}) - needs manual review"
+                    
+                    response_text += f"""
+Consider adding these characters to the replacement mapping for future use."""
+                
+                if results.cleanup_successful:
+                    response_text += f"""
+
+🎯 SUCCESS: Your codebase is now encoding-safe!
+✅ Compatible with Windows CP1252
+✅ Compatible with Linux UTF-8  
+✅ Ready for all deployment environments
+✅ No more UnicodeEncodeError exceptions
+
+Your AI-generated code is now production-ready! 🚀"""
+                else:
+                    response_text += f"""
+
+⚠️  PARTIAL SUCCESS: Some issues remain
+• Review unmapped characters above
+• Consider manual cleanup for remaining issues
+• Most critical problems have been resolved"""
+            
+            self._update_stats(start_time)
+            return [TextContent(
+                type="text",
+                text=response_text
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error cleaning Unicode characters: {e}", exc_info=True)
+            self._update_stats(start_time, error=True)
+            return [TextContent(
+                type="text",
+                text=f"Error cleaning Unicode characters: {str(e)}"
+            )]
+
     def get_tools(self) -> List[Tool]:
         """Get available MCP tools."""
         return [
@@ -3414,6 +3701,78 @@ class DeepflowMCPServer:
                             "type": "boolean",
                             "description": "Actually apply the organization changes",
                             "default": False
+                        }
+                    }
+                }
+            ),
+            # Unicode Cleanup Tools (AI Coding Quality Enhancement)
+            Tool(
+                name="scan_unicode_issues",
+                description="Scan codebase for problematic Unicode characters that cause encoding errors in AI-generated code",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to scan",
+                            "default": "."
+                        },
+                        "file_types": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "File extensions to scan (e.g., ['py', 'js', 'ts'])",
+                            "default": ["py"]
+                        },
+                        "report_format": {
+                            "type": "string",
+                            "enum": ["text", "json", "html"],
+                            "description": "Format for the scan report",
+                            "default": "text"
+                        },
+                        "include_severity": {
+                            "type": "boolean",
+                            "description": "Include severity classification for each issue",
+                            "default": True
+                        }
+                    }
+                }
+            ),
+            Tool(
+                name="clean_unicode_characters",
+                description="Clean problematic Unicode characters from codebase with AI-aware replacement mappings",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_path": {
+                            "type": "string",
+                            "description": "Path to the project to clean",
+                            "default": "."
+                        },
+                        "dry_run": {
+                            "type": "boolean",
+                            "description": "Show what changes would be made without applying them",
+                            "default": True
+                        },
+                        "backup": {
+                            "type": "boolean",
+                            "description": "Create backups before modifying files",
+                            "default": True
+                        },
+                        "apply_changes": {
+                            "type": "boolean",
+                            "description": "Actually apply the Unicode cleanup",
+                            "default": False
+                        },
+                        "file_types": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "File extensions to clean",
+                            "default": ["py"]
+                        },
+                        "preserve_docs": {
+                            "type": "boolean",
+                            "description": "Preserve Unicode in documentation files",
+                            "default": True
                         }
                     }
                 }

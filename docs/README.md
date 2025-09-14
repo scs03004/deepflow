@@ -57,9 +57,10 @@ Document templates and examples:
 - Code templates and examples
 
 ### 🗄️ **Archive** (`archive/`)
-Outdated or superseded documents:
+Historical documents and completed session logs:
 - Legacy documentation
-- Historical design decisions
+- Development session logs
+- Completed project milestones
 
 ## 🔍 Quick Reference
 
